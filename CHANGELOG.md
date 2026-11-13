@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- Build & print: the paper preview now comes right after the question list, and the print buttons sit in a bar at the bottom of the preview that stays in view while you scroll and shows "3 versions · 12 questions · 26 points". **New scramble** moved next to the version letters; Part directions moved below the preview.
 - Backup is now the first box on Import & backup, and shows when you last downloaded one (bold after two weeks).
 
 ### Fixed
