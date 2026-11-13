@@ -1,7 +1,7 @@
 :root{
-  --bg:#f6f4ef; --panel:#fff; --ink:#1d2125; --ink2:#4a5058; --muted:#7a8088; --line:#e3e0d8; --line2:#d3cfc4;
+  --bg:#f6f4ef; --panel:#fff; --ink:#1d2125; --ink2:#4a5058; --muted:#5f656c; --line:#e3e0d8; --line2:#d3cfc4;
   --accent:#1f5f5b; --accent-ink:#fff; --accent-soft:#e3efed; --danger:#b3261e; --danger-soft:#fbe9e7;
-  --mc:#2f5d9e; --tf:#7a4fa3; --sa:#a0611a; --es:#3d7a3a; --radius:10px;
+  --mc:#2f5d9e; --tf:#7a4fa3; --sa:#8a5214; --es:#3d7a3a; --radius:10px;
   --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
 }
 *{box-sizing:border-box}
@@ -32,7 +32,7 @@ label{display:block}
 .tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow);font-weight:600}
 .tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:10px;background:#e7e4dc;font-size:11.5px;color:var(--ink2)}
 .savebox{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.savebox .dot{width:8px;height:8px;border-radius:50%;background:#9bb8a0;display:inline-block}
+.savebox .dot{width:8px;height:8px;border-radius:50%;background:#3b7a4a;display:inline-block}
 .savebox .dot.warn{background:#d39b2a}
 .banner{background:#fff4dc;border-bottom:1px solid #f0d9a6;padding:8px 22px;font-size:13px;color:#6b4e12}
 main{max-width:1200px;margin:0 auto;padding:22px}
@@ -129,7 +129,7 @@ sup,sub{font-size:.7em;line-height:0}
 .dialog .row2 input{width:100%}
 .rich{border:1px solid var(--line2);border-radius:8px;padding:8px 10px;min-height:2.4em;outline:none;background:#fff;font-family:"Times New Roman",Times,serif;font-size:16px;line-height:1.5;overflow-wrap:anywhere}
 .rich.big{min-height:5em}
-.rich:empty::before{content:attr(data-ph);color:#aaa;font-family:system-ui,sans-serif;font-size:14px}
+.rich:empty::before{content:attr(data-ph);color:var(--muted);font-family:system-ui,sans-serif;font-size:14px}
 .rich .q-img{max-width:100%;height:auto}
 .symbar{display:flex;gap:3px;flex-wrap:wrap;margin:0 0 6px}
 .symbar button{padding:2px 8px;font-size:14px;min-width:30px;font-family:"Times New Roman",serif}
@@ -341,3 +341,39 @@ table.rv .pt-ch{margin-bottom:2pt}
 .pt-lesson .ls-q{margin-top:8pt}
 #printRoot .pre-img{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
 .brand .ver{font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;letter-spacing:0}
+
+/* ---- keyboard focus: always visible ---- */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.filebtn:focus-within button{outline:2px solid var(--accent);outline-offset:2px}
+.symbar button:focus-visible{outline-offset:1px}
+
+/* ---- Display settings ---- */
+.dispbtn{display:flex;align-items:center;gap:6px;color:var(--ink2)}
+.dispbtn .aa{font-family:Georgia,serif;font-weight:700;font-size:15px;line-height:1}
+.disp{position:fixed;inset:auto;top:58px;right:16px;margin:0;width:min(320px,calc(100vw - 32px));border:1px solid var(--line2);border-radius:var(--radius);background:var(--panel);color:var(--ink);padding:16px 18px;box-shadow:0 8px 28px rgba(0,0,0,.16)}
+.disp h2{font-family:Georgia,serif;font-size:17px;margin:0 0 4px;font-weight:600}
+.disp fieldset{border:none;margin:0 0 10px;padding:0;display:grid;gap:2px}
+.disp legend{font-size:12px;font-weight:600;color:var(--ink2);padding:0;margin-bottom:4px}
+.disp .opt{display:flex;gap:8px;align-items:center;padding:4px 0;font-size:14px;cursor:pointer}
+.f-atkinson{font-family:'Atkinson Hyperlegible Next',sans-serif}
+.f-opendyslexic{font-family:'OpenDyslexic',sans-serif}
+
+/* App font (screens only; .pt paper and the math symbol buttons keep their own fonts) */
+html[data-font=atkinson]{--uif:'Atkinson Hyperlegible Next',"Segoe UI",system-ui,sans-serif}
+html[data-font=opendyslexic]{--uif:'OpenDyslexic',"Segoe UI",system-ui,sans-serif}
+html[data-font=atkinson] body,html[data-font=opendyslexic] body,
+html[data-font=atkinson] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote),
+html[data-font=opendyslexic] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote){font-family:var(--uif)}
+
+/* Text size (screens only) */
+@media screen{html[data-size=l] body{zoom:1.15} html[data-size=xl] body{zoom:1.3}}
+
+/* High contrast */
+html.hc{--ink:#000;--ink2:#1d2125;--muted:#2f3439;--line:#8f897c;--line2:#5f5a50;--accent:#123f3c}
+html.hc :focus-visible,html.hc button:focus-visible{outline-width:3px}
+html.hc .badge{outline:1px solid currentColor}
+
+/* Less motion: the switch, and the computer's own setting */
+html.calm *,html.calm *::before,html.calm *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

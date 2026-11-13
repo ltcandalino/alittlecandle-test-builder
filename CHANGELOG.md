@@ -6,7 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Aa Display** button at the top: app font (Standard, Atkinson Hyperlegible or OpenDyslexic), text size (Normal, Large, Larger), High contrast and Less motion. Saved per person in that browser; printouts don't change. The two fonts are built into the app (SIL Open Font License), so they work offline.
+- Keyboard and screen-reader support: a visible outline on whatever has keyboard focus; the math symbol row in the editor is reachable with the keyboard (one Tab stop, arrow keys inside) and each symbol has a spoken name; Tab stays inside the question editor; the current section is announced; each "Put on test" checkbox names its question.
+
 ### Changed
+- Gray hint text is darker so it's easy to read (it now meets the WCAG AA contrast standard), and so is the "Short answer" label. The "Saved" dot is a clearer green.
 - Build & print: the paper preview now comes right after the question list, and the print buttons sit in a bar at the bottom of the preview that stays in view while you scroll and shows "3 versions · 12 questions · 26 points". **New scramble** moved next to the version letters; Part directions moved below the preview.
 - Backup is now the first box on Import & backup, and shows when you last downloaded one (bold after two weeks).
 

@@ -52,6 +52,8 @@ Then, under Print:
 
 ## Part B: display settings for teachers
 
+**Done 2026-11-13** (with review fix 4).
+
 **What you'll see:** a **Display** button (Aa) in the top bar opens:
 
 - **App font:** Standard, Atkinson Hyperlegible or OpenDyslexic.

@@ -101,6 +101,7 @@ var state={settings:Object.assign({},DEFAULT_SETTINGS),questions:[],selected:[],
 var ui={tab:'bank',q:'',bank:'',topic:'',type:'',std:'',unit:'',section:'',source:'',year:'',month:'',cluster:'',sub:'',sort:'bank',limit:40,pv:0,showAns:false,pickN:5,pickBank:'',pickTopic:'',pickType:'',pickUnit:'',pickSection:''};
 try{var uu=JSON.parse(localStorage.getItem('tb-ui')||'null');if(uu)Object.assign(ui,uu,{limit:40});}catch(e){}
 function saveUi(){try{localStorage.setItem('tb-ui',JSON.stringify(ui));}catch(e){}}
+applyDisplay();
 var db=null,storageOk=true,saveTimer=null,lastSaved=null;
 function openDb(){
   return new Promise(function(res){
@@ -539,7 +540,7 @@ function fileBase(t){return String(t||'Test').replace(/[\\\/:*?"<>|]+/g,'').repl
 /* ================= shell ================= */
 var root=document.getElementById('root');
 function shell(){
-  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs"></nav><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
+  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;
@@ -559,7 +560,7 @@ function switchCourse(name){
 function renderTabs(){
   renderCourses();
   var t=[['bank','Question bank',cq().length],['build','Build & print',state.selected.length],['io','Import & backup',null]];
-  $('#tabs').innerHTML=t.map(function(x){return '<button data-tab="'+x[0]+'" class="'+(ui.tab===x[0]?'on':'')+'">'+esc(x[1])+(x[2]!=null?'<span class="count">'+x[2]+'</span>':'')+'</button>';}).join('');
+  $('#tabs').innerHTML=t.map(function(x){return '<button data-tab="'+x[0]+'" class="'+(ui.tab===x[0]?'on':'')+'"'+(ui.tab===x[0]?' aria-current="page"':'')+'>'+esc(x[1])+(x[2]!=null?'<span class="count">'+x[2]+'</span>':'')+'</button>';}).join('');
   $$('#tabs button').forEach(function(b){b.onclick=function(){ui.tab=b.dataset.tab;ui.limit=40;saveUi();render();window.scrollTo(0,0);};});
 }
 function render(){renderTabs();if(ui.tab==='build')renderBuild();else if(ui.tab==='io')renderIO();else renderBank();}
@@ -610,7 +611,7 @@ function qCard(q){
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
   if(q.notes)body+='<div class="mynote">'+textToHtml(q.notes)+'</div>';
   var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit?'<span class="tag unit" title="Unit">'+esc(q.unit)+'</span>':'')+(q.section?'<span class="tag unit" title="Section">'+esc(q.section)+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
-  return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
+  return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
 }
 function renderBank(){
   var main=$('#main');
@@ -665,7 +666,14 @@ function drawList(){
 /* ================= editor ================= */
 var ed=null,edIsNew=false,lastNew={};
 var SYMS=['∠','△','≅','∼','⊥','∥','°','π','√','≠','≤','≥','±','×','÷','θ','′'];
-function symbar(){return '<div class="symbar">'+SYMS.map(function(s){return '<button type="button" data-sym="'+s+'" tabindex="-1">'+s+'</button>';}).join('')+'<span class="sep"></span><button type="button" data-wrap="m-ov" title="Segment: select letters first" tabindex="-1"><span class="m-ov">AB</span></button><button type="button" data-wrap="m-line" title="Line: select letters first" tabindex="-1"><span class="m-acc m-line">AB</span></button><button type="button" data-wrap="m-ray" title="Ray: select letters first" tabindex="-1"><span class="m-acc m-ray">AB</span></button><button type="button" data-wrap="m-arc" title="Arc: select letters first" tabindex="-1"><span class="m-acc m-arc">AB</span></button><button type="button" data-wrap="sup" title="Exponent: select text first" tabindex="-1">x²</button><button type="button" data-wrap="sub" title="Subscript: select text first" tabindex="-1">x₂</button><span class="sep"></span><span class="filebtn"><button type="button" tabindex="-1">Picture…</button><input type="file" accept="image/*" data-pic></span></div>';}
+var SYM_NAMES={'∠':'angle','△':'triangle','≅':'congruent','∼':'similar','⊥':'perpendicular','∥':'parallel','°':'degree','π':'pi','√':'square root','≠':'not equal','≤':'less than or equal','≥':'greater than or equal','±':'plus or minus','×':'times','÷':'divided by','θ':'theta','′':'prime'};
+function symbar(){var first=true;function ti(){var t=first?'0':'-1';first=false;return ' tabindex="'+t+'"';}
+  return '<div class="symbar" role="toolbar" aria-label="Symbols and math formatting (use the arrow keys)">'+SYMS.map(function(s){return '<button type="button" data-sym="'+s+'"'+ti()+' aria-label="'+(SYM_NAMES[s]||s)+'" title="'+(SYM_NAMES[s]||s)+'">'+s+'</button>';}).join('')+'<span class="sep"></span>'+
+  [['m-ov','Segment: select letters first','<span class="m-ov">AB</span>'],['m-line','Line: select letters first','<span class="m-acc m-line">AB</span>'],['m-ray','Ray: select letters first','<span class="m-acc m-ray">AB</span>'],['m-arc','Arc: select letters first','<span class="m-acc m-arc">AB</span>'],['sup','Exponent: select text first','x²'],['sub','Subscript: select text first','x₂']].map(function(w){return '<button type="button" data-wrap="'+w[0]+'" title="'+w[1]+'" aria-label="'+w[1]+'"'+ti()+'>'+w[2]+'</button>';}).join('')+
+  '<span class="sep"></span><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true">Picture…</button><input type="file" accept="image/*" data-pic tabindex="-1" aria-label="Insert a picture"></span></div>';}
+function wireToolbar(bar){var items=$$('[data-sym],[data-wrap],[data-pic]',bar);
+  bar.addEventListener('keydown',function(e){var i=items.indexOf(document.activeElement);if(i<0)return;var j={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:items.length-1}[e.key];if(j==null)return;e.preventDefault();j=(j+items.length)%items.length;items[i].tabIndex=-1;items[j].tabIndex=0;items[j].focus();});
+  items.forEach(function(it){it.addEventListener('focus',function(){items.forEach(function(x){x.tabIndex=x===it?0:-1;});});});}
 var lastRich=null;
 function wireRich(container){
   $$('.rich',container).forEach(function(el){
@@ -687,6 +695,7 @@ function wireRich(container){
     if(w!=='sup'&&w!=='sub')node.className=(w==='m-ov'?'m-ov':'m-acc '+w);
     node.appendChild(r.extractContents());r.insertNode(node);sel.removeAllRanges();
   };});
+  $$('.symbar',container).forEach(wireToolbar);
   $$('[data-pic]',container).forEach(function(inp){inp.onchange=function(){var f=inp.files&&inp.files[0];var el=targetRich(inp);inp.value='';if(f&&el)insertPicture(f,el);};});
 }
 function targetRich(btn){var box=btn.closest('[data-richbox]');var el=box?$('.rich',box):null;if(!el&&lastRich&&document.body.contains(lastRich))el=lastRich;return el;}
@@ -728,7 +737,7 @@ function openEditor(q){
   $('#e-cancel').onclick=requestClose;$('#e-save').onclick=function(){commitEditor(false);};
   if($('#e-more'))$('#e-more').onclick=function(){commitEditor(true);};
   $('#ov').onmousedown=function(e){if(e.target.id==='ov'){e.preventDefault();requestClose();}};
-  $('#ov').onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();if(!$('#e-confirm').hidden)hideDiscard();else requestClose();}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitEditor(false);}};
+  $('#ov').onkeydown=function(e){if(e.key==='Tab'){var f=$$('.dialog button:not([disabled]),.dialog input:not([tabindex="-1"]),.dialog select,.dialog textarea,.dialog [contenteditable="true"],.dialog [tabindex="0"]').filter(function(x){return x.offsetParent!==null;});if(f.length){var a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}}if(e.key==='Escape'){e.preventDefault();if(!$('#e-confirm').hidden)hideDiscard();else requestClose();}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitEditor(false);}};
   drawSpec();collect();edSnap=JSON.stringify(ed);edReturn=q?q.id:null;setTimeout(function(){$('#e-text').focus();},30);
 }
 /* Closing the editor never throws away typing without asking. */
@@ -1345,8 +1354,20 @@ function loadUsers(){
 function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.className='toast';t.id='toast';document.body.appendChild(t);}toast(msg);}
 
 /* ================= start ================= */
+/* Personal display settings (this browser only; never change the printouts). */
+var DISPLAY={font:[['','Standard'],['atkinson','Atkinson Hyperlegible'],['opendyslexic','OpenDyslexic']],size:[['','Normal'],['l','Large'],['xl','Larger']]};
+function applyDisplay(){var d=ui.display||{},h=document.documentElement;h.dataset.font=d.font||'';h.dataset.size=d.size||'';h.classList.toggle('hc',!!d.contrast);h.classList.toggle('calm',!!d.calm);}
+function drawDisplay(){var p=$('#dispPop');if(!p)return;var d=ui.display||{};
+  function group(key,label){return '<fieldset><legend>'+label+'</legend>'+DISPLAY[key].map(function(o){return '<label class="opt"><input type="radio" name="d-'+key+'" value="'+o[0]+'"'+((d[key]||'')===o[0]?' checked':'')+'><span'+(key==='font'&&o[0]?' class="f-'+o[0]+'"':'')+'>'+o[1]+'</span></label>';}).join('')+'</fieldset>';}
+  p.innerHTML='<h2>Display</h2><p class="hint" style="margin:0 0 10px">Just for you, in this browser. Printed tests don’t change.</p>'+group('font','Font')+group('size','Text size')+
+    '<fieldset><legend>More</legend><label class="opt"><input type="checkbox" id="d-contrast"'+(d.contrast?' checked':'')+'><span>High contrast</span></label><label class="opt"><input type="checkbox" id="d-calm"'+(d.calm?' checked':'')+'><span>Less motion</span></label></fieldset>'+
+    '<div class="dlg-actions" style="margin-top:12px"><button type="button" class="small ghost" id="d-reset">Reset</button><span class="spacer"></span><button type="button" class="small primary" popovertarget="dispPop" popovertargetaction="hide">Done</button></div>';
+  function set(k,v){ui.display=Object.assign({},ui.display);if(v)ui.display[k]=v;else delete ui.display[k];saveUi();applyDisplay();}
+  $$('input[type=radio]',p).forEach(function(r){r.onchange=function(){set(r.name.slice(2),r.value);};});
+  $('#d-contrast').onchange=function(){set('contrast',this.checked);};$('#d-calm').onchange=function(){set('calm',this.checked);};
+  $('#d-reset').onclick=function(){ui.display={};saveUi();applyDisplay();drawDisplay();$('#d-reset').focus();};}
 function startApp(after){
-  shell();
+  shell();applyDisplay();drawDisplay();
   setStatus('Loading…');
   openDb().then(function(ok){
     if(!ok){storageOk=false;$('#bannerSlot').innerHTML='<div class="banner">This browser won’t let the page save on this computer'+(CLOUDON?', so changes only stay while you’re online.':', so your work disappears when you close it. Use <b>Download backup</b> on the Import tab to keep it, or open the file in Chrome, Edge or Firefox.')+'</div>';setStatus('Not saving',true);}

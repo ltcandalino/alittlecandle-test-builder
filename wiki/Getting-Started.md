@@ -14,6 +14,23 @@ Your work is saved automatically in that browser on that computer. Opening the f
 
 The **Course** menu at the top switches between courses. Each course has its own questions and settings.
 
+## Display settings
+
+Click **Aa Display** at the top to make the app easier on your eyes:
+
+- **Font**: Standard, **Atkinson Hyperlegible** (very clear letters) or **OpenDyslexic** (made for readers with dyslexia). Both are built in, so they work without the internet.
+- **Text size**: Normal, Large or Larger.
+- **High contrast**: darker text and stronger lines and outlines.
+- **Less motion**: turns off animations. This also happens on its own if your computer is set to reduce motion.
+
+These settings are just for you, in that browser. They don't change your printed tests, and a colleague's settings never change yours.
+
+## Using the keyboard
+
+- **Tab** moves between buttons and boxes, and a dark outline shows where you are.
+- In the question editor, the row of math symbols is one Tab stop: press **Shift+Tab** from the question box to reach it, then use the **arrow keys** to pick a symbol and **Enter** to type it.
+- **Ctrl+Enter** saves a question and **Esc** closes the editor (it asks first if you changed something).
+
 ## Your first document in five minutes
 
 1. Pick your course from the **Course** menu.

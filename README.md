@@ -15,6 +15,7 @@ to keep a copy or move to another computer.
 
 ## What it does
 
+- **Display settings** (Aa Display): dyslexia-friendly fonts, larger text, high contrast and less motion, just for you.
 - **Imports questions** from ExamView banks (`.bnk`, with math and pictures), PDFs (as text or
   as pictures) and Word files (`.docx`).
 - **Keeps details for each question:** course, bank, source, unit, section, part, topic,
@@ -37,6 +38,7 @@ to keep a copy or move to another computer.
 |---|---|
 | `src/` | The app's code and styles. Edit these. |
 | `vendor/pdfjs/` | pdf.js, used to read PDFs (Apache 2.0). |
+| `vendor/fonts/` | Atkinson Hyperlegible Next and OpenDyslexic, built into the app (SIL Open Font License). |
 | `build.py` | Combines everything into the two HTML files below. |
 | `ALittleCandleTestBuilder.html` | Built: the single-file version you open from your computer. |
 | `docker/` | The website version with logins: server, Dockerfile, setup guide. `docker/index.html` is built. |

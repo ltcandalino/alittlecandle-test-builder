@@ -1,0 +1,3 @@
+Atkinson Hyperlegible Next and OpenDyslexic, latin subset, weights 400/700, normal + italic.
+From the @fontsource/atkinson-hyperlegible-next 5.3.0 and @fontsource/opendyslexic 5.3.0 npm packages.
+SIL Open Font License 1.1 (see the LICENSE-*.txt files). build.py embeds them as @font-face data URLs.

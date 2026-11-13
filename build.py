@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build ALittleCandleTestBuilder.
 
-Combines the files in src/ and vendor/pdfjs/ into single HTML pages:
+Combines the files in src/, vendor/pdfjs/ and vendor/fonts/ into single HTML pages:
   ALittleCandleTestBuilder.html  - open it straight from your computer (no logins)
   docker/index.html              - the website the Docker server hands out (logins + sync)
 
@@ -9,6 +9,7 @@ The version comes from the VERSION file.
 
 Run:  python3 build.py
 """
+import base64
 import os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +24,22 @@ def read(*parts):
 
 VERSION = read('VERSION').strip()
 assert __import__('re').fullmatch(r'\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?', VERSION), 'VERSION must be semantic, like 1.2.3'
-css = read('src', 'style.css')
+FONTS = {'Atkinson Hyperlegible Next': 'atkinson-hyperlegible-next', 'OpenDyslexic': 'opendyslexic'}
+
+
+def font_faces():
+    out = []
+    for family, stem in FONTS.items():
+        for weight in (400, 700):
+            for style in ('normal', 'italic'):
+                with open(os.path.join(ROOT, 'vendor', 'fonts', f'{stem}-latin-{weight}-{style}.woff2'), 'rb') as f:
+                    data = base64.b64encode(f.read()).decode()
+                out.append(f"@font-face{{font-family:'{family}';font-style:{style};font-weight:{weight};font-display:swap;"
+                           f"src:url(data:font/woff2;base64,{data}) format('woff2')}}")
+    return '\n'.join(out) + '\n'
+
+
+css = font_faces() + read('src', 'style.css')
 js = {name: read('src', name) for name in SCRIPTS}
 lib = read('vendor', 'pdfjs', 'pdf.min.mjs')
 worker = read('vendor', 'pdfjs', 'pdf.worker.min.mjs')

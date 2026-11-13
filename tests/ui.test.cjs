@@ -333,3 +333,58 @@ describe('courses', () => {
     assert.equal(await count(), 1);
   });
 });
+
+describe('accessibility and display', () => {
+  test('hint text is dark enough to read (WCAG AA)', async () => {
+    await addQuestions(page, [{ html: 'Q' }]); await gotoTab(page, 'bank');
+    const ratio = await page.evaluate(() => {
+      const rgb = c => c.match(/\d+/g).slice(0, 3).map(Number);
+      const lum = c => { const v = rgb(c).map(x => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+      const fg = getComputedStyle(document.querySelector('.subbar')).color, bg = getComputedStyle(document.body).backgroundColor;
+      const a = lum(fg), b = lum(bg); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    });
+    assert.ok(ratio >= 4.5, `contrast ${ratio.toFixed(2)}`);
+  });
+  test('the current section is announced, and question checkboxes say which question', async () => {
+    await addQuestions(page, [{ html: 'Area of a circle' }]); await gotoTab(page, 'bank');
+    assert.equal(await page.getAttribute('#tabs button.on', 'aria-current'), 'page');
+    assert.match(await page.getAttribute('[data-pick]', 'aria-label'), /Area of a circle/);
+  });
+  test('math symbols can be reached and typed with the keyboard', async () => {
+    await gotoTab(page, 'bank');
+    await page.click('#newQ'); await page.click('#e-text'); await page.keyboard.type('AB');
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.sym), '∠', 'one Tab stop lands on the first symbol');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'triangle');
+    await page.keyboard.press('Enter');
+    assert.match(await page.evaluate(() => document.querySelector('#e-text').textContent), /△/);
+  });
+  test('Tab stays inside the question editor', async () => {
+    await gotoTab(page, 'bank');
+    await page.click('#newQ'); await page.focus('#e-save');
+    await page.keyboard.press('Tab');
+    assert.ok(await page.evaluate(() => !!document.activeElement.closest('.dialog')));
+  });
+  test('Display settings change the app, are remembered, and never change the paper', async () => {
+    await addQuestions(page, [{ html: 'Q' }]);
+    const ids = await page.evaluate(() => window.__tb.state.questions.map(q => q.id));
+    await page.evaluate(ids => { window.__tb.state.selected = ids; }, ids);
+    await gotoTab(page, 'build');
+    const paperFont = () => page.evaluate(() => getComputedStyle(document.querySelector('#paper')).fontFamily);
+    const before = await paperFont();
+    await page.click('.dispbtn');
+    await page.check('input[name="d-font"][value="opendyslexic"]');
+    await page.check('input[name="d-size"][value="l"]');
+    await page.check('#d-contrast');
+    assert.equal(await page.getAttribute('html', 'data-font'), 'opendyslexic');
+    assert.match(await page.evaluate(() => getComputedStyle(document.body).fontFamily), /OpenDyslexic/);
+    assert.ok(await page.evaluate(() => document.fonts.check('16px OpenDyslexic')), 'the font is built in');
+    assert.equal(await paperFont(), before, 'printouts keep their font');
+    await page.reload(); await page.waitForFunction(() => window.__tb);
+    assert.equal(await page.getAttribute('html', 'data-size'), 'l');
+    assert.ok(await page.evaluate(() => document.documentElement.classList.contains('hc')));
+    await page.click('.dispbtn'); await page.click('#d-reset');
+    assert.equal(await page.getAttribute('html', 'data-font'), '');
+  });
+});

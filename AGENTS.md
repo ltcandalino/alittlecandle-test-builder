@@ -27,6 +27,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
    Docker and npm; review and merge them after CI passes. pdf.js isn't covered: at the start of a
    session compare `npm view pdfjs-dist version` with `vendor/pdfjs/VERSION.txt` and copy
    `legacy/build/pdf.min.mjs` + `pdf.worker.min.mjs` from `npm pack pdfjs-dist@<v>` when newer.
+   Same for `vendor/fonts/` (`npm view @fontsource/atkinson-hyperlegible-next version`, `@fontsource/opendyslexic`).
    Run `npm outdated` / `npm audit` too.
 8. Saved user data must keep loading: when settings or question fields change, migrate old data
    (`migrateSettings`, `normalize` in `src/app.js`) instead of breaking it.
@@ -46,6 +47,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
 | `src/style.css` | App styles + print styles. |
 | `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |
+| `vendor/fonts/` | Atkinson Hyperlegible Next + OpenDyslexic woff2 (latin, 400/700, normal/italic, fontsource 5.3.0); `build.py` embeds them as `@font-face` data URLs (~830 KB). |
 | `build.py` | Concatenates everything into `ALittleCandleTestBuilder.html` (no config) and `docker/index.html` (loads `config.js`). |
 | `docker/server.js` | Node server (26 LTS in the image), no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
@@ -177,8 +179,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [ ] Design review 2026-11-13 (`/impeccable critique`, 27/40, snapshot in `.impeccable/critique/`). She chose
       all 5 issues, work-protection first: (1) DONE editor asks before discarding edits (`requestClose`); (2) DONE
       Restore offers Replace vs Add missing (`restoreChoice`), Backup card first with `ui.lastBackup` line; (3) DONE preview
-      before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) contrast of `--muted`, keyboard-reachable symbol bar,
-      focus styles, tab roles (`audit`); (5) fewer always-visible controls, labeled unit/section chips,
+      before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) DONE `--muted` #5f656c, symbol bar toolbar
+      (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) fewer always-visible controls, labeled unit/section chips,
       one accent color (`distill`); then `polish`.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
@@ -208,3 +210,5 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - **2026-11-13**: design review (27/40), PRODUCT.md, approved PLAN.md. Review fixes 1–2 done: editor discard
   check (backdrop mousedown keeps focus in the dialog), Restore Replace/Add missing with Undo, Backup card first.
   Fix 3: Build & print order Questions → Preview (+ sticky print bar) → Part directions. 157 tests pass.
+- **2026-11-13**: fix 4 + PLAN Part B: readable muted color, keyboard symbol bar, focus outlines, Display popover
+  (native `popover`; `ui.display` in `tb-ui`; fonts via `--uif` on screen only, `zoom` for size, `.hc`, `.calm`). 162 tests.
