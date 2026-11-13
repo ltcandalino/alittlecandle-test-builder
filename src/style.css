@@ -407,3 +407,11 @@ details.fold[open]>summary{margin-bottom:12px}
 .qactions button[data-del]{color:var(--danger)}
 .helplink{font-size:13px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}
 .helplink:hover{color:var(--accent)}
+
+/* ---- print bar check + progress ---- */
+.pb-warnrow{flex-basis:100%}
+.pb-warnrow:empty{display:none}
+.pb-warn{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;border:1px solid #f0d9a6;background:#fff4dc;color:#6b4e12;border-radius:8px;font-size:13px}
+.printstrip{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:20;display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px);padding:10px 14px;background:var(--ink);color:#fff;border-radius:9px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.printstrip button{color:var(--ink);background:#fff}
+@media print{.printstrip{display:none!important}}
