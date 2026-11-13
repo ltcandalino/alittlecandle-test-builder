@@ -116,6 +116,7 @@ const clientIp = (req) => (req.headers['x-forwarded-for'] || '').split(',')[0].t
 
 /* ---------------- website files ---------------- */
 const INDEX = fs.readFileSync(path.join(__dirname, 'index.html'));
+const VERSION = (INDEX.toString('utf8', 0, 4000).match(/<meta name="version" content="([^"]+)"/) || [])[1] || 'unknown';
 const INDEX_ETAG = '"' + crypto.createHash('sha1').update(INDEX).digest('hex').slice(0, 16) + '"';
 const CONFIG_JS = "window.ALCTB_CONFIG={supabaseUrl:location.origin,supabaseAnonKey:'self-hosted',selfHosted:true};\n";
 const IMG_TYPES = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' };
@@ -135,7 +136,7 @@ async function handle(req, res) {
     res.writeHead(200, Object.assign({ 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' }, SEC));
     return res.end(CONFIG_JS);
   }
-  if (p === '/healthz') return send(res, 200, { ok: true });
+  if (p === '/healthz') return send(res, 200, { ok: true, version: VERSION });
 
   // pictures (public read; names are long random codes)
   if (req.method === 'GET' && p.startsWith('/storage/v1/object/public/images/')) {
@@ -290,6 +291,6 @@ async function handle(req, res) {
 
 http.createServer((req, res) => {
   handle(req, res).catch((e) => { console.error(e); if (!res.headersSent) err(res, 500, 'Something went wrong on the server.'); });
-}).listen(PORT, () => console.log('ALittleCandleTestBuilder is running on port ' + PORT + ' (data in ' + DATA + ')'));
+}).listen(PORT, () => console.log('ALittleCandleTestBuilder ' + VERSION + ' is running on port ' + PORT + ' (data in ' + DATA + ')'));
 
 for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { try { db.close(); } catch (e) {} process.exit(0); });

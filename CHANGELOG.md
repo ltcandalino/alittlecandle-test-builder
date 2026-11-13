@@ -7,15 +7,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-- GitHub Actions workflow that builds the Docker image, smoke-tests it, and publishes it to
-  GitHub Container Registry (`latest` on the main branch, version tags like `v1.2.0`).
+- GitHub Actions CI: runs all tests, then builds, checks and publishes the Docker image to
+  GitHub Container Registry.
 - Option in `docker/docker-compose.yml` to use the GitHub-built image instead of building on the server.
 - This changelog.
 - `AGENTS.md` handoff notes for AI assistants (architecture, rules, status, backlog, work log).
-- Smoke test (`npm test`) that renders every document type and answer key to PDF.
+- Full test suite (`npm test`, about 150 checks): core helpers, building documents, importers
+  (Word, PDF, ExamView), clicking through the app, the Docker server's API, and syncing between two
+  browsers. Real banks in `tests/fixtures/private/` (not committed) are tested when present.
+- `scripts/docker-test.sh`: builds and checks the Docker image on your own computer.
+- Version number: `VERSION` file, shown next to the app name and reported by the server's `/healthz`.
+- Release tooling: `scripts/release.py` (semantic version bump, changelog, tag) and a Release
+  workflow that publishes GitHub Release notes from the changelog with the app and Docker files attached.
+- Docker images are tagged with the version (`1.2.3`, `1.2`, `1`), `latest` and `edge`.
 - User guide in `wiki/` (Getting Started, Importing Questions, Question Bank, Building Documents,
   Printing and Answer Keys, Courses, Backups and Sync, Website Setup, Troubleshooting) and a
   workflow that publishes it to the GitHub wiki.
+
+### Fixed
+- Question cleaning could run an image's `onerror` code from pasted or imported HTML; it now uses an
+  inert template and drops scripts, styles and embedded objects completely.
+- Pictures synced through a server without HTTPS (like a local Docker test at `http://localhost`)
+  were removed when a question was shown or edited.
+- "GEO…" bank file names are now recognized as Geometry.
+- Sync: an edit made while an upload was still running could be marked as synced and never reach
+  the server.
 
 ## [0.5.0] - 2026-11-12
 

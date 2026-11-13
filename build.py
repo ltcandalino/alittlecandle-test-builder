@@ -5,6 +5,8 @@ Combines the files in src/ and vendor/pdfjs/ into single HTML pages:
   ALittleCandleTestBuilder.html  - open it straight from your computer (no logins)
   docker/index.html              - the website the Docker server hands out (logins + sync)
 
+The version comes from the VERSION file.
+
 Run:  python3 build.py
 """
 import os
@@ -19,6 +21,8 @@ def read(*parts):
         return f.read()
 
 
+VERSION = read('VERSION').strip()
+assert __import__('re').fullmatch(r'\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?', VERSION), 'VERSION must be semantic, like 1.2.3'
 css = read('src', 'style.css')
 js = {name: read('src', name) for name in SCRIPTS}
 lib = read('vendor', 'pdfjs', 'pdf.min.mjs')
@@ -32,11 +36,12 @@ def page(with_config):
         '<!DOCTYPE html>\n'
         '<html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        '<title>ALittleCandleTestBuilder</title>\n'
+        '<meta name="version" content="' + VERSION + '">\n<title>ALittleCandleTestBuilder</title>\n'
         '<style>' + css + '</style></head>\n'
         '<body><div id="root"></div><div id="printRoot"></div>\n'
         '<script type="text/plain" id="pdflib">' + lib + '</script>\n'
         '<script type="text/plain" id="pdfworker">' + worker + '</script>\n'
+        + '<script>var APP_VERSION=' + repr(VERSION) + ';</script>\n'
         + ('<script src="config.js"></script>\n' if with_config else '')
         + ''.join('<script>' + js[name] + '</script>\n' for name in SCRIPTS)
         + '</body></html>'

@@ -8,9 +8,9 @@ services:
     build: .
     image: alittlecandle-testbuilder
     # Once the repo is on GitHub, you can use the image GitHub builds instead of building here:
-    # delete the two lines above, uncomment the next line (with your GitHub name and repo),
+    # delete the two lines above, uncomment the next line ,
     # and update with:  docker compose pull && docker compose up -d
-    # image: ghcr.io/YOUR-GITHUB-NAME/alittlecandle-test-builder:latest
+    # image: ghcr.io/ltcandalino/alittlecandle-test-builder:latest
     restart: unless-stopped
     environment:
       ADMIN_EMAIL: you@yourschool.org        # your sign-in email

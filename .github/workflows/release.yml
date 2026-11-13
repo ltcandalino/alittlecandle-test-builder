@@ -1,0 +1,55 @@
+# When a version tag (v1.2.3) is pushed: creates the GitHub Release with notes from CHANGELOG.md
+# and attaches the single-file app and the Docker setup folder.
+# The Docker image for the tag is published by the CI workflow.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check the tag matches VERSION
+        run: |
+          v=$(cat VERSION)
+          [ "${GITHUB_REF_NAME#v}" = "$v" ] || { echo "::error::Tag $GITHUB_REF_NAME doesn't match VERSION $v"; exit 1; }
+          echo "V=$v" >> "$GITHUB_ENV"
+      - name: Build files
+        run: |
+          python3 build.py
+          mkdir -p dist
+          cp ALittleCandleTestBuilder.html "dist/ALittleCandleTestBuilder-$V.html"
+          mkdir -p "dist/alittlecandle-docker-$V"
+          cp docker/Dockerfile docker/docker-compose.yml docker/Caddyfile docker/server.js docker/index.html docker/README.md docker/.dockerignore "dist/alittlecandle-docker-$V/"
+          (cd dist && zip -r "alittlecandle-docker-$V.zip" "alittlecandle-docker-$V")
+      - name: Write the release notes
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          {
+            python3 scripts/release-notes.py "$V"
+            echo
+            echo "---"
+            echo
+            echo "**Single-file app:** download \`ALittleCandleTestBuilder-$V.html\` below and open it in Chrome or Edge."
+            echo
+            echo "**Docker image:** \`$image:$V\` (also \`:latest\`). Update a server with \`docker compose pull && docker compose up -d\`."
+            echo
+            echo "**Docker setup files:** \`alittlecandle-docker-$V.zip\`. See its README."
+          } > notes.md
+          cat notes.md
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pre=""; [[ "$V" == *-* ]] && pre="--prerelease"
+          gh release create "$GITHUB_REF_NAME" $pre --title "ALittleCandleTestBuilder $V" --notes-file notes.md \
+            "dist/ALittleCandleTestBuilder-$V.html" "dist/alittlecandle-docker-$V.zip"

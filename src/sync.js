@@ -136,8 +136,10 @@ var CLOUD=(function(){
             });
           });
         })).then(function(qs){
-          return call('POST','/rest/v1/questions?on_conflict=user_id,id',qs.map(function(q){return {user_id:uid,id:q.id,data:q,deleted:false,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){
-            qs.forEach(function(q){meta.synced[q.id]=sigQ(q);});done+=qs.length;if(total>20)setStatus('Syncing… '+done+' of '+total);return saveMeta();
+          // remember exactly what was sent: an edit made while this upload is running must still count as unsynced
+          var sent=qs.map(function(q){return {sig:sigQ(q),data:JSON.parse(JSON.stringify(q))};});
+          return call('POST','/rest/v1/questions?on_conflict=user_id,id',sent.map(function(x){return {user_id:uid,id:x.data.id,data:x.data,deleted:false,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){
+            sent.forEach(function(x){meta.synced[x.data.id]=x.sig;});done+=qs.length;if(total>20)setStatus('Syncing… '+done+' of '+total);return saveMeta();
           });
         });
       });
@@ -146,8 +148,8 @@ var CLOUD=(function(){
       return call('POST','/rest/v1/questions?on_conflict=user_id,id',dels.map(function(id){return {user_id:uid,id:id,data:{},deleted:true,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){dels.forEach(function(id){delete meta.synced[id];});return saveMeta();});
     });
     if(stateDirty)chain=chain.then(function(){
-      var now=new Date().toISOString();
-      return call('POST','/rest/v1/app_state?on_conflict=user_id',[{user_id:uid,data:statePart(st),updated_at:now}],{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){meta.stateSig=sigState(st);return saveMeta();});
+      var now=new Date().toISOString(),cur=hooks.getState(),body=JSON.parse(JSON.stringify(statePart(cur))),sg=sigState(cur);
+      return call('POST','/rest/v1/app_state?on_conflict=user_id',[{user_id:uid,data:body,updated_at:now}],{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){meta.stateSig=sg;return saveMeta();});
     });
     return chain.then(function(){return localChanged;});
   }

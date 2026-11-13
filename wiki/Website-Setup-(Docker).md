@@ -12,7 +12,7 @@ The full step-by-step guide is in [`docker/README.md`](../blob/HEAD/docker/READM
 
 ## Using the image GitHub builds
 
-Every change to the main branch builds an image at `ghcr.io/<owner>/alittlecandle-test-builder:latest`. Tags like `v1.2.0` publish `:1.2.0` too. To use it, replace `build: .` in `docker-compose.yml` with that image, then update with:
+Every change to the main branch builds an image at `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`. Tags like `v1.2.0` publish `:1.2.0` too. To use it, replace `build: .` in `docker-compose.yml` with that image, then update with:
 
 ```
 docker compose pull && docker compose up -d

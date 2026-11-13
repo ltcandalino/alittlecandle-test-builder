@@ -4,9 +4,15 @@
   "description": "Development tools for ALittleCandleTestBuilder (the app itself needs no install).",
   "scripts": {
     "build": "python3 build.py",
-    "test": "python3 build.py && node tests/smoke.cjs"
+    "test": "python3 build.py && node --test --test-concurrency=1 "tests/*.test.cjs"",
+    "test:fast": "python3 build.py && node --test tests/core.test.cjs tests/documents.test.cjs",
+    "test:server": "node --test tests/server.test.cjs tests/sync.test.cjs",
+    "test:docker": "bash scripts/docker-test.sh"
   },
   "devDependencies": {
     "playwright": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }

@@ -1,14 +1,15 @@
-# Builds the Docker image and publishes it to GitHub Container Registry:
-#   ghcr.io/<owner>/<repo>:latest      newest version on the main branch
-#   ghcr.io/<owner>/<repo>:1.2.3       when you push a tag like v1.2.3
-#   ghcr.io/<owner>/<repo>:sha-abc1234 every build
-# Pull requests are built and tested but not published.
-name: Docker image
+# CI: runs the full test suite, then builds the Docker image and publishes it to GitHub Container Registry.
+#   ghcr.io/<owner>/<repo>:latest            newest version on the main branch
+#   ghcr.io/<owner>/<repo>:edge              same as latest (main branch builds)
+#   ghcr.io/<owner>/<repo>:1.2.3, :1.2, :1   when you push a tag like v1.2.3 (":1" only from 1.0.0 on)
+#   ghcr.io/<owner>/<repo>:sha-abc1234       every published build
+# Pull requests are tested and built but not published.
+name: CI
 
 on:
   push:
     branches: [main, master]
-    tags: ['v*']
+    tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
 
@@ -17,11 +18,51 @@ permissions:
   packages: write
 
 concurrency:
-  group: docker-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test tools
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Check the version number
+        run: |
+          v=$(cat VERSION)
+          echo "VERSION file: $v"
+          echo "$v" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$' || { echo "::error::VERSION must be semantic, like 1.2.3"; exit 1; }
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            [ "${GITHUB_REF_NAME#v}" = "$v" ] || { echo "::error::Tag $GITHUB_REF_NAME doesn't match VERSION $v"; exit 1; }
+            python3 scripts/release-notes.py "$v" >/dev/null || { echo "::error::CHANGELOG.md has no section for $v"; exit 1; }
+          fi
+      - name: Warn if the committed pages are out of date
+        run: |
+          python3 build.py
+          if ! git diff --quiet -- ALittleCandleTestBuilder.html docker/index.html; then
+            echo "::warning::ALittleCandleTestBuilder.html or docker/index.html didn't match src/. Run python3 build.py and commit."
+          fi
+      - name: Run all tests
+        run: npm test
+      - name: Keep the test PDFs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: tests/out/
+          retention-days: 14
+
   image:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,26 +72,21 @@ jobs:
           python-version: '3.12'
 
       - name: Build the app pages from src/
-        run: python3 build.py
-
-      - name: Warn if the committed pages are out of date
         run: |
-          if ! git diff --quiet -- ALittleCandleTestBuilder.html docker/index.html; then
-            echo "::warning::ALittleCandleTestBuilder.html or docker/index.html didn't match src/. Run python3 build.py and commit. (The image uses the fresh build either way.)"
-          fi
+          python3 build.py
+          echo "APP_VERSION=$(cat VERSION)" >> "$GITHUB_ENV"
 
-      - name: Smoke test the server
+      - name: Smoke test the image
         run: |
-          docker build -t alctb-test docker
+          docker build --build-arg APP_VERSION="$APP_VERSION" -t alctb-test docker
           docker run -d --name alctb -p 8080:8080 \
             -e ADMIN_EMAIL=ci@example.com -e ADMIN_PASSWORD=ci-test-password alctb-test
-          for i in $(seq 1 20); do
-            curl -fsS http://127.0.0.1:8080/healthz && break
-            sleep 1
-          done
-          curl -fsS http://127.0.0.1:8080/healthz
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done
+          curl -fsS http://127.0.0.1:8080/healthz | grep -q "\"version\":\"$APP_VERSION\""
           curl -fsS http://127.0.0.1:8080/ | grep -q ALittleCandleTestBuilder
           curl -fsS http://127.0.0.1:8080/config.js | grep -q selfHosted
+          curl -fsS -X POST 'http://127.0.0.1:8080/auth/v1/token?grant_type=password' \
+            -H 'Content-Type: application/json' -d '{"email":"ci@example.com","password":"ci-test-password"}' | grep -q access_token
           docker logs alctb
           docker rm -f alctb
 
@@ -70,14 +106,20 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=edge,enable={{is_default_branch}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
             type=sha
+          labels: |
+            org.opencontainers.image.title=ALittleCandleTestBuilder
+            org.opencontainers.image.version=${{ env.APP_VERSION }}
 
       - uses: docker/build-push-action@v6
         with:
           context: docker
           platforms: linux/amd64,linux/arm64
+          build-args: APP_VERSION=${{ env.APP_VERSION }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

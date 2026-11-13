@@ -14,14 +14,19 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 
 1. Edit `src/`, then `python3 build.py`. Commit the rebuilt `ALittleCandleTestBuilder.html` and
    `docker/index.html` with the source change.
-2. Run `npm test` (smoke test, see Testing). Look at the PDFs in `tests/out/` when layout changed.
+2. Run `npm test` (full suite, see Testing). Add or update tests for what you changed. Look at the
+   PDFs in `tests/out/` when layout changed. Run `npm run test:docker` when `docker/` changed.
 3. Add a line under **[Unreleased]** in `CHANGELOG.md` (Added / Changed / Fixed / Removed).
 4. Significant change → update `README.md`, the matching page(s) in `wiki/`, and `docker/README.md`
    if the server or setup changed. Never edit the GitHub wiki directly (the workflow overwrites it).
 5. Update this file's Status / Backlog / Work log.
-6. Commit with a clear message. Don't push unless asked.
+6. Commit with a clear message. Pushing: the cloud sandbox has no SSH access to GitHub, so the user
+   pushes from her Mac (`git push`, and `git push origin vX.Y.Z` for releases).
 7. Saved user data must keep loading: when settings or question fields change, migrate old data
    (`migrateSettings`, `normalize` in `src/app.js`) instead of breaking it.
+8. Releases follow semantic versioning (MAJOR breaks saved data/backups/server setup, MINOR adds
+   features, PATCH fixes). Use `python3 scripts/release.py major|minor|patch`; every release needs
+   notes under [Unreleased] first. The tag drives the Docker image tags and the GitHub Release.
 
 ## Repo map
 
@@ -41,7 +46,10 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
-| `tests/smoke.cjs` | Playwright smoke test. |
+| `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
+| `scripts/` | `release.py`, `release-notes.py`, `docker-test.sh`. |
+| `VERSION` | Semantic version; `build.py` injects it (`APP_VERSION`, `<meta name="version">`); server reads it from index.html. |
+| `.github/workflows/` | `docker.yml` = CI (tests → image to GHCR), `release.yml` (GitHub Release from CHANGELOG), `wiki.yml`. |
 
 ## Architecture notes
 
@@ -57,7 +65,9 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   ref (MMYYQQ → month/year/qnum via `parseRef`/`fillMeta`; month ∈ 01/06/08), notes, points, type
   (`mc` `bm` `tf` `sa` `es`), html, choices[], answer, inImage, lockChoices, space, lines, answerArea.
   Question HTML is sanitized (`sanitize`) on import/edit.
-- `window.__tb` exposes state/normalize/render/printJobs for tests.
+- `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
+- `sanitize` parses into an inert `<template>` (so `onerror` never runs), drops script/style/svg/etc.,
+  and allows images that are `data:`, `https:`, or this server's own picture URLs on `http:`.
 
 ### Documents and printing
 - `settings.docType`: `test` | `quiz` | `review` | `lesson`. `buildVersion(v)` orders items
@@ -111,29 +121,42 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
 
 ```
 npm install && npx playwright install chromium   # once
-npm test                                         # build + tests/smoke.cjs
+npm test               # build + every tests/*.test.cjs (~150 checks, ~45 s)
+npm run test:fast      # core + documents
+npm run test:server    # server API + two-browser sync
+npm run test:docker    # real image on a machine with Docker (scripts/docker-test.sh, log in tests/out/)
 ```
-The smoke test adds sample questions, renders Test/Quiz/Review/Lesson + answer keys to PDF in
-`tests/out/`, and checks the Build tab preview. For layout work, also compare against the user's
-templates and print from real Chrome (margin boxes only render in print).
-Server check: `cd docker && PORT=8099 DATA_DIR=$(mktemp -d) ADMIN_EMAIL=a@b.co ADMIN_PASSWORD=testpassword node server.js`, then `curl localhost:8099/healthz`.
-Firefox isn't available in the cloud sandbox; the user has reported Firefox slowness before.
+- `core` pure helpers; `documents` buildVersion/layouts/keys/printJobs/courses; `imports` DOCX/PDF/BNK;
+  `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup/CSV downloads, print
+  with `window.print` stubbed); `server` API incl. isolation, lockout, admin, restart, ADMIN_RESET;
+  `sync` app served by the server, two browser contexts; `print` PDFs in `tests/out/`.
+- Fixtures: `tests/fixtures/sample-exam.docx`, `sample-questions.pdf` (regenerate with
+  `make-fixtures.py`, needs python-docx + reportlab). Her real files go in `tests/fixtures/private/`
+  (gitignored; on her Mac it has `GEO2024-2026EXAMs.bnk` and `Geometry_Unit_3_Exam_v1.docx`), and are
+  tested automatically when present.
+- Margin-box headers only render when printing; check real Chrome print preview for layout work.
+- Firefox isn't available in the cloud sandbox; the user has reported Firefox slowness before.
+- Docker isn't reachable from the cloud sandbox or the desktop bridge VM; the user runs
+  `npm run test:docker` on her Mac (Docker Desktop installed 2026-11-12) and the log lands in
+  `tests/out/docker-test.log`, which can be read through the connected folder.
 
 ## Status (2026-11-12)
 
-- Version 0.5.0 + Unreleased (CHANGELOG, wiki, GitHub Actions, smoke test, this file).
-- The user is trying the single-file version before setting up Docker.
-- Not on GitHub yet; no remote. Workflows (`docker.yml`, `wiki.yml`) are written but untested.
-- The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Her templates and banks aren't in the
-  repo (they're her files); ask her to attach them when needed.
+- Version 0.5.0 in `VERSION`; lots under [Unreleased] (CI, wiki, tests, release tooling, 3 fixes) → next
+  release would be 0.6.0.
+- Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`). Not pushed yet;
+  the user pushes from her Mac. Workflows untested until the first push.
+- The user is trying the single-file version; Docker Desktop is installed on her Mac for local image tests.
+- The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Templates and banks are hers; private
+  copies for tests live only in `tests/fixtures/private/` on her Mac.
 
 ## Backlog / ideas
 
-- [ ] When the GitHub repo exists: set the image name in `docker/docker-compose.yml` and the wiki page,
-      push, create the first wiki page, check both workflows run.
-- [ ] Docker setup on her web hosting/VPS (she chose all-in-one container + Caddy).
-- [ ] Collect her feedback from trying the single-file version.
-- [ ] Possibly: CI job running `npm test`; release v0.6.0 once feedback is in.
+- [ ] First push; check CI, Release and Wiki workflows on GitHub; create the first wiki page; decide
+      whether the GHCR package is public.
+- [ ] She runs `npm run test:docker` on her Mac; read `tests/out/docker-test.log`.
+- [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
+- [ ] Collect her feedback from trying the single-file version; release v0.6.0.
 
 ## Work log
 
@@ -141,5 +164,8 @@ Firefox isn't available in the cloud sandbox; the user has reported Firefox slow
   layout, performance fixes), Supabase and Docker hosting, logins and sync.
 - **2026-11-11**: document types Test/Quiz/Review/Lesson from her Word templates; lesson label "3-4";
   separate compass/ruler/tracing paper options.
-- **2026-11-12**: moved into her git repo; added CHANGELOG, README process, `wiki/` user guide,
-  GitHub Actions (Docker image to GHCR, wiki publish), smoke test, `AGENTS.md`.
+- **2026-11-12**: moved into her git repo; CHANGELOG, README process, `wiki/` user guide, GitHub Actions,
+  `AGENTS.md`. Full test suite (150 checks) which found and fixed: sanitize could run `onerror`;
+  pictures dropped on http:// servers; "GEO" file names not recognized; sync race where an edit during
+  an upload was marked synced (sync.js now records the signature of what was actually sent). Added VERSION + version display,
+  semantic-version release script, release notes workflow, versioned Docker tags, local Docker test script.

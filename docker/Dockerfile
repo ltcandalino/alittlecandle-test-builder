@@ -2,6 +2,10 @@
 # Needs Node 22.13 or newer (built-in SQLite). No other packages are installed.
 FROM node:22-alpine
 
+ARG APP_VERSION=dev
+LABEL org.opencontainers.image.title="ALittleCandleTestBuilder" \
+      org.opencontainers.image.version="$APP_VERSION"
+
 ENV NODE_ENV=production \
     PORT=8080 \
     DATA_DIR=/data

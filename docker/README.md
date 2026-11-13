@@ -89,7 +89,7 @@ Your accounts and banks are kept; they live in the `alctb-data` volume, not in t
 ### Using the image GitHub builds
 
 When this repo is on GitHub, every change to the main branch builds a fresh image at
-`ghcr.io/YOUR-GITHUB-NAME/alittlecandle-test-builder:latest` (see `.github/workflows/docker.yml`).
+`ghcr.io/ltcandalino/alittlecandle-test-builder:latest` (see `.github/workflows/docker.yml`).
 Then the server only needs `docker-compose.yml` and `Caddyfile`:
 
 1. In `docker-compose.yml`, delete `build: .` and `image: alittlecandle-testbuilder`, and uncomment the `ghcr.io/...` image line.

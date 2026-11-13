@@ -22,7 +22,7 @@ function ptStyle(){var s=state.settings;return '--ptf:'+(FONTS[s.font]||FONTS['C
 function bmChoices(q){if(q.inImage)return true;var o=state.settings.bmOverride||{};return (o[q.id]||state.settings.bmMode)!=='without';}
 var DEFAULT_COURSES=['Algebra 1','Geometry','Algebra 2','Pre-Calculus'];
 function guessCourse(name){var n=String(name||'');
-  if(/pre-?\s*calc/i.test(n))return 'Pre-Calculus';if(/\bcalc/i.test(n))return 'Calculus';if(/geom/i.test(n))return 'Geometry';
+  if(/pre-?\s*calc/i.test(n))return 'Pre-Calculus';if(/\bcalc/i.test(n))return 'Calculus';if(/geom|\bgeo/i.test(n))return 'Geometry';
   if(/alg(ebra)?\s*(2|ii)\b|\ba2\b|\baii\b/i.test(n))return 'Algebra 2';if(/alg(ebra)?\s*(1|i)\b|\ba1\b|\bai\b|algebra/i.test(n))return 'Algebra 1';
   if(/stat/i.test(n))return 'Statistics';return '';}
 function cq(){return state.questions.filter(function(q){return q.course===state.course;});}
@@ -66,14 +66,15 @@ function hasImg(html){return /<img\b/i.test(html||'');}
 /* ================= sanitizing rich HTML ================= */
 var OK_CLASS=/^(q-lbl|m-mat|m|m-op|m-ov|m-acc|m-line|m-ray|m-arc|m-sqrt|m-rad-sign|m-rad|m-frac|m-num|m-den|q-img)$/;
 function sanitize(html){
-  var tpl=document.createElement('div');tpl.innerHTML=html;
+  var tpl=document.createElement('template');tpl.innerHTML=html;
   function walk(node,out){
     node.childNodes.forEach(function(n){
       if(n.nodeType===3){out.appendChild(document.createTextNode(n.nodeValue.replace(/\u00a0/g,' ')));return;}
       if(n.nodeType!==1)return;
       var tag=n.tagName.toLowerCase();
+      if(/^(script|style|template|noscript|iframe|object|embed|svg|math)$/.test(tag))return;
       if(tag==='br'){out.appendChild(document.createElement('br'));return;}
-      if(tag==='img'){var src=n.getAttribute('src')||'';if(/^data:image\//.test(src)||/^https:\/\//.test(src)){var im=document.createElement('img');im.src=src;im.className='q-img'+(/\bq-float\b/.test(n.className||'')?' q-float':'');var st=n.getAttribute('style')||'';var mw=st.match(/width:\s*([\d.]+in)/);if(mw)im.style.width=mw[1];out.appendChild(im);}return;}
+      if(tag==='img'){var src=n.getAttribute('src')||'';if(/^data:image\//.test(src)||/^https:\/\//.test(src)||(location.protocol==='http:'&&src.indexOf(location.origin+'/storage/v1/object/public/images/')===0)){var im=document.createElement('img');im.src=src;im.className='q-img'+(/\bq-float\b/.test(n.className||'')?' q-float':'');var st=n.getAttribute('style')||'';var mw=st.match(/width:\s*([\d.]+in)/);if(mw)im.style.width=mw[1];out.appendChild(im);}return;}
       if(tag==='div'||tag==='p'){if(out.lastChild&&out.lastChild.nodeName!=='BR')out.appendChild(document.createElement('br'));walk(n,out);return;}
       if(/^(sup|sub|b|i|u|strong|em)$/.test(tag)){var e=document.createElement(tag==='strong'?'b':tag==='em'?'i':tag);if(tag==='b'&&/\bq-lbl\b/.test(n.className||''))e.className='q-lbl';walk(n,e);out.appendChild(e);return;}
       if(/^(table|tbody|thead|tr|td|th)$/.test(tag)){
@@ -91,7 +92,7 @@ function sanitize(html){
       walk(n,out);
     });
   }
-  var out=document.createElement('div');walk(tpl,out);
+  var out=document.createElement('div');walk(tpl.content,out);
   return out.innerHTML.replace(/(<br>)+$/,'').trim();
 }
 
@@ -441,7 +442,7 @@ function printNow(kind){
   setTimeout(function(){runJobs(jobs);},jobs.length>1?900:0);
 }
 window.__printJobs=printJobs;
-window.__tb={get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -538,7 +539,7 @@ function fileBase(t){return String(t||'Test').replace(/[\\\/:*?"<>|]+/g,'').repl
 /* ================= shell ================= */
 var root=document.getElementById('root');
 function shell(){
-  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder</div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs"></nav><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
+  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs"></nav><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;

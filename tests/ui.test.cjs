@@ -1,0 +1,257 @@
+// Clicking through the app like a teacher would: tabs, editing, deleting, importing, backups, courses, printing.
+const { test, describe, before, after, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
+const path = require('path');
+const fs = require('fs');
+const { launch, openApp, addQuestions, select, settings, gotoTab, FIX, OUT, privateFixtures } = require('./helpers.cjs');
+
+let browser, ctx, page, errors;
+before(async () => { browser = await launch(); });
+after(async () => { await browser.close(); });
+beforeEach(async () => { ({ context: ctx, page, errors } = await openApp(browser)); });
+afterEach(async () => { const e = errors.slice(); await ctx.close(); assert.deepEqual(e, [], 'page errors'); });
+
+const count = () => page.evaluate(() => window.__tb.state.questions.filter(q => q.course === window.__tb.state.course).length);
+const tab = async name => { await page.click(`#tabs [data-tab="${name}"]`); await page.waitForTimeout(100); };
+
+describe('tabs', () => {
+  test('all three tabs open', async () => {
+    await addQuestions(page, [{}, { type: 'es' }]);
+    await gotoTab(page, 'bank');
+    for (const t of ['build', 'io', 'bank']) {
+      await tab(t);
+      assert.ok(await page.$(`#tabs [data-tab="${t}"].on`), t + ' is highlighted');
+    }
+    assert.equal(await page.$$eval('#qlist .qcard', x => x.length), 2);
+  });
+  test('the version number shows next to the name', async () => {
+    const v = fs.readFileSync(path.join(__dirname, '..', 'VERSION'), 'utf8').trim();
+    assert.equal(await page.textContent('.brand .ver'), 'v' + v);
+  });
+});
+
+describe('question editor', () => {
+  test('write a new multiple-choice question', async () => {
+    await gotoTab(page, 'bank');
+    await page.click('#newQ');
+    await page.click('#e-text'); await page.keyboard.type('What is 5 + 5?');
+    for (const [i, t] of ['8', '9', '10', '11'].entries()) { await page.click(`[data-ct="${i}"]`); await page.keyboard.type(t); }
+    await page.check('[data-ci="2"]');
+    await page.fill('#e-unit', '4');
+    await page.click('#e-save');
+    await page.waitForTimeout(100);
+    const q = await page.evaluate(() => window.__tb.state.questions[0]);
+    assert.equal(q.html, 'What is 5 + 5?'); assert.deepEqual(q.choices, ['8', '9', '10', '11']); assert.equal(q.answer, 2); assert.equal(q.unit, '4');
+  });
+  test('the editor refuses an empty question', async () => {
+    await gotoTab(page, 'bank');
+    await page.click('#newQ'); await page.click('#e-save');
+    assert.match(await page.textContent('#e-err'), /Type the question/);
+    assert.equal(await count(), 0);
+  });
+  test('reference fills month, year and question #', async () => {
+    await gotoTab(page, 'bank');
+    await page.click('#newQ');
+    await page.click('#e-text'); await page.keyboard.type('Ref question');
+    await page.fill('#e-ref', '062412'); await page.dispatchEvent('#e-ref', 'input');
+    if (await page.$('#e-fromref')) await page.click('#e-fromref');
+    await page.click('[data-ct="0"]'); await page.keyboard.type('a'); await page.click('[data-ct="1"]'); await page.keyboard.type('b'); await page.check('[data-ci="0"]');
+    await page.click('#e-save');
+    const q = await page.evaluate(() => window.__tb.state.questions[0]);
+    assert.deepEqual([q.ref, String(q.month), String(q.year), String(q.qnum)], ['062412', '06', '2024', '12']);
+  });
+  test('edit an existing question', async () => {
+    const [id] = await addQuestions(page, [{ html: 'Old text' }]);
+    await gotoTab(page, 'bank');
+    await page.click(`[data-edit="${id}"]`);
+    await page.evaluate(() => { document.querySelector('#e-text').innerHTML = 'New text'; });
+    await page.click('#e-save');
+    assert.equal(await page.evaluate(() => window.__tb.state.questions[0].html), 'New text');
+  });
+  test('copy a question', async () => {
+    const [id] = await addQuestions(page, [{ html: 'Copy me' }]);
+    await gotoTab(page, 'bank');
+    await page.click(`[data-dup="${id}"]`);
+    await page.waitForTimeout(100);
+    if (await page.$('#e-save')) await page.click('#e-save');
+    assert.equal(await count(), 2);
+  });
+  test('delete asks to confirm, then Undo brings it back', async () => {
+    const [id] = await addQuestions(page, [{ html: 'Delete me' }, { html: 'Keep me' }]);
+    await gotoTab(page, 'bank');
+    await page.click(`[data-del="${id}"]`);
+    assert.equal(await count(), 2, 'first click only asks to confirm');
+    assert.equal(await page.textContent(`[data-del="${id}"]`), 'Confirm');
+    await page.click(`[data-del="${id}"]`);
+    await page.waitForTimeout(100);
+    assert.equal(await count(), 1);
+    await page.click('#toastUndo');
+    assert.equal(await count(), 2);
+  });
+  test('search filters the list', async () => {
+    await addQuestions(page, [{ html: 'Pythagorean theorem' }, { html: 'Slope of a line' }]);
+    await gotoTab(page, 'bank');
+    await page.fill('#fq', 'slope'); await page.dispatchEvent('#fq', 'input'); await page.waitForTimeout(400);
+    const shown = await page.$$eval('#qlist .qcard', x => x.map(e => e.textContent));
+    assert.equal(shown.length, 1); assert.match(shown[0], /Slope/);
+  });
+});
+
+describe('building', () => {
+  test('pick questions in the bank, then reorder and remove them on Build & print', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }, { html: 'Three' }]);
+    await gotoTab(page, 'bank');
+    for (const id of ids) await page.check(`[data-pick="${id}"]`);
+    assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), ids);
+    await tab('build');
+    assert.equal(await page.$$eval('#selList li', x => x.length), 3);
+    await page.click(`#selList [data-rm="${ids[1]}"]`);
+    assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), [ids[0], ids[2]]);
+  });
+  test('document type buttons switch the layout and the preview', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { type: 'es', html: 'Two' }]);
+    await select(page, ids);
+    await gotoTab(page, 'build');
+    for (const dt of ['quiz', 'review', 'lesson', 'test']) {
+      await page.click(`[data-doctype="${dt}"]`);
+      await page.waitForTimeout(450);
+      assert.equal(await page.evaluate(() => window.__tb.state.settings.docType), dt);
+      assert.ok(await page.$(`#paper.pt-${dt}`), dt + ' preview');
+      assert.ok(await page.$('#paper .pv-head img'), dt + ' header in preview');
+    }
+  });
+  test('typing the unit number updates the automatic title', async () => {
+    await gotoTab(page, 'build');
+    await page.fill('[data-set="quarter"]', '2'); await page.fill('[data-set="unitNum"]', '6');
+    assert.equal(await page.getAttribute('[data-set="title"]', 'placeholder'), 'auto: Quarter 2 – Unit 6 Exam');
+  });
+  test('lesson roles and bonus buttons', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
+    await select(page, ids);
+    await gotoTab(page, 'build');
+    await page.click(`[data-bonus="${ids[1]}"]`);
+    assert.equal(await page.evaluate(id => window.__tb.state.settings.bonus[id], ids[1]), true);
+    await page.click('[data-doctype="lesson"]');
+    await page.selectOption(`[data-role="${ids[0]}"]`, 'example');
+    await page.fill(`[data-exc="${ids[0]}"]`, 'SAS');
+    const s = await page.evaluate(() => window.__tb.state.settings);
+    assert.equal(s.roles[ids[0]], 'example'); assert.equal(s.concepts[ids[0]], 'SAS');
+  });
+  test('Students need checkboxes', async () => {
+    await gotoTab(page, 'build');
+    await page.click('[data-doctype="lesson"]');
+    await page.uncheck('[data-set="toolRuler"]');
+    assert.equal(await page.evaluate(() => window.__tb.state.settings.toolRuler), false);
+  });
+  test('printing runs one print window per version and fills the print area', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
+    await select(page, ids);
+    await settings(page, { versions: 2, perVersion: true });
+    await page.evaluate(() => { window.__prints = []; window.print = () => { window.__prints.push(document.querySelector('#printRoot').innerHTML.length); setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); }; });
+    await gotoTab(page, 'build');
+    await page.click('[data-print="both"]');
+    await page.waitForFunction(() => window.__prints.length >= 3, null, { timeout: 15000 });
+    const p = await page.evaluate(() => window.__prints);
+    assert.equal(p.length, 3, 'version A, version B, answer keys');
+    assert.ok(p.every(n => n > 500));
+  });
+});
+
+describe('importing', () => {
+  test('paste questions', async () => {
+    await gotoTab(page, 'io');
+    await page.fill('#pasteBox', '1. Which?\nA. one\n*B. two\n\n2. The sun is a star.\nAnswer: True');
+    await page.click('#pasteGo');
+    assert.equal(await count(), 2);
+  });
+  test('Word file: review screen, then add', async () => {
+    await gotoTab(page, 'io');
+    await page.setInputFiles('#docxFile', path.join(FIX, 'sample-exam.docx'));
+    await page.waitForSelector('#wAdd:not([disabled])', { timeout: 15000 });
+    await page.click('#wAdd');
+    await page.waitForTimeout(300);
+    assert.equal(await count(), 3);
+    const qs = await page.evaluate(() => window.__tb.state.questions.map(q => [q.type, q.part, q.points]));
+    assert.deepEqual(qs, [['mc', 'Part I', 2], ['mc', 'Part I', 2], ['es', 'Part II', 4]]);
+  });
+  test('PDF: review screen, then add', async () => {
+    await gotoTab(page, 'io');
+    await page.setInputFiles('#pdfFile', path.join(FIX, 'sample-questions.pdf'));
+    await page.waitForSelector('#impAdd:not([disabled])', { timeout: 30000 });
+    await page.click('#impAdd');
+    await page.waitForTimeout(300);
+    assert.equal(await count(), 4);
+    const q = await page.evaluate(() => window.__tb.state.questions[0]);
+    assert.equal(q.source !== undefined, true);
+  });
+  for (const file of privateFixtures('.bnk')) test('ExamView bank ' + path.basename(file), async () => {
+    await gotoTab(page, 'io');
+    await page.setInputFiles('#bnkFile', file);
+    await page.waitForFunction(() => window.__tb.state.questions.length > 0, null, { timeout: 30000 });
+    assert.ok(await page.evaluate(() => window.__tb.state.questions.length) > 0);
+  });
+  for (const file of privateFixtures('.docx')) test('Word exam ' + path.basename(file), async () => {
+    await gotoTab(page, 'io');
+    await page.setInputFiles('#docxFile', file);
+    await page.waitForSelector('#wAdd:not([disabled])', { timeout: 30000 });
+    await page.click('#wAdd');
+    await page.waitForTimeout(300);
+    assert.ok(await count() > 0);
+  });
+});
+
+describe('saving and backups', () => {
+  test('questions are still there after reloading the page', async () => {
+    await addQuestions(page, [{ html: 'Persist me' }]);
+    await page.evaluate(() => window.__tb.fn.persist());
+    await page.reload(); await page.waitForFunction(() => window.__tb);
+    await page.waitForFunction(() => window.__tb.state.questions.length === 1, null, { timeout: 5000 });
+  });
+  test('download a backup and restore it in an empty browser', async () => {
+    await addQuestions(page, [{ html: 'Backup one' }, { html: 'Backup two', type: 'es' }]);
+    await settings(page, { unitNum: '9' });
+    await gotoTab(page, 'io');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
+    const file = path.join(OUT, 'backup.json'); await dl.saveAs(file);
+    const other = await openApp(browser);
+    await gotoTab(other.page, 'io');
+    await other.page.setInputFiles('#bkIn', file);
+    await other.page.waitForFunction(() => window.__tb.state.questions.length === 2, null, { timeout: 5000 });
+    assert.deepEqual(await other.page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort()), ['Backup one', 'Backup two']);
+    await other.context.close();
+  });
+  test('restoring the same backup twice does not duplicate questions', async () => {
+    await addQuestions(page, [{ html: 'Only once' }]);
+    await gotoTab(page, 'io');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
+    const file = path.join(OUT, 'backup2.json'); await dl.saveAs(file);
+    await page.setInputFiles('#bkIn', file); await page.waitForTimeout(500);
+    assert.equal(await count(), 1);
+  });
+  test('CSV export and import', async () => {
+    await addQuestions(page, [{ html: 'CSV question', unit: '5' }]);
+    await gotoTab(page, 'io');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#csvOut')]);
+    const file = path.join(OUT, 'bank.csv'); await dl.saveAs(file);
+    assert.match(fs.readFileSync(file, 'utf8'), /CSV question/);
+    const other = await openApp(browser);
+    await gotoTab(other.page, 'io');
+    await other.page.setInputFiles('#csvFile', file);
+    await other.page.waitForFunction(() => window.__tb.state.questions.length === 1, null, { timeout: 5000 });
+    assert.equal(await other.page.evaluate(() => window.__tb.state.questions[0].unit), '5');
+    await other.context.close();
+  });
+});
+
+describe('courses', () => {
+  test('add a course and switch with the Course menu', async () => {
+    await addQuestions(page, [{ html: 'Geometry question' }]);
+    const start = await page.evaluate(() => window.__tb.state.course);
+    await gotoTab(page, 'io');
+    await page.fill('#newCourse', 'AP Statistics'); await page.click('#addCourse');
+    assert.equal(await page.evaluate(() => window.__tb.state.course), 'AP Statistics');
+    assert.equal(await count(), 0);
+    await page.selectOption('#courseSel', start);
+    assert.equal(await count(), 1);
+  });
+});
