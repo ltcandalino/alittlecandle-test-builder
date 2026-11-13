@@ -50,6 +50,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `docker/server.js` | Node server (26 LTS in the image), no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
+| `PLAN.md` | Approved feature plan: accommodations, display settings, saved tests. |
 | `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
@@ -179,8 +180,11 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
       before Print on Build & print (`layout`); (4) contrast of `--muted`, keyboard-reachable symbol bar,
       focus styles, tab roles (`audit`); (5) fewer always-visible controls, labeled unit/section chips,
       one accent color (`distill`); then `polish`.
-- [ ] Saved tests: save and reprint named tests (like ExamView) instead of one current test per course.
-      She wants it, planned as its own feature after the review fixes.
+- [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
+      Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
+      accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
+      motion) with review fix 4; (C) saved tests (auto-save on print, frozen copies, ask when questions
+      changed, synced and in backups).
 
 ## Work log
 
