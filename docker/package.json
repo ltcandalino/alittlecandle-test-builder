@@ -1,0 +1,13 @@
+{
+  "name": "alittlecandle-test-builder-server",
+  "private": true,
+  "description": "Packages the Docker server needs for PostgreSQL and MySQL/MariaDB. SQLite needs none.",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mysql2": "3.24.6",
+    "pg": "8.23.1"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

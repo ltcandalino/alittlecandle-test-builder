@@ -69,6 +69,7 @@ Needs Node.js 26 (current LTS) and Python 3. Once: `npm install && npx playwrigh
 | `npm run test:fast` | Core helpers and document building only |
 | `npm run test:server` | The Docker server's API and syncing between two browsers |
 | `npm run test:docker` | Builds the real Docker image and checks it (needs Docker running) |
+| `npm run test:db` | Server and sync tests on real PostgreSQL, MariaDB and MySQL (needs Docker running) |
 
 The tests are in `tests/`:
 

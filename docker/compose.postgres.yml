@@ -1,0 +1,21 @@
+# PostgreSQL instead of the built-in SQLite. Use it together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f compose.postgres.yml up -d
+# Change the password in BOTH places below first. Pictures still live in the alctb-data volume.
+services:
+  app:
+    environment:
+      DATABASE_URL: postgres://alctb:change-this-db-password@db:5432/alctb
+    depends_on:
+      - db
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: alctb
+      POSTGRES_PASSWORD: change-this-db-password
+      POSTGRES_DB: alctb
+    volumes:
+      - alctb-pg:/var/lib/postgresql
+
+volumes:
+  alctb-pg:

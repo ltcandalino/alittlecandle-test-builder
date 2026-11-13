@@ -1,0 +1,23 @@
+# MariaDB instead of the built-in SQLite. Use it together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f compose.mariadb.yml up -d
+# Change the passwords below first (the app's password appears twice). For MySQL, use image mysql:lts
+# and MYSQL_ instead of MARIADB_ in the variable names. Pictures still live in the alctb-data volume.
+services:
+  app:
+    environment:
+      DATABASE_URL: mariadb://alctb:change-this-db-password@db:3306/alctb
+    depends_on:
+      - db
+  db:
+    image: mariadb:lts
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: alctb
+      MARIADB_USER: alctb
+      MARIADB_PASSWORD: change-this-db-password
+      MARIADB_ROOT_PASSWORD: change-this-root-password
+    volumes:
+      - alctb-mariadb:/var/lib/mysql
+
+volumes:
+  alctb-mariadb:

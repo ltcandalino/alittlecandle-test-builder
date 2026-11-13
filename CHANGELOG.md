@@ -7,10 +7,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Website (Docker) version: choose the database. SQLite stays the default (nothing to set up); set `DATABASE_URL` to use **PostgreSQL** (preferred) or **MySQL / MariaDB**. Ready-made add-ons `compose.postgres.yml` and `compose.mariadb.yml`. Switching from SQLite copies all accounts, questions and settings over on the first start. The app waits for a database that is still starting.
+- `npm run test:db`: runs the server and sync tests on real PostgreSQL, MariaDB and MySQL in Docker; GitHub runs them on every change too.
+- Print bar: a warning that stays visible when questions have no correct answer (with a **Fix** button), and a "Printing 2 of 4: Version B" strip with **Stop after this one** while several print windows open.
 - **Aa Display** button at the top: app font (Standard, Atkinson Hyperlegible or OpenDyslexic), text size (Normal, Large, Larger), High contrast and Less motion. Saved per person in that browser; printouts don't change. The two fonts are built into the app (SIL Open Font License), so they work offline.
 - Keyboard and screen-reader support: a visible outline on whatever has keyboard focus; the math symbol row in the editor is reachable with the keyboard (one Tab stop, arrow keys inside) and each symbol has a spoken name; Tab stays inside the question editor; the current section is announced; each "Put on test" checkbox names its question.
 
 ### Changed
+- Print buttons are greyed out until you pick questions. **New scramble** asks "Make new versions?" first and offers Undo. Part directions moved above the preview.
 - Setup guide: a full **Behind your own proxy** section for running without the bundled Caddy (port 8080 for the proxy only, `X-Forwarded-For`, 25 MB uploads, nginx / Apache / Nginx Proxy Manager examples).
 - Works on phones and narrow windows: no sideways scrolling, the header scrolls away, and question cards put Edit / Copy / Delete under the question.
 - A **Help** link at the top opens the user guide. The empty Question bank offers **Import questions** (ExamView, Word, PDF, spreadsheet, paste), not only ExamView. The paste example is math. The editor explains what **Bimodal** means. **Delete** on a card is red.

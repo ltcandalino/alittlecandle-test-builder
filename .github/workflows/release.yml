@@ -29,7 +29,7 @@ jobs:
           mkdir -p dist
           cp ALittleCandleTestBuilder.html "dist/ALittleCandleTestBuilder-$V.html"
           mkdir -p "dist/alittlecandle-docker-$V"
-          cp docker/Dockerfile docker/docker-compose.yml docker/Caddyfile docker/server.js docker/index.html docker/README.md docker/.dockerignore "dist/alittlecandle-docker-$V/"
+          cp docker/Dockerfile docker/docker-compose.yml docker/Caddyfile docker/server.js docker/db.js docker/package.json docker/compose.postgres.yml docker/compose.mariadb.yml docker/index.html docker/README.md docker/.dockerignore "dist/alittlecandle-docker-$V/"
           (cd dist && zip -r "alittlecandle-docker-$V.zip" "alittlecandle-docker-$V")
       - name: Write the release notes
         run: |

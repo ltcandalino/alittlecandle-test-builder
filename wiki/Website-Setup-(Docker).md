@@ -10,6 +10,14 @@ The full step-by-step guide is in [`docker/README.md`](../blob/HEAD/docker/READM
 4. Run `docker compose up -d --build`.
 5. Sign in, then use your email menu → **Manage accounts** to add colleagues with temporary passwords.
 
+## Which database?
+
+Accounts, banks and settings are kept in **SQLite** inside the `alctb-data` volume unless you choose
+otherwise. To use **PostgreSQL** (preferred) or **MySQL / MariaDB**, set `DATABASE_URL`, or start with a
+ready-made add-on: `docker compose -f docker-compose.yml -f compose.postgres.yml up -d`
+(or `compose.mariadb.yml`). Switching from SQLite copies your existing data over automatically on the first
+start. Details: **Choosing the database** in [`docker/README.md`](../blob/HEAD/docker/README.md).
+
 ## Already have a proxy that handles HTTPS?
 
 Leave out the bundled Caddy and forward your proxy (nginx, Apache, Nginx Proxy Manager, Traefik…) to the app on

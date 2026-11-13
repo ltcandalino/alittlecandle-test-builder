@@ -66,10 +66,31 @@ function freePort() {
   });
 }
 
-// Starts docker/server.js with a temporary data folder.
+// TEST_DATABASE_URL=postgres://… or mysql://… runs the server tests on that database server instead of
+// SQLite. Each fresh test server gets its own new, empty database there (the URL needs rights to create one).
+const TEST_DB = process.env.TEST_DATABASE_URL || '';
+const dbOfDir = new Map();
+async function freshDatabase(adminUrl) {
+  const name = 'alctb_t' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const req = (m) => require(path.join(ROOT, 'docker', 'node_modules', m));
+  if (/^postgres/i.test(adminUrl)) {
+    const c = new (req('pg').Client)({ connectionString: adminUrl }); await c.connect();
+    await c.query('CREATE DATABASE ' + name); await c.end();
+  } else {
+    const c = await req('mysql2/promise').createConnection({ uri: adminUrl.replace(/^mariadb:/i, 'mysql:') });
+    await c.query('CREATE DATABASE ' + name + ' CHARACTER SET utf8mb4'); await c.end();
+  }
+  const u = new URL(adminUrl); u.pathname = '/' + name; return u.toString();
+}
+
+// Starts docker/server.js with a temporary data folder (and, with TEST_DATABASE_URL, a new database).
 async function startServer(env = {}) {
   const port = await freePort();
   const dataDir = env.DATA_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'alctb-'));
+  if (TEST_DB && !('DATABASE_URL' in env)) {
+    if (!dbOfDir.has(dataDir)) dbOfDir.set(dataDir, await freshDatabase(TEST_DB));
+    env = Object.assign({ DATABASE_URL: dbOfDir.get(dataDir) }, env);
+  }
   const cfg = Object.assign({ PORT: String(port), DATA_DIR: dataDir, ADMIN_EMAIL: 'admin@example.com', ADMIN_PASSWORD: 'admin-password-1' }, env);
   const proc = spawn(process.execPath, ['--no-warnings', path.join(ROOT, 'docker', 'server.js')],
     { env: Object.assign({}, process.env, cfg), stdio: ['ignore', 'pipe', 'pipe'] });
@@ -103,4 +124,4 @@ function api(base) {
   };
 }
 
-module.exports = { ROOT, APP, FIX, OUT, launch, openApp, addQuestions, select, settings, fn, gotoTab, b64, privateFixtures, freePort, startServer, api };
+module.exports = { TEST_DB, freshDatabase, ROOT, APP, FIX, OUT, launch, openApp, addQuestions, select, settings, fn, gotoTab, b64, privateFixtures, freePort, startServer, api };

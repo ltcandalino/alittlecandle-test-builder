@@ -16,6 +16,8 @@ services:
       ADMIN_EMAIL: you@yourschool.org        # your sign-in email
       ADMIN_PASSWORD: change-this-password   # 8+ characters; only used the very first time
       # ADMIN_RESET: "1"                     # locked out? uncomment, set a new ADMIN_PASSWORD, restart, then comment out again
+      # DATABASE_URL: postgres://user:password@host:5432/alctb   # PostgreSQL / MySQL / MariaDB instead of SQLite;
+      #                                     # or use compose.postgres.yml / compose.mariadb.yml (see README.md)
     volumes:
       - alctb-data:/data                     # accounts, banks and pictures live here
 

@@ -3,7 +3,7 @@ const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
-const { startServer, api } = require('./helpers.cjs');
+const { startServer, api, TEST_DB, freshDatabase } = require('./helpers.cjs');
 
 let srv, A, admin;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
@@ -233,5 +233,23 @@ describe('restarts and ADMIN_RESET', () => {
     const s3 = await startServer({ DATA_DIR: s1.dataDir, ADMIN_PASSWORD: 'a-different-pass', ADMIN_RESET: '1' });
     assert.equal((await api(s3.url).login('admin@example.com', 'a-different-pass')).status, 200, 'ADMIN_RESET sets the new password');
     await s3.stop();
+  });
+});
+
+describe('moving to PostgreSQL or MySQL', { skip: !TEST_DB && 'set TEST_DATABASE_URL to run' }, () => {
+  test('the first start on a new database copies everything from the old SQLite file', async () => {
+    const s1 = await startServer({ DATABASE_URL: '' });
+    const a1 = api(s1.url), t = (await a1.login('admin@example.com', 'admin-password-1')).json.access_token;
+    await a1.call('POST', '/rest/v1/questions', { token: t, body: [{ id: 'moved', data: { html: 'came along' } }, { id: 'gone', data: {}, deleted: true }] });
+    await a1.call('POST', '/rest/v1/app_state', { token: t, body: [{ data: { course: 'Geometry' } }] });
+    await s1.stop();
+    const s2 = await startServer({ DATA_DIR: s1.dataDir, DATABASE_URL: await freshDatabase(TEST_DB), ADMIN_PASSWORD: 'ignored-pass-1' });
+    assert.match(s2.log(), /Copied 1 account\(s\) and 2 question\(s\)/);
+    const a2 = api(s2.url), t2 = (await a2.login('admin@example.com', 'admin-password-1')).json.access_token;
+    const qs = (await a2.call('GET', '/rest/v1/questions', { token: t2 })).json;
+    assert.deepEqual(qs.map(q => [q.id, q.deleted]).sort(), [['gone', true], ['moved', false]]);
+    assert.equal((await a2.call('GET', '/rest/v1/app_state', { token: t2 })).json[0].data.course, 'Geometry');
+    assert.ok(fs.existsSync(path.join(s1.dataDir, 'alctb.db')), 'the SQLite file is left in place');
+    await s2.stop();
   });
 });

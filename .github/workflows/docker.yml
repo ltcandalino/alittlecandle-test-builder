@@ -61,8 +61,59 @@ jobs:
           path: tests/out/
           retention-days: 14
 
+  databases:
+    name: database (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: postgres
+            image: postgres:18
+            url: postgres://postgres:test-pass-1@127.0.0.1:5432/postgres
+            port: '5432:5432'
+            env: '{"POSTGRES_PASSWORD":"test-pass-1"}'
+            health: pg_isready -U postgres
+          - db: mariadb
+            image: mariadb:lts
+            url: mariadb://root:test-pass-1@127.0.0.1:3306/mysql
+            port: '3306:3306'
+            env: '{"MARIADB_ROOT_PASSWORD":"test-pass-1"}'
+            health: healthcheck.sh --connect --innodb_initialized
+          - db: mysql
+            image: mysql:lts
+            url: mysql://root:test-pass-1@127.0.0.1:3306/mysql
+            port: '3306:3306'
+            env: '{"MYSQL_ROOT_PASSWORD":"test-pass-1"}'
+            health: mysqladmin ping -h 127.0.0.1 -uroot -ptest-pass-1
+    services:
+      db:
+        image: ${{ matrix.image }}
+        env: ${{ fromJSON(matrix.env) }}
+        ports: ['${{ matrix.port }}']
+        options: >-
+          --health-cmd "${{ matrix.health }}" --health-interval 3s --health-timeout 5s --health-retries 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Install test tools and database drivers
+        run: |
+          npm install --no-audit --no-fund
+          npm install --prefix docker --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          python3 build.py
+      - name: Server and sync tests on ${{ matrix.db }}
+        env:
+          TEST_DATABASE_URL: ${{ matrix.url }}
+        run: node --test --test-concurrency=1 tests/server.test.cjs tests/sync.test.cjs
+
   image:
-    needs: test
+    needs: [test, databases]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

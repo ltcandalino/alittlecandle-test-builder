@@ -1,5 +1,6 @@
 # ALittleCandleTestBuilder: website, logins, question banks and pictures in one container.
-# Needs Node 22.13 or newer; uses the current LTS (26) (built-in SQLite). No other packages are installed.
+# Needs Node 22.13 or newer; uses the current LTS (26). Database: SQLite in /data by default, or
+# PostgreSQL / MySQL / MariaDB via DATABASE_URL (see README.md). (built-in SQLite). No other packages are installed.
 FROM node:26-alpine
 
 ARG APP_VERSION=dev
@@ -11,7 +12,9 @@ ENV NODE_ENV=production \
     DATA_DIR=/data
 
 WORKDIR /app
-COPY server.js index.html ./
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY server.js db.js index.html ./
 
 RUN mkdir -p /data && chown -R node:node /data
 USER node

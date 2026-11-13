@@ -98,9 +98,47 @@ Then the server only needs `docker-compose.yml` and `Caddyfile`:
 
 Version tags work too: pushing a tag like `v1.2.0` publishes `:1.2.0` and `:1.2`, so you can pin the server to a version.
 
+## Choosing the database: SQLite, PostgreSQL or MySQL/MariaDB
+
+Out of the box, accounts, banks and settings are kept in **SQLite**, a single file (`alctb.db`) in the
+`alctb-data` volume. Nothing to set up, and it's plenty for a school.
+
+To use **PostgreSQL** (preferred) or **MySQL / MariaDB** instead, set `DATABASE_URL` for the app:
+
+| Database | `DATABASE_URL` |
+|---|---|
+| SQLite (default) | leave it out |
+| PostgreSQL | `postgres://user:password@host:5432/alctb` |
+| MySQL | `mysql://user:password@host:3306/alctb` |
+| MariaDB | `mariadb://user:password@host:3306/alctb` |
+
+The database (`alctb` above) must already exist and the user must be allowed to create tables in it. The
+tables are created on the first start. Pictures always stay as files in the `alctb-data` volume, so keep
+that volume whichever database you choose.
+
+**Easiest: run the database next to the app.** Two ready-made add-on files start one for you:
+
+```
+docker compose -f docker-compose.yml -f compose.postgres.yml up -d
+docker compose -f docker-compose.yml -f compose.mariadb.yml up -d
+```
+
+Change the passwords in the add-on file first. Use the same `-f …` options for every later
+`docker compose` command (`pull`, `up -d`, `logs`, `down`).
+
+**Already have a database server?** Create an empty database and a user for it, then set `DATABASE_URL`
+under `app:` → `environment:` in `docker-compose.yml`.
+
+**Moving from SQLite:** just switch. On the first start with an empty PostgreSQL / MySQL / MariaDB
+database, the app copies every account, question and setting from the old `alctb.db` once, and leaves the
+file as it was. The log shows `Copied N account(s) and M question(s)`. Download a backup first anyway.
+
+If the database server is still starting, the app waits for it (`Waiting for the database to accept
+connections…` in the log).
+
 ## Backing up the server
 
-This saves everyone's accounts, banks and pictures into one file in the current folder:
+With the default SQLite, this saves everyone's accounts, banks and pictures into one file in the current folder:
 
 ```
 docker compose stop app
@@ -115,6 +153,14 @@ To restore onto a new server, create the volume by starting the site once, stop 
 ```
 docker run --rm -v alittlecandle_alctb-data:/data -v "$PWD":/backup alpine sh -c "rm -rf /data/* && tar xzf /backup/alctb-backup-DATE.tgz -C /data && chown -R 1000:1000 /data"
 docker compose start app
+```
+
+With PostgreSQL or MySQL/MariaDB, back up the `alctb-data` volume the same way (for the pictures) and the
+database with its own tool, for example:
+
+```
+docker compose -f docker-compose.yml -f compose.postgres.yml exec db pg_dump -U alctb alctb > alctb-$(date +%F).sql
+docker compose -f docker-compose.yml -f compose.mariadb.yml exec db sh -c 'mariadb-dump -ualctb -p"$MARIADB_PASSWORD" alctb' > alctb-$(date +%F).sql
 ```
 
 ## If you're locked out of the admin account
@@ -206,7 +252,7 @@ Open `https://tests.yourdomain.com/healthz`. It should show the version. Then si
 
 ## Details
 
-- One container, Node 26 (current LTS), no extra packages. Data: SQLite database plus a pictures folder, both in `/data`.
+- One container, Node 26 (current LTS). Data: SQLite in `/data` by default, or PostgreSQL / MySQL / MariaDB through `DATABASE_URL`; pictures are files in `/data/images`. The only packages are the database drivers (`pg`, `mysql2`), loaded only when used.
 - Passwords are stored scrambled (scrypt), never as plain text. Sign-ins expire after 60 days of not using the site.
 - Too many wrong passwords in a row pause sign-in for that email for 15 minutes.
 - Health check: `https://tests.yourdomain.com/healthz`

@@ -1,5 +1,5 @@
 # Weekly pull requests when newer versions are out: GitHub Actions, the Docker base image (Node),
-# and the test tools in package.json. pdf.js in vendor/pdfjs/ is copied by hand (see AGENTS.md).
+# the test tools in package.json, and the server's database drivers in docker/package.json. pdf.js in vendor/pdfjs/ is copied by hand (see AGENTS.md).
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -10,4 +10,7 @@ updates:
     schedule: { interval: weekly }
   - package-ecosystem: npm
     directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /docker
     schedule: { interval: weekly }

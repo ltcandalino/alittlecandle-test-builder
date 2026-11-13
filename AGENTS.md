@@ -15,7 +15,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 1. Edit `src/`, then `python3 build.py`. Commit the rebuilt `ALittleCandleTestBuilder.html` and
    `docker/index.html` with the source change.
 2. Run `npm test` (full suite, see Testing). Add or update tests for what you changed. Look at the
-   PDFs in `tests/out/` when layout changed. Run `npm run test:docker` when `docker/` changed.
+   PDFs in `tests/out/` when layout changed. Run `npm run test:docker` when `docker/` changed, and
+   `npm run test:db` when `docker/server.js` or `docker/db.js` changed (CI runs both databases too).
 3. Add a line under **[Unreleased]** in `CHANGELOG.md` (Added / Changed / Fixed / Removed).
 4. Significant change → update `README.md`, the matching page(s) in `wiki/`, and `docker/README.md`
    if the server or setup changed. Never edit the GitHub wiki directly (the workflow overwrites it).
@@ -49,7 +50,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |
 | `vendor/fonts/` | Atkinson Hyperlegible Next + OpenDyslexic woff2 (latin, 400/700, normal/italic, fontsource 5.3.0); `build.py` embeds them as `@font-face` data URLs (~830 KB). |
 | `build.py` | Concatenates everything into `ALittleCandleTestBuilder.html` (no config) and `docker/index.html` (loads `config.js`). |
-| `docker/server.js` | Node server (26 LTS in the image), no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
+| `docker/server.js` | Node server (26 LTS in the image), scrypt. Serves the app + a Supabase-subset API. |
+| `docker/db.js` | Database layer: SQLite (`node:sqlite`, default) / PostgreSQL (`pg`) / MySQL-MariaDB (`mysql2`) via `DATABASE_URL`; `?` placeholders, `get/all/run/tx`, dialect upserts, one-time copy from SQLite. Drivers in `docker/package.json`, loaded lazily. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
 | `PLAN.md` | Approved feature plan: accommodations, display settings, saved tests. |
@@ -122,10 +124,11 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
   `/rest/v1/app_state`, `/storage/v1/object/images/<sha256>`. Change detection by signature (fnv of
   canonical JSON without data URLs); soft deletes; `lastPull` from server `updated_at` minus 2 min, so
   it doesn't depend on client clocks. Images are uploaded and referenced by SHA-256 name.
-- `docker/server.js` implements that subset with SQLite + files in `DATA_DIR` (`/data`), scrypt
+- `docker/server.js` implements that subset with `docker/db.js` (SQLite by default, or Postgres/MySQL/MariaDB
+  via `DATABASE_URL`; first start on an empty one copies from `DATA_DIR/alctb.db`) + picture files in `DATA_DIR`, scrypt
   passwords, bearer tokens, admin endpoints `/admin/api/users…`, `/healthz`, and generates `config.js`
   with `selfHosted:true` (shows "Manage accounts" for admins). Env: `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`.
+  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`, `DATABASE_URL`.
 
 ## Testing
 
@@ -135,6 +138,7 @@ npm test               # build + every tests/*.test.cjs (~150 checks, ~45 s)
 npm run test:fast      # core + documents
 npm run test:server    # server API + two-browser sync
 npm run test:docker    # real image on a machine with Docker (scripts/docker-test.sh, log in tests/out/)
+npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL LTS in Docker (TEST_DATABASE_URL)
 ```
 - `core` pure helpers; `documents` buildVersion/layouts/keys/printJobs/courses; `imports` DOCX/PDF/BNK;
   `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup/CSV downloads, print
@@ -222,3 +226,6 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   one accent color, no side stripes. `.impeccable/critique/ignore.md` accepts the print-template fonts. 165 tests.
 - **2026-11-13**: polish pass: phone layout (grid minmax(0,1fr), static header <640px, card actions below), Help link
   to wiki, broader empty state, math paste example, Bimodal hint, red Delete, Copy keeps ref. 165 tests.
+- **2026-11-13**: database support: `docker/db.js` (SQLite default, PostgreSQL preferred, MySQL/MariaDB) via
+  `DATABASE_URL`, auto-copy from SQLite, compose add-ons, `npm run test:db`, CI `databases` matrix. 36/36 server
+  tests on each. Paused mid-way: editor (question first), in-app Help, print-bar docs/changelog (next).
