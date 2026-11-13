@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-13
+
 ### Added
 - **Saved tests** on Build & print: save a test under a name, and come back to it later to look at, change or reprint it, the way ExamView worked. **Printing saves the test automatically** with the print date. Open, Rename, Duplicate (e.g. to start next year's version) and Delete (with Undo); find one by name when you have many. If the current test has unsaved changes, opening another asks first.
 - If questions were edited or deleted from the bank since a test was saved, opening it says so and uses the questions **as printed** (so reprints and keys match what was handed out), with **Use the latest versions** to switch. Saved tests are in backups and sync to the website version (their pictures reuse the uploaded files).
