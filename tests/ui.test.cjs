@@ -31,6 +31,32 @@ describe('tabs', () => {
 });
 
 describe('question editor', () => {
+  test('closing without changes needs no question', async () => {
+    const [id] = await addQuestions(page, [{ html: 'Leave me' }]);
+    await gotoTab(page, 'bank');
+    await page.click(`[data-edit="${id}"]`);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.$('#ov'), null);
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.edit), id, 'focus goes back to Edit');
+  });
+  test('Escape, Cancel or a click outside asks before throwing away edits', async () => {
+    const [id] = await addQuestions(page, [{ html: 'Original text' }]);
+    await gotoTab(page, 'bank');
+    await page.click(`[data-edit="${id}"]`);
+    await page.click('#e-text'); await page.keyboard.type(' plus my edit');
+    await page.keyboard.press('Escape');
+    assert.ok(await page.isVisible('#e-confirm'), 'Escape shows the question');
+    await page.click('#e-keep');
+    assert.ok(!(await page.isVisible('#e-confirm')) && await page.$('#ov'), 'Keep editing stays open');
+    await page.mouse.click(5, 5);
+    assert.ok(await page.isVisible('#e-confirm'), 'clicking outside shows the question');
+    await page.keyboard.press('Escape');
+    assert.ok(!(await page.isVisible('#e-confirm')) && await page.$('#ov'), 'Escape on the question keeps editing');
+    await page.click('#e-cancel');
+    await page.click('#e-discard');
+    assert.equal(await page.$('#ov'), null);
+    assert.equal(await page.evaluate(id => window.__tb.state.questions.find(q => q.id === id).html, id), 'Original text');
+  });
   test('write a new multiple-choice question', async () => {
     await gotoTab(page, 'bank');
     await page.click('#newQ');
@@ -225,8 +251,42 @@ describe('saving and backups', () => {
     await gotoTab(page, 'io');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
     const file = path.join(OUT, 'backup2.json'); await dl.saveAs(file);
-    await page.setInputFiles('#bkIn', file); await page.waitForTimeout(500);
+    await page.setInputFiles('#bkIn', file);
+    await page.waitForSelector('#rsAdd');
+    assert.ok(await page.isDisabled('#rsAdd'), 'nothing missing to add');
     assert.equal(await count(), 1);
+  });
+  test('restore over existing questions: Replace everything, with Undo', async () => {
+    const [a] = await addQuestions(page, [{ html: 'Kept A' }, { html: 'Kept B' }]);
+    await gotoTab(page, 'io');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
+    const file = path.join(OUT, 'backup3.json'); await dl.saveAs(file);
+    assert.match(await page.textContent('.last-bk'), /today/);
+    await page.evaluate(a => { const st = window.__tb.state; st.questions.find(q => q.id === a).html = 'Edited A'; }, a);
+    await addQuestions(page, [{ html: 'Extra C' }]);
+    await gotoTab(page, 'io');
+    await page.setInputFiles('#bkIn', file);
+    await page.waitForSelector('#rsReplace');
+    const msg = await page.textContent('#bkRes');
+    assert.match(msg, /1 edited question goes back/); assert.match(msg, /1 question not in the backup is removed/);
+    await page.click('#rsReplace');
+    const htmls = () => page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort());
+    assert.deepEqual(await htmls(), ['Kept A', 'Kept B']);
+    await page.click('#toastUndo');
+    assert.deepEqual(await htmls(), ['Edited A', 'Extra C', 'Kept B']);
+  });
+  test('restore over existing questions: add only the missing ones', async () => {
+    await addQuestions(page, [{ html: 'From backup 1' }, { html: 'From backup 2' }]);
+    await gotoTab(page, 'io');
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
+    const file = path.join(OUT, 'backup4.json'); await dl.saveAs(file);
+    const other = await openApp(browser);
+    await addQuestions(other.page, [{ html: 'Already here' }]);
+    await gotoTab(other.page, 'io');
+    await other.page.setInputFiles('#bkIn', file);
+    await other.page.click('#rsAdd');
+    assert.deepEqual(await other.page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort()), ['Already here', 'From backup 1', 'From backup 2']);
+    await other.context.close();
   });
   test('CSV export and import', async () => {
     await addQuestions(page, [{ html: 'CSV question', unit: '5' }]);

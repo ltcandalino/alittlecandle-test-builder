@@ -23,6 +23,8 @@ Click a question to open it. You can fix the wording, choices or answer, and fil
 
 Use **+ New question** to write one from scratch, or **Save & add another** to enter several in a row.
 
+If you press **Esc**, click **Cancel** or click outside the editor after changing something, it asks first: **Keep editing** or **Discard changes**. Nothing you typed is thrown away without asking.
+
 ## Question types
 
 | Type | What prints |

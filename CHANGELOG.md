@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Backup is now the first box on Import & backup, and shows when you last downloaded one (bold after two weeks).
+
+### Fixed
+- The question editor no longer throws away your changes when you press Esc, click Cancel or click outside it: it asks **Keep editing** or **Discard changes**. Closing it puts you back on the question's Edit button.
+- **Restore a backup** used to quietly merge (skipping edited questions and your settings) when you already had questions. It now asks: **Replace everything with this backup** (with Undo) or **Add the missing questions**.
+- "That isn't a ALittleCandleTestBuilder backup file" now reads "an".
+
 ## [0.6.0] - 2026-11-13
 
 ### Added

@@ -715,7 +715,7 @@ function openEditor(q){
     '<div class="row4" style="grid-template-columns:1fr 1fr 1fr 1fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Standard</span><input type="text" id="e-std" value="'+esc(ed.standard)+'" placeholder="e.g. G.CO.A.2"></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label></div>'+
     '<div class="row4" style="grid-template-columns:1.6fr 1.1fr .7fr .7fr auto"><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="36" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div>'+
     '<span class="lbl">Question</span>'+richBox('e-text',ed.html,'Type the question. Use the buttons for symbols, segments and pictures.',true)+
-    '<div id="e-spec" style="margin-top:14px"></div><p class="err" id="e-err"></p><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
+    '<div id="e-spec" style="margin-top:14px"></div><p class="err" id="e-err"></p><div id="e-confirm" class="confirm-bar" role="alert" hidden></div><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
   wireRich($('#modal'));
   $('#e-type').onchange=function(){collect();var t=this.value;ed.type=t;
     if(isMC(t)){if(t==='bm')ed.space=ed.space&&ed.space<=6?ed.space:2;if(!Array.isArray(ed.choices)||!ed.choices.length)ed.choices=['','','',''];if(typeof ed.answer!=='number')ed.answer=-1;}
@@ -725,12 +725,18 @@ function openEditor(q){
   $('#e-fromref').onclick=function(){var p=parseRef($('#e-ref').value);if(!p){toast('The reference doesn’t start with MMYYQQ (like 062504), so there’s nothing to read.');return;}if(p.month)$('#e-mo').value=p.month;$('#e-yr').value=p.year;$('#e-qn').value=p.qnum;};
   $('#e-std').addEventListener('change',function(){var c=$('#e-cl');if(!c.value.trim())c.value=clusterOf(this.value);});
   $('#e-ref').addEventListener('change',function(){var p=parseRef(this.value);if(!p)return;if(!$('#e-mo').value&&p.month)$('#e-mo').value=p.month;if(!$('#e-yr').value)$('#e-yr').value=p.year;if(!$('#e-qn').value)$('#e-qn').value=p.qnum;});
-  $('#e-cancel').onclick=closeEditor;$('#e-save').onclick=function(){commitEditor(false);};
+  $('#e-cancel').onclick=requestClose;$('#e-save').onclick=function(){commitEditor(false);};
   if($('#e-more'))$('#e-more').onclick=function(){commitEditor(true);};
-  $('#ov').onmousedown=function(e){if(e.target.id==='ov')closeEditor();};
-  $('#ov').onkeydown=function(e){if(e.key==='Escape')closeEditor();if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitEditor(false);}};
-  drawSpec();setTimeout(function(){$('#e-text').focus();},30);
+  $('#ov').onmousedown=function(e){if(e.target.id==='ov'){e.preventDefault();requestClose();}};
+  $('#ov').onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();if(!$('#e-confirm').hidden)hideDiscard();else requestClose();}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitEditor(false);}};
+  drawSpec();collect();edSnap=JSON.stringify(ed);edReturn=q?q.id:null;setTimeout(function(){$('#e-text').focus();},30);
 }
+/* Closing the editor never throws away typing without asking. */
+var edSnap='',edReturn=null;
+function requestClose(){collect();if(JSON.stringify(ed)===edSnap){closeEditor();return;}
+  var c=$('#e-confirm');c.innerHTML='<span>You have changes that aren’t saved.</span><span class="spacer"></span><button type="button" id="e-keep">Keep editing</button><button type="button" class="danger" id="e-discard">Discard changes</button>';c.hidden=false;
+  $('#e-keep').onclick=hideDiscard;$('#e-discard').onclick=function(){closeEditor();};$('#e-keep').focus();}
+function hideDiscard(){var c=$('#e-confirm');c.hidden=true;c.innerHTML='';$('#e-text').focus();}
 function collect(){
   if(!ed)return;
   ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;ed.course=$('#e-course').value;ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
@@ -785,7 +791,7 @@ function commitEditor(another){
   if(another){closeEditor(true);openEditor(null);toast('Saved. It’s on the test too.');}
   else{closeEditor();if(!existing)toast('Saved and added to the test.');}
 }
-function closeEditor(keep){$('#modal').innerHTML='';lastRich=null;if(!keep){ed=null;render();}}
+function closeEditor(keep){$('#modal').innerHTML='';lastRich=null;if(!keep){ed=null;render();var b=edReturn&&$('[data-edit="'+edReturn+'"]');if(b)b.focus();}}
 
 /* ================= build tab ================= */
 function renderBuild(){
@@ -897,13 +903,40 @@ function drawPreview(){
 
 /* ================= import / backup tab ================= */
 function bankCounts(){var c={};cq().forEach(function(q){c[q.bank]=(c[q.bank]||0)+1;});return c;}
+function daysAgo(iso){var t=Date.parse(iso);return isNaN(t)?null:Math.floor((Date.now()-t)/864e5);}
+function lastBackupText(){var n=daysAgo(ui.lastBackup);if(n==null)return 'No backup downloaded from this browser yet.';return 'Last backup: '+(n<1?'today':n===1?'yesterday':n+' days ago')+'.';}
+function backupStale(){var n=daysAgo(ui.lastBackup);return n==null||n>=14;}
+/* Restoring into a bank that already has questions asks: replace everything, or add only what's missing. */
+function restoreChoice(incoming,saved){
+  var res=$('#bkRes'),n=incoming.questions.length,have={};state.questions.forEach(function(q){have[q.id]=q;});
+  var added=incoming.questions.filter(function(q){return !have[q.id];});
+  if(!state.questions.length){state=incoming;changed();render();var r=$('#bkRes');r.className='result ok';r.textContent='Restored '+n+' question'+(n===1?'':'s')+' and your test settings.';return;}
+  var inBk={};incoming.questions.forEach(function(q){inBk[q.id]=1;});
+  var edited=incoming.questions.filter(function(q){return have[q.id]&&JSON.stringify(have[q.id])!==JSON.stringify(q);}).length;
+  var gone=state.questions.filter(function(q){return !inBk[q.id];}).length;
+  var when=saved&&!isNaN(Date.parse(saved))?' from '+new Date(saved).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}):'';
+  var what=[];if(edited)what.push(edited+' edited question'+(edited===1?' goes':'s go')+' back to the backup’s version');if(gone)what.push(gone+' question'+(gone===1?'':'s')+' not in the backup '+(gone===1?'is':'are')+' removed');
+  res.className='result choose';
+  res.innerHTML='<p>This backup'+esc(when)+' has <b>'+n+'</b> question'+(n===1?'':'s')+'. You have '+state.questions.length+' now.</p>'+
+    '<div class="restore-opt"><button class="primary" id="rsReplace">Replace everything with this backup</button><span class="hint">Questions, courses and test settings become exactly what’s in the backup'+(what.length?': '+esc(what.join('; ')):'')+'. You can undo this.</span></div>'+
+    '<div class="restore-opt"><button id="rsAdd"'+(added.length?'':' disabled')+'>'+(added.length?'Add the '+added.length+' missing question'+(added.length===1?'':'s'):'Nothing missing to add')+'</button><span class="hint">Keeps everything you have now and only adds questions you don’t have.</span></div>'+
+    '<button class="ghost small" id="rsCancel">Cancel</button>';
+  $('#rsCancel').onclick=function(){res.className='result';res.innerHTML='';};
+  $('#rsReplace').onclick=function(){var prev=state;state=incoming;changed();render();var r=$('#bkRes');r.className='result ok';r.textContent='Replaced everything with the backup ('+n+' question'+(n===1?'':'s')+').';
+    toast('Replaced everything with the backup.',function(){state=prev;changed();render();});};
+  $('#rsAdd').onclick=function(){var prevQ=state.questions,prevC=state.courses;state.questions=state.questions.concat(added);
+    state.courses=state.courses.concat(incoming.courses.filter(function(c){return state.courses.indexOf(c)<0;}));
+    changed();render();var r=$('#bkRes');r.className='result ok';r.textContent='Added '+added.length+' question'+(added.length===1?'':'s')+'. Nothing you had was changed.';
+    toast('Added '+added.length+' question'+(added.length===1?'':'s')+' from the backup.',function(){state.questions=prevQ;state.courses=prevC;changed();render();});};
+  $('#rsReplace').focus();
+}
 function renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
   main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
+  '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
   '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
   '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span><button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
   '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return q.course===c;}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
-  '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p><div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
   '</div><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
   '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
@@ -939,17 +972,13 @@ function renderIO(){
     state.questions=state.questions.filter(function(q){return q.course!==name;});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];
     changed();render();toast('Deleted '+name+'.',function(){state.questions=prev.questions;state.courses=prev.courses;state.courseTests=prev.courseTests;changed();render();});
   };});
-  $('#bkOut').onclick=function(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');};
+  $('#bkOut').onclick=function(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');ui.lastBackup=d.toISOString();saveUi();renderIO();};
   $('#bkIn').onchange=function(){
     var f=this.files&&this.files[0],res=$('#bkRes'),inp=this;if(!f)return;
     var rd=new FileReader();rd.onload=function(){
-      inp.value='';var data;try{data=JSON.parse(rd.result);}catch(e){res.className='result bad';res.textContent='That isn’t a ALittleCandleTestBuilder backup file.';return;}
-      var st=data&&data.state;if(!st||!Array.isArray(st.questions)){res.className='result bad';res.textContent='That isn’t a ALittleCandleTestBuilder backup file.';return;}
-      var incoming=normalize(st),have={};state.questions.forEach(function(q){have[q.id]=1;});
-      var added=incoming.questions.filter(function(q){return !have[q.id];});
-      if(!state.questions.length){state=incoming;}else{state.questions=state.questions.concat(added);}
-      changed();renderTabs();renderIO();
-      var r2=$('#bkRes');r2.className='result ok';r2.textContent='Restored '+(state.questions.length===incoming.questions.length?incoming.questions.length:added.length)+' questions'+(added.length<incoming.questions.length&&state.questions.length!==incoming.questions.length?' ('+(incoming.questions.length-added.length)+' you already had were skipped)':'')+'.';
+      inp.value='';var data;try{data=JSON.parse(rd.result);}catch(e){res.className='result bad';res.textContent='That isn’t an ALittleCandleTestBuilder backup file.';return;}
+      var st=data&&data.state;if(!st||!Array.isArray(st.questions)){res.className='result bad';res.textContent='That isn’t an ALittleCandleTestBuilder backup file.';return;}
+      restoreChoice(normalize(st),data.saved);
     };rd.readAsText(f);
   };
   $('#docxFile').onchange=function(){var f=this.files&&this.files[0];this.value='';if(f)wordImport(f);};

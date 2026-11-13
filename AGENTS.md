@@ -175,8 +175,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [x] Release v0.6.0 (2026-11-13).
 - [ ] Collect her feedback from trying the single-file version.
 - [ ] Design review 2026-11-13 (`/impeccable critique`, 27/40, snapshot in `.impeccable/critique/`). She chose
-      all 5 issues, work-protection first: (1) editor asks before discarding edits (`harden`); (2) Restore
-      offers Replace vs Add missing, Backup moved up with last-backup reminder (`clarify`); (3) preview
+      all 5 issues, work-protection first: (1) DONE editor asks before discarding edits (`requestClose`); (2) DONE
+      Restore offers Replace vs Add missing (`restoreChoice`), Backup card first with `ui.lastBackup` line; (3) preview
       before Print on Build & print (`layout`); (4) contrast of `--muted`, keyboard-reachable symbol bar,
       focus styles, tab roles (`audit`); (5) fewer always-visible controls, labeled unit/section chips,
       one accent color (`distill`); then `polish`.
@@ -205,3 +205,6 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   Dependabot. Kept images on GHCR (not Docker Hub).
 - **2026-11-13**: native Homebrew + Node 26.13.1 on her M1 Mac; released v0.6.0 (CI, Release, image
   tags all green); set repo description/topics.
+- **2026-11-13**: design review (27/40), PRODUCT.md, approved PLAN.md. Review fixes 1–2 done: editor discard
+  check (backdrop mousedown keeps focus in the dialog), Restore Replace/Add missing with Undo, Backup card first.
+  156 tests pass.

@@ -149,6 +149,14 @@ pre.fmt{background:#f6f4ef;border:1px solid var(--line);border-radius:8px;paddin
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
 .result{font-size:13px;margin-top:10px}
 .result.ok{color:var(--accent)} .result.bad{color:var(--danger)}
+.result.choose{color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:12px 14px;display:grid;gap:10px}
+.result.choose p{margin:0} .result.choose>button{justify-self:start}
+.restore-opt{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.restore-opt button{justify-self:start}
+.last-bk{font-size:13px;color:var(--ink2);margin:8px 0 12px}
+.last-bk.stale{color:#7a4a0c;font-weight:600}
+.confirm-bar{display:flex;gap:8px;align-items:center;margin-top:14px;padding:10px 12px;border:1px solid #f0d9a6;background:#fff4dc;color:#6b4e12;border-radius:8px;font-size:13px}
+.confirm-bar[hidden]{display:none}
 .banks{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:6px}
 .banks li{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13.5px}
 .banks li span{flex:1}

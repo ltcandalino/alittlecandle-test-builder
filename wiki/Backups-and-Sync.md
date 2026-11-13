@@ -4,8 +4,10 @@
 
 Your work lives in the browser on that computer. To keep it safe:
 
-- **Import & backup → Download backup** saves one `.json` file with all your banks, pictures and settings. Do this now and then, and keep the file somewhere safe (a NAS, Google Drive…).
-- **Restore a backup** loads a backup file. Questions you already have are skipped.
+- **Import & backup → Download backup** saves one `.json` file with all your banks, pictures and settings. Do this now and then, and keep the file somewhere safe (a NAS, Google Drive…). The Backup box shows when you last downloaded one, and turns bold when it's been two weeks or more.
+- **Restore a backup** loads a backup file. In an empty browser it brings everything back. If you already have questions, it tells you what's different and lets you choose:
+  - **Replace everything with this backup**: your questions, courses and test settings become exactly what's in the backup. Edited questions go back to the backup's version, and questions that aren't in the backup are removed. You can **Undo** right after.
+  - **Add the missing questions**: keeps everything you have and only adds questions you don't have.
 
 Clearing the browser's site data deletes your work, so download a backup first.
 
