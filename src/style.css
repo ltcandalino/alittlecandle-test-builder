@@ -88,7 +88,7 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 .m-den{padding:0 2px;line-height:1.15}
 sup,sub{font-size:.7em;line-height:0}
 .grid2{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
 .fields{display:grid;gap:11px}
 .fields .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fields input[type=text],.fields select{width:100%}
@@ -147,7 +147,7 @@ sup,sub{font-size:.7em;line-height:0}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast button{pointer-events:auto;color:#1d2125;background:#fff}
 .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
-@media (max-width:900px){.import-grid{grid-template-columns:1fr}}
+@media (max-width:900px){.import-grid{grid-template-columns:minmax(0,1fr)}}
 pre.fmt{background:#f6f4ef;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.5;white-space:pre-wrap;margin:8px 0 12px;font-family:ui-monospace,Menlo,Consolas,monospace}
 .filebtn{position:relative;overflow:hidden;display:inline-block}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
@@ -392,3 +392,18 @@ details.fold{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 details.fold>summary{cursor:pointer;font-weight:600;font-size:14px;list-style-position:outside;margin-left:16px}
 details.fold>summary .hint{font-weight:400;margin-left:6px}
 details.fold[open]>summary{margin-bottom:12px}
+
+/* ---- phones and narrow windows ---- */
+.sel .t{min-width:0}
+.grid2>div,.import-grid>div{grid-template-columns:minmax(0,1fr)}
+@media (max-width:640px){
+  .top{position:static;gap:8px 12px;padding:10px 14px}
+  main{padding-left:12px!important;padding-right:12px!important}
+  .qcard{grid-template-columns:30px minmax(0,1fr)}
+  .qactions{grid-column:2;justify-content:flex-start;margin-top:4px}
+  .printbar{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
+}
+/* Delete looks like what it does */
+.qactions button[data-del]{color:var(--danger)}
+.helplink{font-size:13px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}
+.helplink:hover{color:var(--accent)}

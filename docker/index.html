@@ -100,7 +100,7 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 .m-den{padding:0 2px;line-height:1.15}
 sup,sub{font-size:.7em;line-height:0}
 .grid2{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
 .fields{display:grid;gap:11px}
 .fields .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fields input[type=text],.fields select{width:100%}
@@ -159,7 +159,7 @@ sup,sub{font-size:.7em;line-height:0}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast button{pointer-events:auto;color:#1d2125;background:#fff}
 .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
-@media (max-width:900px){.import-grid{grid-template-columns:1fr}}
+@media (max-width:900px){.import-grid{grid-template-columns:minmax(0,1fr)}}
 pre.fmt{background:#f6f4ef;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.5;white-space:pre-wrap;margin:8px 0 12px;font-family:ui-monospace,Menlo,Consolas,monospace}
 .filebtn{position:relative;overflow:hidden;display:inline-block}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
@@ -404,6 +404,21 @@ details.fold{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
 details.fold>summary{cursor:pointer;font-weight:600;font-size:14px;list-style-position:outside;margin-left:16px}
 details.fold>summary .hint{font-weight:400;margin-left:6px}
 details.fold[open]>summary{margin-bottom:12px}
+
+/* ---- phones and narrow windows ---- */
+.sel .t{min-width:0}
+.grid2>div,.import-grid>div{grid-template-columns:minmax(0,1fr)}
+@media (max-width:640px){
+  .top{position:static;gap:8px 12px;padding:10px 14px}
+  main{padding-left:12px!important;padding-right:12px!important}
+  .qcard{grid-template-columns:30px minmax(0,1fr)}
+  .qactions{grid-column:2;justify-content:flex-start;margin-top:4px}
+  .printbar{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
+}
+/* Delete looks like what it does */
+.qactions button[data-del]{color:var(--danger)}
+.helplink{font-size:13px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}
+.helplink:hover{color:var(--accent)}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -2127,7 +2142,7 @@ function fileBase(t){return String(t||'Test').replace(/[\\\/:*?"<>|]+/g,'').repl
 /* ================= shell ================= */
 var root=document.getElementById('root');
 function shell(){
-  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
+  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><a class="helplink" href="https://github.com/ltcandalino/alittlecandle-test-builder/wiki" target="_blank" rel="noopener">Help</a><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;
@@ -2213,7 +2228,7 @@ function qCard(q){
 function renderBank(){
   var main=$('#main');
   if(!cq().length){
-    main.innerHTML='<div class="empty"><b>No '+esc(state.course)+' questions yet</b>Import your ExamView banks (.bnk files), paste questions from a document, or add them one at a time.<div class="actions" style="justify-content:center;margin-top:14px"><button class="primary" id="goImport">Import ExamView banks</button><button id="newQ">+ New question</button></div></div>';
+    main.innerHTML='<div class="empty"><b>No '+esc(state.course)+' questions yet</b>Bring them in from ExamView banks (.bnk), a Word test (.docx), a PDF, a spreadsheet, or by pasting text, or write them one at a time.<div class="actions" style="justify-content:center;margin-top:14px"><button class="primary" id="goImport">Import questions</button><button id="newQ">+ New question</button></div></div>';
     $('#newQ').onclick=function(){openEditor(null);};$('#goImport').onclick=function(){ui.tab='io';render();};return;
   }
   var banks=uniq('bank');
@@ -2258,7 +2273,7 @@ function drawList(){
   if($('#moreBtn'))$('#moreBtn').onclick=function(){ui.limit+=60;drawList();};
   $$('[data-pick]',ql).forEach(function(cb){cb.onchange=function(){var id=cb.dataset.pick;if(cb.checked){if(!isSel(id))state.selected.push(id);}else state.selected=state.selected.filter(function(x){return x!==id;});cb.closest('.qcard').classList.toggle('on',cb.checked);changed();renderTabs();$('#onCount').textContent=state.selected.length+' on the test';};});
   $$('[data-edit]',ql).forEach(function(b){b.onclick=function(){openEditor(byId(b.dataset.edit));};});
-  $$('[data-dup]',ql).forEach(function(b){b.onclick=function(){var q=byId(b.dataset.dup);var c=JSON.parse(JSON.stringify(q));c.id=uid();c.ref=c.ref?c.ref+' (copy)':'';state.questions.splice(state.questions.indexOf(q)+1,0,c);changed();renderTabs();drawList();toast('Copied. Edit the copy to make a variation.');};});
+  $$('[data-dup]',ql).forEach(function(b){b.onclick=function(){var q=byId(b.dataset.dup);var c=JSON.parse(JSON.stringify(q));c.id=uid();state.questions.splice(state.questions.indexOf(q)+1,0,c);changed();renderTabs();drawList();toast('Copied. Edit the copy to make a variation.');};});
   $$('[data-del]',ql).forEach(function(b){b.onclick=function(){
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Confirm';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3000);return;}
     var id=b.dataset.del,q=byId(id),idx=state.questions.indexOf(q),si=state.selected.indexOf(id);
@@ -2362,7 +2377,7 @@ function collect(){
 function drawSpec(){
   var sp=$('#e-spec'),h='';
   if(isMC(ed.type)){
-    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
+    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<p class="hint" style="margin:10px 0 0">Bimodal: prints with these choices, or as an open question without them. Choose on Build &amp; print.</p><label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
   }else if(ed.type==='tf'){
     h='<span class="lbl">Correct answer</span><div class="tfpick"><label class="'+(ed.answer==='T'?'on':'')+'"><input type="radio" name="tf" value="T"'+(ed.answer==='T'?' checked':'')+'>True</label><label class="'+(ed.answer==='F'?'on':'')+'"><input type="radio" name="tf" value="F"'+(ed.answer==='F'?' checked':'')+'>False</label></div>';
   }else if(ed.type==='sa'){
@@ -2457,7 +2472,7 @@ function renderBuild(){
     (nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
     cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></details></div>'+
-'<div style="display:grid;gap:18px;min-width:0"><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div><div><b>'+nVersions()+'</b>version'+(nVersions()>1?'s':'')+'</div></div>'+
+'<div style="display:grid;gap:18px;min-width:0"><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions on the Question bank tab. Questions print in this order unless you shuffle or group them.</p></div>'+
@@ -2560,7 +2575,7 @@ function renderIO(){
   '</div><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
   '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
-  '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. Which gas do plants take in?\nA. Oxygen\n*B. Carbon dioxide\nC. Nitrogen\nD. Helium\n\n2. The sun is a star.\nAnswer: True\n\n3. Describe the stages of mitosis.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
+  '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
   '<div class="card"><h2>Spreadsheet (CSV)</h2><p class="note" style="margin-top:0">Columns: Course, Type (MC, Bimodal, TF, SA, Open), Bank, Source, Unit, Section, Topic, Subtopic, Cluster, Month, Year, Question #, Reference, Standard, Points, Question, Answer (a letter for MC), Choice A–F, Lines, Notes. Math and pictures don’t go into a CSV, so use the backup file to keep everything.</p><div class="actions"><span class="filebtn"><button>Import CSV…</button><input type="file" id="csvFile" accept=".csv,text/csv"></span><button id="csvOut"'+(state.questions.length?'':' disabled')+'>Export CSV</button><button class="ghost" id="csvTpl">Blank template</button></div><div id="csvRes" class="result"></div></div>'+
   '</div></div>';
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};

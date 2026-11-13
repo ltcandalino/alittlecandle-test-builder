@@ -214,3 +214,5 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   (native `popover`; `ui.display` in `tb-ui`; fonts via `--uif` on screen only, `zoom` for size, `.hc`, `.calm`). 162 tests.
 - **2026-11-13**: fix 5: bank filters (4 main + More filters + chips + Clear), labeled unit/section, Page style fold,
   one accent color, no side stripes. `.impeccable/critique/ignore.md` accepts the print-template fonts. 165 tests.
+- **2026-11-13**: polish pass: phone layout (grid minmax(0,1fr), static header <640px, card actions below), Help link
+  to wiki, broader empty state, math paste example, Bimodal hint, red Delete, Copy keeps ref. 165 tests.
