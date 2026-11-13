@@ -447,3 +447,26 @@ describe('help', () => {
     assert.ok(!(await page.isVisible('#helpPop')));
   });
 });
+
+describe('accommodations', () => {
+  test('turning on an accommodated copy shows its preview and print button', async () => {
+    const ids = await addQuestions(page, [{ html: 'Slope?' }, { html: 'Area?' }]);
+    await select(page, ids); await settings(page, { versions: 2 });
+    await gotoTab(page, 'build');
+    assert.ok(await page.isDisabled('[data-acc="font"]'), 'choices wait until it is turned on');
+    await page.click('#accFold summary');
+    await page.check('[data-acc="on"]');
+    assert.equal(await page.textContent('#vtabs button.on'), 'Accommodated');
+    await page.selectOption('[data-acc="font"]', 'OpenDyslexic');
+    await page.selectOption('[data-acc="size"]', 'xl');
+    await page.selectOption('[data-acc="version"]', '1');
+    assert.match(await page.getAttribute('#paper', 'style'), /OpenDyslexic.*--pts:18pt/);
+    assert.match(await page.textContent('#pbSum'), /2 versions \+ accommodated copy/);
+    assert.ok(await page.isVisible('[data-print="acc"]'));
+    const st = await page.evaluate(() => window.__tb.state.settings.accom);
+    assert.deepEqual([st.on, st.font, st.size, st.version], [true, 'OpenDyslexic', 'xl', 1]);
+    await page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
+    await page.click('[data-print="acc"]');
+    assert.equal(await page.evaluate(() => window.__tb.ui().pv), 'acc');
+  });
+});

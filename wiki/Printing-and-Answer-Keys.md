@@ -23,6 +23,22 @@ Each version gets its own key, listing every question's answer in that version's
 - **Show unit and standards on the answer key**
 - **Show my notes on the answer key** (notes never print on student copies)
 
+## Accommodated copies
+
+For a student with an IEP or 504 plan, open **Accommodations** on **Build & print** and tick **Also print an
+accommodated copy**. Then choose:
+
+- **Font**: **Atkinson Hyperlegible** (very clear letters) or **OpenDyslexic**, or the same as the test. Both fonts are built in, so they print the same on any computer.
+- **Text size**: Large (14 pt) or Extra large (18 pt). Pictures and answer spaces grow to match.
+- **Questions per page**: as many as fit, 1 or 2.
+- **Extra spacing**: more room between lines, answer choices and questions.
+- **Make it from**: which version to copy (A, B…).
+
+The accommodated copy has exactly the same questions and answer order as that version, so **that version's
+answer key works for it**, and the key says "also the accommodated copy". Nothing on the student's copy says
+"accommodated". Check it with the **Accommodated** tab in the preview (dashed lines show where new pages
+start). **Print tests + answer keys** includes it; **Accommodated only** prints just that copy.
+
 ## Preview
 
 The preview on **Build & print** sits right under your list of questions and updates as you change settings. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.

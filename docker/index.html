@@ -130,7 +130,7 @@ sup,sub{font-size:.7em;line-height:0}
 .pvtop{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .pvtop .vtabs{margin-bottom:0}
 .printbar{position:sticky;bottom:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px -18px 0;padding:12px 18px;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 12px -8px rgba(0,0,0,.12)}
-.pb-sum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pb-sum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;flex-basis:100%}
 .paperwrap .sheet{background:#fff;max-width:7.3in;margin:0 auto;padding:.55in .6in;box-shadow:0 2px 14px rgba(0,0,0,.12)}
 .overlay{position:fixed;inset:0;background:rgba(24,26,28,.42);display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;z-index:20;overflow:auto}
 .dialog{background:#fff;border-radius:14px;width:min(760px,100%);padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
@@ -435,6 +435,19 @@ details.fold[open]>summary{margin-bottom:12px}
 .dialog .ed-main{grid-template-columns:1.3fr .6fr .8fr .8fr 1.2fr}
 .dialog details.ed-more{margin-top:16px}
 @media (max-width:640px){.dialog .row4,.dialog .ed-main{grid-template-columns:1fr 1fr!important}}
+
+/* ---- accommodated copy ---- */
+.pt.acc-z .q-img,.pt.acc-z .pt-space{zoom:var(--accz,1)}
+.pt.acc-z .q-img{max-width:calc(100% / var(--accz,1))}
+.pt.acc-z .pt-lines div{height:calc(24pt * var(--accz,1))}
+.pt.acc-z .pt-ch.c4{grid-template-columns:1fr 1fr}
+.pt.acc-sp{line-height:1.75;word-spacing:.08em;letter-spacing:.01em}
+.pt.acc-sp .pt-q{margin-top:22pt}
+.pt.acc-sp .pt-ch{gap:9pt 20pt;margin-top:9pt}
+.pt.acc-sp .pt-qt,.pt.acc-sp .cl-dir{text-align:left}
+.pt .acc-break{break-after:page}
+.sheet.pt .acc-break{border-bottom:1px dashed #b9b4a8;padding-bottom:10pt}
+.acc-fields{margin-top:10px}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -1635,8 +1648,23 @@ function examLabel(q){var parts=[];if(q.month||q.year)parts.push(((q.month?month
 var LETTERS='ABCDEFGH';
 var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,reviewSpace:'1.5',roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,nameLine:true,showPoints:false,blanks:false,labels:'num',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
 var LABELS={lowerdot:function(i){return LETTERS[i].toLowerCase()+'.';},upper:function(i){return LETTERS[i]+'.';},lower:function(i){return LETTERS[i].toLowerCase()+')';},num:function(i){return '('+(i+1)+')';}};
-var FONTS={'Century Schoolbook':'"Century Schoolbook","New Century Schoolbook","Century Schoolbook L","TeX Gyre Schola",C059,Georgia,serif','Times New Roman':'"Times New Roman",Times,"Liberation Serif",serif','Cambria':'Cambria,"Caladea",Georgia,serif','Georgia':'Georgia,serif','Book Antiqua':'"Book Antiqua",Palatino,"Palatino Linotype","TeX Gyre Pagella",serif','Garamond':'Garamond,"EB Garamond","Adobe Garamond Pro",serif','Arial':'Arial,Helvetica,"Liberation Sans",sans-serif','Calibri':'Calibri,Carlito,"Segoe UI",sans-serif','Verdana':'Verdana,"DejaVu Sans",sans-serif','Comic Sans MS':'"Comic Sans MS","Comic Neue",cursive'};
+var FONTS={'Century Schoolbook':'"Century Schoolbook","New Century Schoolbook","Century Schoolbook L","TeX Gyre Schola",C059,Georgia,serif','Times New Roman':'"Times New Roman",Times,"Liberation Serif",serif','Cambria':'Cambria,"Caladea",Georgia,serif','Georgia':'Georgia,serif','Book Antiqua':'"Book Antiqua",Palatino,"Palatino Linotype","TeX Gyre Pagella",serif','Garamond':'Garamond,"EB Garamond","Adobe Garamond Pro",serif','Arial':'Arial,Helvetica,"Liberation Sans",sans-serif','Calibri':'Calibri,Carlito,"Segoe UI",sans-serif','Verdana':'Verdana,"DejaVu Sans",sans-serif','Comic Sans MS':'"Comic Sans MS","Comic Neue",cursive','Atkinson Hyperlegible':'"Atkinson Hyperlegible Next","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif','OpenDyslexic':'"OpenDyslexic","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif'};
 function ptStyle(){var s=state.settings;return '--ptf:'+(FONTS[s.font]||FONTS['Century Schoolbook']).replace(/"/g,"'")+';--pts:'+num(s.fontSize,12)+'pt';}
+/* Accommodated copy: one chosen version, same questions and answer order (so its key still works),
+   printed with a readable font, larger text, more spacing and/or fewer questions per page. */
+var ACC_DEFAULT={on:false,font:'Atkinson Hyperlegible',size:'',spacing:false,perPage:0,version:0};
+function accom(){return Object.assign({},ACC_DEFAULT,state.settings.accom||{});}
+function accOn(){return !!accom().on&&state.selected.length>0;}
+function accVersion(){return Math.min(accom().version|0,nVersions()-1);}
+function accSize(){var a=accom();return a.size==='l'?14:a.size==='xl'?18:num(state.settings.fontSize,12);}
+function accStyle(){var a=accom(),s=state.settings,f=FONTS[a.font]||FONTS[s.font]||FONTS['Century Schoolbook'],z=Math.max(1,accSize()/num(s.fontSize,12));
+  return '--ptf:'+f.replace(/"/g,"'")+';--pts:'+accSize()+'pt;--accz:'+(Math.round(z*100)/100);}
+function accClass(){var a=accom();return ' acc'+(accSize()>num(state.settings.fontSize,12)?' acc-z':'')+(a.spacing?' acc-sp':'');}
+// Page break after every Nth question (not after the last one). Lessons keep their own flow.
+function accBreaks(html){var n=accom().perPage|0;if(!n||docType()==='lesson')return html;
+  var total=(html.match(/<(div|tr) class="(pt-q|rv-q)(?=[ "])/g)||[]).length,i=0;
+  return html.replace(/<(div|tr) class="(pt-q|rv-q)(?=[ "])/g,function(m,tag,cls){i++;return '<'+tag+' class="'+(i%n===0&&i<total?'acc-break ':'')+cls;});}
+function accHtml(opts){var v=accVersion();return accBreaks(testHtml(buildVersion(v),v,opts));}
 function bmChoices(q){if(q.inImage)return true;var o=state.settings.bmOverride||{};return (o[q.id]||state.settings.bmMode)!=='without';}
 var DEFAULT_COURSES=['Algebra 1','Geometry','Algebra 2','Pre-Calculus'];
 function guessCourse(name){var n=String(name||'');
@@ -1865,6 +1893,7 @@ function migrateSettings(st,course){
   if(!t||t==='Test'||t===String(course||'')+' Test')st.title='';
   else{var mq=t.match(/Quarter\s*(\d+)/i),mu=t.match(/Unit\s*(\d+)/i);if(mq&&!st.quarter)st.quarter=mq[1];if(mu&&!st.unitNum)st.unitNum=mu[1];if(/quiz/i.test(t))st.docType='quiz';}
   ['roles','concepts','bonus'].forEach(function(k){if(!st[k]||typeof st[k]!=='object')st[k]={};});
+  if(st.accom&&typeof st.accom!=='object')delete st.accom;
   return st;
 }
 /* page header / footer pictures (used in the print margins and the preview) */
@@ -2044,15 +2073,21 @@ function printJobs(kind){
     var first=isExamDoc()?'@bottom-left{content:'+cssStr('v. '+(v+1))+';font:8pt '+font+';color:#777}':'';
     return '@page '+name+'{size:letter;margin:'+g.m+';'+top(hd.rest)+pn+(lf?'@bottom-left{content:url("'+svgUrl(lf)+'");vertical-align:middle}':'')+'}'+
       '@page '+name+':first{'+top(hd.first)+'@bottom-right{content:none}'+(lf?'@bottom-left{content:none}':'')+first+'}';};
-  if(kind!=='keys')versions.forEach(function(items,v){
+  if(kind!=='keys'&&kind!=='acc')versions.forEach(function(items,v){
     var nm='v'+v,sec='<section class="pt pt-version pt-classic pt-'+dt+'" style="page:'+nm+';'+ptStyle()+'">'+testHtml(items,v)+'</section>';
     var css=docPage(nm,v),lf=dt==='lesson'?lessonFootSvg():null,imgs=[svgUrl(hd.first),svgUrl(hd.rest)].concat(lf?[svgUrl(lf)]:[]);
     if(s.perVersion||n===1)jobs.push({css:css,html:sec,imgs:imgs,label:n>1?'Version '+LETTERS[v]:DOC_TYPES[dt]});
     else{cur.css+=css;cur.html+=sec;cur.imgs=imgs;}
   });
   if(cur.html){cur.label='All '+n+' versions';jobs.push(cur);cur={css:'',html:''};}
+  if((kind==='acc'||(kind!=='keys'&&accOn()))&&state.selected.length){
+    var av=accVersion(),alf=dt==='lesson'?lessonFootSvg():null;
+    jobs.push({css:docPage('acc',av),html:'<section class="pt pt-version pt-classic pt-'+dt+accClass()+'" style="page:acc;'+accStyle()+'">'+accHtml()+'</section>',
+      imgs:[svgUrl(hd.first),svgUrl(hd.rest)].concat(alf?[svgUrl(alf)]:[]),label:'Accommodated copy'+(n>1?' (Version '+LETTERS[av]+')':'')});
+  }
+  if(kind==='acc')return jobs;
   if(kind!=='tests'){
-    versions.forEach(function(items,v){var nm='k'+v;cur.css+=stdFooter(nm,headerText()+'  —  '+docTitle()+'  —  Answer Key'+(n>1?'  —  Version '+LETTERS[v]:''));cur.html+='<section class="pt pt-version" style="page:'+nm+';'+ptStyle()+'">'+keyHtml(items,v)+'</section>';});
+    versions.forEach(function(items,v){var nm='k'+v;cur.css+=stdFooter(nm,headerText()+'  —  '+docTitle()+'  —  Answer Key'+(n>1?'  —  Version '+LETTERS[v]:'')+(accOn()&&v===accVersion()?'  (also the accommodated copy)':''));cur.html+='<section class="pt pt-version" style="page:'+nm+';'+ptStyle()+'">'+keyHtml(items,v)+'</section>';});
     cur.label='Answer key'+(n>1?'s':'');jobs.push(cur);
   }
   return jobs;
@@ -2062,7 +2097,7 @@ function printNow(kind){
   runJobs(printJobs(kind));
 }
 window.__printJobs=printJobs;
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -2479,7 +2514,7 @@ function renderBuild(){
     '<label><span class="lbl">Course name <span class="hint" style="font-weight:400">— centered above the bar on every page</span></span><input type="text" data-set="headerText" value="'+esc(s.headerText)+'" placeholder="'+esc(state.course)+'"></label>'+
     details+
     '<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+
-    '</div><details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
+    '</div>'+accSection()+'<details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
     '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions in the list on the right.</span></label>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
@@ -2499,7 +2534,7 @@ function renderBuild(){
     '<div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
-    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span><span class="spacer"></span><button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">Print '+T+(nVersions()>1?'s':'')+' + answer keys</button></div>'+
+    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">Print '+T+(nVersions()>1?'s':'')+' + answer keys</button></div>'+
     '<p class="note" style="margin-bottom:0">Opens your browser’s print window; to make a PDF, choose “Save as PDF”. With several versions, one window opens after another.</p></div>'+
     '</div></div>';
   $$('[data-set]',main).forEach(function(el){
@@ -2508,6 +2543,10 @@ function renderBuild(){
     if(el.type==='checkbox'||el.tagName==='SELECT')el.onchange=h;else el.oninput=h;
   });
   $('#pageStyle').ontoggle=function(){ui.pageStyle=this.open;saveUi();};
+  $('#accFold').ontoggle=function(){ui.accFold=this.open;saveUi();};
+  $$('[data-acc]',main).forEach(function(el){el.onchange=function(){var k=el.dataset.acc,v=el.type==='checkbox'?el.checked:(k==='perPage'||k==='version'?parseInt(el.value,10)||0:el.value);
+    s.accom=Object.assign({},accom());s.accom[k]=v;changed();
+    if(k==='on'){if(v)ui.pv='acc';renderBuild();var f=$('[data-acc="on"]');if(f)f.focus();}else{if(ui.pv!=='acc'){ui.pv='acc';saveUi();}drawPreview();drawPrintBar();}};});
   $$('[data-doctype]',main).forEach(function(b){b.onclick=function(){s.docType=b.dataset.doctype;changed();renderBuild();renderTabs();};});
   drawSel();
   $('#pkN').oninput=function(){ui.pickN=parseInt(this.value,10)||1;saveUi();};
@@ -2534,6 +2573,15 @@ function renderBuild(){
   $('#showAns').onchange=function(){ui.showAns=this.checked;saveUi();drawPreview();};
   drawPreview();drawPrintBar();
 }
+function accSection(){var a=accom(),n=nVersions(),dis=a.on?'':' disabled';
+  function sel(k,label,opts,hint){return '<label><span class="lbl">'+label+'</span><select data-acc="'+k+'"'+dis+'>'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(a[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';}
+  return '<details class="fold" id="accFold"'+(a.on||ui.accFold?' open':'')+'><summary>Accommodations <span class="hint">dyslexia-friendly font, large print, spacing</span></summary>'+
+    '<div class="checks"><label><input type="checkbox" data-acc="on"'+(a.on?' checked':'')+'><span>Also print an accommodated copy<small>Same questions and answer order as its version, so that version’s answer key works for it. Nothing on the student’s copy says “accommodated”.</small></span></label></div>'+
+    '<div class="fields acc-fields">'+
+    '<div class="row">'+sel('font','Font',[['Atkinson Hyperlegible','Atkinson Hyperlegible'],['OpenDyslexic','OpenDyslexic'],['','Same as the test']])+sel('size','Text size',[['','Same as the test'],['l','Large (14 pt)'],['xl','Extra large (18 pt)']])+'</div>'+
+    '<div class="row">'+sel('perPage','Questions per page',[[0,'As many as fit'],[1,'1 per page'],[2,'2 per page']],docType()==='lesson'?'Lessons keep their own layout.':'')+(n>1?sel('version','Make it from',Array.apply(null,Array(n)).map(function(_,v){return [v,'Version '+LETTERS[v]];})):'<span></span>')+'</div>'+
+    '<div class="checks"><label><input type="checkbox" data-acc="spacing"'+(a.spacing?' checked':'')+dis+'><span>Extra spacing<small>More space between lines, answer choices and questions.</small></span></label></div>'+
+    '</div></details>';}
 function refreshAuto(){var t=$('#main [data-set=title]');if(t)t.placeholder='auto: '+autoTitle();var c=$('#lcode');if(c)c.textContent=lessonCode()||'Q#W##D###';var src=$('#main [data-set=lessonSource]');if(src)src.placeholder=lessonSource()||'e.g. Big Ideas Geometry';}
 function drawSel(){
   var ul=$('#selList'),qs=selectedQs(),dt=docType(),st=state.settings;
@@ -2552,14 +2600,15 @@ function noAnswer(){return selectedQs().filter(function(q){return (isMC(q.type)&
 function printCheck(){var m=noAnswer();if(!m.length)return '';return '<span class="pb-warn" role="status"><b>'+m.length+' question'+(m.length>1?'s have':' has')+' no correct answer,</b> so the answer key will be blank there. <button type="button" class="small" id="fixAns" data-fix="'+m[0].id+'">Fix'+(m.length>1?' the first one':'')+'</button></span>';}
 function drawPrintBar(){var b=$('#pbSum');if(!b)return;b.textContent=printSummary();var w=$('#pbWarn');w.innerHTML=printCheck();var f=$('#fixAns');if(f)f.onclick=function(){openEditor(byId(f.dataset.fix));};
   var none=!state.selected.length;$$('[data-print]').forEach(function(x){x.disabled=none;});var nm=$('#pbNone');if(nm)nm.hidden=!none;}
-function printSummary(){var n=nVersions(),q=state.selected.length,p=totalPts();return n+' version'+(n===1?'':'s')+' · '+q+' question'+(q===1?'':'s')+' · '+p+' point'+(p===1?'':'s');}
+function printSummary(){var n=nVersions(),q=state.selected.length,p=totalPts();return n+' version'+(n===1?'':'s')+(accOn()?' + accommodated copy':'')+' · '+q+' question'+(q===1?'':'s')+' · '+p+' point'+(p===1?'':'s');}
 var pvT;function drawPreviewSoon(){clearTimeout(pvT);pvT=setTimeout(drawPreview,250);}
 function drawPreview(){
-  var n=nVersions();if(ui.pv>=n)ui.pv=0;var vt=$('#vtabs');if(!vt)return;
-  vt.innerHTML=n>1?'<span class="hint" style="margin-right:4px">Version</span>'+Array.apply(null,Array(n)).map(function(_,v){return '<button class="'+(v===ui.pv?'on':'')+'" data-v="'+v+'">'+LETTERS[v]+'</button>';}).join(''):'';
-  $$('[data-v]',vt).forEach(function(b){b.onclick=function(){ui.pv=+b.dataset.v;saveUi();drawPreview();};});
-  var items=buildVersion(ui.pv),p=$('#paper');p.setAttribute('style',ptStyle());
-  p.className='sheet pt pt-classic pt-'+docType();p.innerHTML=items.length?testHtml(items,ui.pv,{answers:ui.showAns,preview:true}):'<p style="color:#888;text-align:center;font-family:system-ui,sans-serif">Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p>';
+  var n=nVersions(),acc=accom().on;if(ui.pv==='acc'&&!acc)ui.pv=0;if(ui.pv!=='acc'&&ui.pv>=n)ui.pv=0;var vt=$('#vtabs');if(!vt)return;
+  vt.innerHTML=(n>1?'<span class="hint" style="margin-right:4px">Version</span>'+Array.apply(null,Array(n)).map(function(_,v){return '<button class="'+(v===ui.pv?'on':'')+'" data-v="'+v+'">'+LETTERS[v]+'</button>';}).join(''):'')+
+    (acc?'<button class="'+(ui.pv==='acc'?'on':'')+'" data-v="acc" title="The accommodated copy">Accommodated</button>':'');
+  $$('[data-v]',vt).forEach(function(b){b.onclick=function(){ui.pv=b.dataset.v==='acc'?'acc':+b.dataset.v;saveUi();drawPreview();};});
+  var isAcc=ui.pv==='acc',pv=isAcc?accVersion():ui.pv,items=buildVersion(pv),p=$('#paper');p.setAttribute('style',isAcc?accStyle():ptStyle());
+  p.className='sheet pt pt-classic pt-'+docType()+(isAcc?accClass():'');p.innerHTML=items.length?(isAcc?accHtml({answers:ui.showAns,preview:true}):testHtml(items,ui.pv,{answers:ui.showAns,preview:true})):'<p style="color:#888;text-align:center;font-family:system-ui,sans-serif">Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p>';
 }
 
 /* ================= import / backup tab ================= */

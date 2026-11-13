@@ -262,6 +262,42 @@ describe('print jobs', () => {
   });
 });
 
+describe('accommodated copy', () => {
+  const acc = (o) => page.evaluate(o => { window.__tb.state.settings.accom = Object.assign({ on: true }, o); }, o);
+  test('off by default, and old settings without it still work', async () => {
+    assert.equal((await fn(page, 'accom')).on, false);
+    assert.equal((await fn(page, 'printJobs', 'both')).length, 3);
+  });
+  test('an extra job after the versions, made from the chosen version, labeled for you only', async () => {
+    await acc({ version: 1, font: 'OpenDyslexic', size: 'l', spacing: true });
+    const jobs = await fn(page, 'printJobs', 'both');
+    assert.equal(jobs.length, 4);
+    assert.deepEqual(jobs.map(j => j.label), ['Version A', 'Version B', 'Accommodated copy (Version B)', 'Answer keys']);
+    const a = jobs[2];
+    assert.match(a.html, /class="pt pt-version pt-classic pt-test acc acc-z acc-sp"/);
+    assert.match(a.html, /--pts:14pt/); assert.match(a.html, /OpenDyslexic/); assert.match(a.html, /--accz:1\.17/);
+    assert.doesNotMatch(text(a.html), /[Aa]ccommodat/, 'nothing on the student copy says accommodated');
+    // same questions in the same order as Version B, so B's key works
+    const order = h => [...h.matchAll(/(MC one|MC two|MC three|TF four|SA five|ES six|BM seven)/g)].map(m => m[1]);
+    assert.deepEqual(order(a.html), order(jobs[1].html));
+    assert.match(jobs[3].css, /Version B {2}\(also the accommodated copy\)/);
+  });
+  test('questions per page puts a page break after every 1 or 2 questions, not after the last', async () => {
+    for (const n of [1, 2]) {
+      await acc({ perPage: n });
+      const h = await fn(page, 'accHtml');
+      const qs = (h.match(/class="(acc-break )?pt-q[ "]/g) || []).length, breaks = (h.match(/acc-break/g) || []).length;
+      assert.equal(qs, 7, 'counts questions, not their text blocks');
+      assert.equal(breaks, Math.ceil(qs / n) - 1, n + ' per page');
+    }
+  });
+  test('Accommodated copy only prints just that copy', async () => {
+    await acc({});
+    const jobs = await fn(page, 'printJobs', 'acc');
+    assert.equal(jobs.length, 1); assert.match(jobs[0].label, /Accommodated/);
+  });
+});
+
 describe('courses', () => {
   test('each course keeps its own settings and questions', async () => {
     const r = await page.evaluate(() => {

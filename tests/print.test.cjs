@@ -53,4 +53,26 @@ for (const dt of ['test', 'quiz', 'review', 'lesson']) {
   });
 }
 
+test('accommodated copy prints to PDF with the built-in fonts', async () => {
+  // the fonts are added by build.py, so use the built page's styles here
+  const built = fs.readFileSync(path.join(ROOT, 'ALittleCandleTestBuilder.html'), 'utf8');
+  const fullCss = built.slice(built.indexOf('<style>') + 7, built.indexOf('</style>'));
+  for (const [name, accom] of [['accommodated-atkinson-large', { on: true, font: 'Atkinson Hyperlegible', size: 'l', spacing: true, perPage: 2 }],
+                               ['accommodated-opendyslexic-xl', { on: true, font: 'OpenDyslexic', size: 'xl', spacing: true, perPage: 1 }]]) {
+    await settings(page, { docType: 'test', headerText: 'Geometry', versions: 2, accom });
+    const [job] = await page.evaluate(() => window.__tb.printJobs('acc'));
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + fullCss + '#printRoot{display:block}</style><style>' + job.css +
+      '</style></head><body><div id="printRoot">' + job.html + '</div></body></html>';
+    const file = path.join(OUT, name + '.html'); fs.writeFileSync(file, html);
+    const p = await browser.newPage();
+    await p.goto('file://' + file);
+    await p.evaluate(() => document.fonts.ready);
+    const family = accom.font === 'OpenDyslexic' ? 'OpenDyslexic' : 'Atkinson Hyperlegible Next';
+    assert.ok(await p.evaluate(f => document.fonts.check('12pt "' + f + '"') && [...document.fonts].some(x => x.family.replace(/"/g, '') === f && x.status === 'loaded'), family), family + ' is used');
+    const pdf = await p.pdf({ path: path.join(OUT, name + '.pdf'), preferCSSPageSize: true });
+    await p.close();
+    assert.ok(pdf.length > 5000, name + ' PDF is too small');
+  }
+});
+
 test('no page errors', () => assert.deepEqual(errors, []));

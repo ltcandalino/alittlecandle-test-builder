@@ -118,7 +118,7 @@ sup,sub{font-size:.7em;line-height:0}
 .pvtop{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .pvtop .vtabs{margin-bottom:0}
 .printbar{position:sticky;bottom:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px -18px 0;padding:12px 18px;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 12px -8px rgba(0,0,0,.12)}
-.pb-sum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.pb-sum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;flex-basis:100%}
 .paperwrap .sheet{background:#fff;max-width:7.3in;margin:0 auto;padding:.55in .6in;box-shadow:0 2px 14px rgba(0,0,0,.12)}
 .overlay{position:fixed;inset:0;background:rgba(24,26,28,.42);display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;z-index:20;overflow:auto}
 .dialog{background:#fff;border-radius:14px;width:min(760px,100%);padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
@@ -423,3 +423,16 @@ details.fold[open]>summary{margin-bottom:12px}
 .dialog .ed-main{grid-template-columns:1.3fr .6fr .8fr .8fr 1.2fr}
 .dialog details.ed-more{margin-top:16px}
 @media (max-width:640px){.dialog .row4,.dialog .ed-main{grid-template-columns:1fr 1fr!important}}
+
+/* ---- accommodated copy ---- */
+.pt.acc-z .q-img,.pt.acc-z .pt-space{zoom:var(--accz,1)}
+.pt.acc-z .q-img{max-width:calc(100% / var(--accz,1))}
+.pt.acc-z .pt-lines div{height:calc(24pt * var(--accz,1))}
+.pt.acc-z .pt-ch.c4{grid-template-columns:1fr 1fr}
+.pt.acc-sp{line-height:1.75;word-spacing:.08em;letter-spacing:.01em}
+.pt.acc-sp .pt-q{margin-top:22pt}
+.pt.acc-sp .pt-ch{gap:9pt 20pt;margin-top:9pt}
+.pt.acc-sp .pt-qt,.pt.acc-sp .cl-dir{text-align:left}
+.pt .acc-break{break-after:page}
+.sheet.pt .acc-break{border-bottom:1px dashed #b9b4a8;padding-bottom:10pt}
+.acc-fields{margin-top:10px}

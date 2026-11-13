@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Accommodations** on Build & print: print an extra accommodated copy of one version with a dyslexia-friendly font (Atkinson Hyperlegible or OpenDyslexic, built in), large print (14 or 18 pt, with pictures and answer spaces scaled up), extra spacing, and 1 or 2 questions per page. It has the same questions and answer order as its version, so that version's answer key works (the key says so), and nothing on the student's copy says "accommodated". Preview it with the **Accommodated** tab; print it with **Print tests + answer keys** or **Accommodated only**.
+- Atkinson Hyperlegible and OpenDyslexic can also be chosen as the font for a whole test (Page style → Font).
 - **Help** at the top now opens a short help panel inside the app (bringing in questions, picking, printing, answer keys, backups, keyboard), with a link to the full user guide.
 - GitHub checks scan every Docker image for known vulnerabilities (Trivy) before it's published, show the results in the repository's Security tab, and stop if a high or critical problem has a fix available. A weekly run rebuilds the image from the latest base-image fixes and scans again.
 - Website (Docker) version: choose the database. SQLite stays the default (nothing to set up); set `DATABASE_URL` to use **PostgreSQL** (preferred) or **MySQL / MariaDB**. Ready-made add-ons `compose.postgres.yml` and `compose.mariadb.yml`. Switching from SQLite copies all accounts, questions and settings over on the first start. The app waits for a database that is still starting.

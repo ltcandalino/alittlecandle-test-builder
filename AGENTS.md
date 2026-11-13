@@ -89,6 +89,10 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   (exam parts via `partKeyOf`; review `reviewKind` open→mc; lesson `roleOf` warmup→example→practice;
   bonus last). `testHtml` dispatches to `examHtml` / `reviewHtml` / `lessonHtml`; `qBody` renders the
   answer area; `labelItems` sets printed numbers and answer-key labels.
+- Accommodated copy: `settings.accom` {on,font,size,spacing,perPage,version} (read via `accom()` with
+  `ACC_DEFAULT`); `accHtml` = `testHtml(buildVersion(v))` + `accBreaks` (page break every N `pt-q`/`rv-q`,
+  not `pt-qt`!), `accStyle` (--ptf/--pts/--accz) + `accClass` (.acc-z zooms .q-img/.pt-space, .acc-sp);
+  print job `label` 'Accommodated copy', `printJobs('acc')`; preview `ui.pv==='acc'`.
 - Per-question lesson roles, example concepts and bonus flags live in settings
   (`roles`, `concepts`, `bonus`, keyed by question id).
 - **Print uses `window.print()` with CSS `@page` margin boxes** (Chrome/Edge 131+). Headers are SVG
@@ -200,6 +204,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       the print bar; (2) editor (`layout`): Question + answers first, compact row Type/Points/Unit/Section/
       Standard, "More details" fold (open when any filled), caret at end; (3) Help built into the app
       (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
+- [x] PLAN Part A (print accommodations) done 2026-11-13. Next: Part C (saved tests); then a release.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
@@ -241,3 +246,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   failure serialization ran the runner out of memory (Linux only), hiding a real bug (Esc missed before the
   editor focused). Fixed both; editor is question-first with a More details fold; in-app Help; Docker image
   two-stage without npm + `apk upgrade` (Scout 1C/7H → 1H unfixable); Trivy + weekly rebuild in CI. 167 tests.
+- **2026-11-13**: PLAN Part A: accommodated copy (font, 14/18 pt, spacing, 1-2 per page, version), preview tab,
+  print job/button, key label; accommodation PDFs in tests/out checked page by page. 173 tests (Mac + Linux).

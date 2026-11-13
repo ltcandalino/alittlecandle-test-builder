@@ -14,6 +14,8 @@ Order of work (each step ends with tests, changelog and notes, like every change
 
 ## Part A: accommodations on printed tests
 
+**Done 2026-11-13.**
+
 **What you'll see:** a new **Accommodations** section in the Build & print sidebar.
 
 - **Font:** one dyslexia-friendly choice, **Atkinson Hyperlegible** or **OpenDyslexic**, alongside the
