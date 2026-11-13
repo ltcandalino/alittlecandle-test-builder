@@ -115,6 +115,10 @@ sup,sub{font-size:.7em;line-height:0}
 .vtabs button{padding:4px 11px;font-size:13px}
 .vtabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
 .paperwrap{background:#e9e6df;border-radius:var(--radius);padding:22px;overflow:auto;max-height:900px}
+.pvtop{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.pvtop .vtabs{margin-bottom:0}
+.printbar{position:sticky;bottom:0;z-index:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px -18px 0;padding:12px 18px;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 12px -8px rgba(0,0,0,.12)}
+.pb-sum{font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
 .paperwrap .sheet{background:#fff;max-width:7.3in;margin:0 auto;padding:.55in .6in;box-shadow:0 2px 14px rgba(0,0,0,.12)}
 .overlay{position:fixed;inset:0;background:rgba(24,26,28,.42);display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;z-index:20;overflow:auto}
 .dialog{background:#fff;border-radius:14px;width:min(760px,100%);padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}

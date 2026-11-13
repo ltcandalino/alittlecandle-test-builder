@@ -226,6 +226,24 @@ describe('importing', () => {
   });
 });
 
+describe('build and print layout', () => {
+  test('the preview comes before the Print buttons, with a live summary', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
+    await select(page, ids.slice(0, 1)); await settings(page, { versions: 3 });
+    await gotoTab(page, 'build');
+    const order = await page.evaluate(() => {
+      const y = el => el.getBoundingClientRect().top + window.scrollY;
+      return { paper: y(document.querySelector('#paper')), print: y(document.querySelector('[data-print="both"]')) };
+    });
+    assert.ok(order.paper < order.print, 'paper preview is above the Print buttons');
+    assert.equal(await page.textContent('#pbSum'), '3 versions · 1 question · 2 points');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await gotoTab(page, 'build');
+    assert.equal(await page.textContent('#pbSum'), '3 versions · 2 questions · 6 points');
+    await page.click('#selList [data-rm]');
+    assert.match(await page.textContent('#pbSum'), /1 question ·/);
+  });
+});
+
 describe('saving and backups', () => {
   test('questions are still there after reloading the page', async () => {
     await addQuestions(page, [{ html: 'Persist me' }]);

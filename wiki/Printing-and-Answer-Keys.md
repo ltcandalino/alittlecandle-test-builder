@@ -25,4 +25,6 @@ Each version gets its own key, listing every question's answer in that version's
 
 ## Preview
 
-The preview on **Build & print** updates as you change settings. Use **Show answers** to preview the key marks and **A / B / C…** to look at each version.
+The preview on **Build & print** sits right under your list of questions and updates as you change settings. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.
+
+The print buttons are in a bar at the bottom of the preview. It stays in view while you scroll through the paper and shows what you're about to print, like "3 versions · 12 questions · 26 points". Check the paper, then print.
