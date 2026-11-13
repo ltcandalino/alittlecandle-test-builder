@@ -144,17 +144,22 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 
 - Version 0.5.0 in `VERSION`; lots under [Unreleased] (CI, wiki, tests, release tooling, 3 fixes) → next
   release would be 0.6.0.
-- Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`). Not pushed yet;
-  the user pushes from her Mac. Workflows untested until the first push.
+- Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
+  push done 2026-11-12. First CI run failed on broken `package.json` (fixed); Wiki run failed because
+  the wiki has no first page yet. No release/tag yet. `gh` isn't installed on her Mac; the public
+  GitHub API (curl) works for reading run results.
+- Claude Code desktop on her Mac is now the main way of working (node 26, Playwright installed).
 - The user is trying the single-file version; Docker Desktop is installed on her Mac for local image tests.
 - The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Templates and banks are hers; private
   copies for tests live only in `tests/fixtures/private/` on her Mac.
 
 ## Backlog / ideas
 
-- [ ] First push; check CI, Release and Wiki workflows on GitHub; create the first wiki page; decide
-      whether the GHCR package is public.
-- [ ] She runs `npm run test:docker` on her Mac; read `tests/out/docker-test.log`.
+- [ ] Push the package.json fix; confirm CI passes and the image appears in GHCR; decide whether the
+      GHCR package is public.
+- [ ] She creates the first wiki page (Wiki tab → Create the first page), then re-run the Wiki workflow.
+- [ ] Workflows use Node 20 actions (checkout@v4 etc.); GitHub warns they're deprecated. Bump when new
+      majors exist.
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [ ] Collect her feedback from trying the single-file version; release v0.6.0.
 
@@ -169,3 +174,6 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   pictures dropped on http:// servers; "GEO" file names not recognized; sync race where an edit during
   an upload was marked synced (sync.js now records the signature of what was actually sent). Added VERSION + version display,
   semantic-version release script, release notes workflow, versioned Docker tags, local Docker test script.
+- **2026-11-12 (Claude Code)**: switched to Claude Code on her Mac. Docker test passed on her Mac.
+  First GitHub CI run failed: `package.json` test script had unescaped quotes (invalid JSON); fixed,
+  152 tests pass locally. Wiki workflow needs the first wiki page created by hand.

@@ -32,6 +32,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - "GEO…" bank file names are now recognized as Geometry.
 - Sync: an edit made while an upload was still running could be marked as synced and never reach
   the server.
+- `package.json` had broken quotes in the test command, so `npm install` and CI failed.
 
 ## [0.5.0] - 2026-11-12
 
