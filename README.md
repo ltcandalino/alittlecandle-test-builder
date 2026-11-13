@@ -59,7 +59,7 @@ to keep a copy or move to another computer.
 
 ## Testing
 
-Needs Node.js 22 and Python 3. Once: `npm install && npx playwright install chromium`.
+Needs Node.js 26 (current LTS) and Python 3. Once: `npm install && npx playwright install chromium`.
 
 | Command | What it checks |
 |---|---|

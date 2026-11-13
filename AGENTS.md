@@ -22,9 +22,15 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 5. Update this file's Status / Backlog / Work log.
 6. Commit with a clear message. On her Mac (Claude Code) `git push` and `gh` work (signed in as
    ltcandalino); the cloud sandbox has no GitHub access, so there the user pushes herself.
-7. Saved user data must keep loading: when settings or question fields change, migrate old data
+7. **Keep everything on the newest versions (security).** Node = current LTS (Docker `FROM`, CI
+   `node-version`, README). GitHub Actions = newest major. Dependabot opens weekly PRs for Actions,
+   Docker and npm; review and merge them after CI passes. pdf.js isn't covered: at the start of a
+   session compare `npm view pdfjs-dist version` with `vendor/pdfjs/VERSION.txt` and copy
+   `legacy/build/pdf.min.mjs` + `pdf.worker.min.mjs` from `npm pack pdfjs-dist@<v>` when newer.
+   Run `npm outdated` / `npm audit` too.
+8. Saved user data must keep loading: when settings or question fields change, migrate old data
    (`migrateSettings`, `normalize` in `src/app.js`) instead of breaking it.
-8. Releases follow semantic versioning (MAJOR breaks saved data/backups/server setup, MINOR adds
+9. Releases follow semantic versioning (MAJOR breaks saved data/backups/server setup, MINOR adds
    features, PATCH fixes). Use `python3 scripts/release.py major|minor|patch`; every release needs
    notes under [Unreleased] first. The tag drives the Docker image tags and the GitHub Release.
 
@@ -39,7 +45,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/sync.js` | `CLOUD` module: login + sync against a Supabase-style REST API (Supabase or our Docker server). |
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
 | `src/style.css` | App styles + print styles. |
-| `vendor/pdfjs/` | pdf.js 6.2.108 legacy build (inlined as `text/plain` scripts). |
+| `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |
 | `build.py` | Concatenates everything into `ALittleCandleTestBuilder.html` (no config) and `docker/index.html` (loads `config.js`). |
 | `docker/server.js` | Node 22 server, no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
@@ -157,8 +163,9 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [x] CI passes on GitHub (2026-11-12); image `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`
       is published and pullable without login (public).
 - [x] Wiki published (2026-11-12); all `wiki/` pages are on GitHub.
-- [ ] Workflows use Node 20 actions (checkout@v4 etc.); GitHub warns they're deprecated. Bump when new
-      majors exist.
+- [ ] Node on her Mac is Homebrew 26.5.0 (Intel Mac; Homebrew no longer supports Intel, upgrades
+      would build from source). Suggested: official nodejs.org macOS installer for current LTS.
+- [x] Updated to Node 26, newest Actions, pdf.js 6.5.438; Dependabot added (2026-11-12).
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [ ] Collect her feedback from trying the single-file version; release v0.6.0.
 
@@ -176,3 +183,6 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - **2026-11-12 (Claude Code)**: switched to Claude Code on her Mac. Docker test passed on her Mac.
   First GitHub CI run failed: `package.json` test script had unescaped quotes (invalid JSON); fixed,
   152 tests pass locally. Wiki workflow needs the first wiki page created by hand.
+- **2026-11-12**: `gh` installed and signed in; CI green, image public on GHCR, wiki published. She asked
+  to always use the newest packages (rule 7): Node 22 → 26 LTS, Actions to newest majors, pdf.js 6.5.438,
+  Dependabot. Kept images on GHCR (not Docker Hub).

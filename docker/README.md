@@ -134,7 +134,7 @@ and point your existing web server (nginx, Apache, cPanel proxy) at `http://127.
 
 ## Details
 
-- One container, Node 22, no extra packages. Data: SQLite database plus a pictures folder, both in `/data`.
+- One container, Node 26 (current LTS), no extra packages. Data: SQLite database plus a pictures folder, both in `/data`.
 - Passwords are stored scrambled (scrypt), never as plain text. Sign-ins expire after 60 days of not using the site.
 - Too many wrong passwords in a row pause sign-in for that email for 15 minutes.
 - Health check: `https://tests.yourdomain.com/healthz`

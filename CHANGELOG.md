@@ -23,6 +23,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - User guide in `wiki/` (Getting Started, Importing Questions, Question Bank, Building Documents,
   Printing and Answer Keys, Courses, Backups and Sync, Website Setup, Troubleshooting) and a
   workflow that publishes it to the GitHub wiki.
+- Dependabot (`.github/dependabot.yml`): weekly update pull requests for GitHub Actions, the Docker
+  base image and the test tools.
+
+### Changed
+- Node 26 (current LTS) for the Docker image and CI, was Node 22.
+- pdf.js 6.5.438 (was 6.2.108) for PDF import.
+- GitHub Actions updated to their newest versions (checkout, setup-node, setup-python, upload-artifact
+  v7; Docker actions v4–v7); CI uses the newest Python 3.
 
 ### Fixed
 - Question cleaning could run an image's `onerror` code from pasted or imported HTML; it now uses an

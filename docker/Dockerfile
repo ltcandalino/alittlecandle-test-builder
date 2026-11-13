@@ -1,6 +1,6 @@
 # ALittleCandleTestBuilder: website, logins, question banks and pictures in one container.
-# Needs Node 22.13 or newer (built-in SQLite). No other packages are installed.
-FROM node:22-alpine
+# Needs Node 22.13 or newer; uses the current LTS (26) (built-in SQLite). No other packages are installed.
+FROM node:26-alpine
 
 ARG APP_VERSION=dev
 LABEL org.opencontainers.image.title="ALittleCandleTestBuilder" \

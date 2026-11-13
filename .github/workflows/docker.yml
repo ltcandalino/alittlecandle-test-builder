@@ -25,13 +25,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
-      - uses: actions/setup-python@v5
+          node-version: '26'
+      - uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: '3.x'
       - name: Install test tools
         run: |
           npm install --no-audit --no-fund
@@ -55,7 +55,7 @@ jobs:
         run: npm test
       - name: Keep the test PDFs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-output
           path: tests/out/
@@ -65,11 +65,11 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
-          python-version: '3.12'
+          python-version: '3.x'
 
       - name: Build the app pages from src/
         run: |
@@ -90,10 +90,10 @@ jobs:
           docker logs alctb
           docker rm -f alctb
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
@@ -101,7 +101,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -115,7 +115,7 @@ jobs:
             org.opencontainers.image.title=ALittleCandleTestBuilder
             org.opencontainers.image.version=${{ env.APP_VERSION }}
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: docker
           platforms: linux/amd64,linux/arm64
