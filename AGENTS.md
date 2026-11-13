@@ -182,6 +182,12 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
       before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) DONE `--muted` #5f656c, symbol bar toolbar
       (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) DONE `MORE_F` + chips (`chipsHtml`), "Unit 3 · Sec 2",
       `details#pageStyle` (`ui.pageStyle`), teal for all selected states. Next: `/impeccable polish`, re-run critique.
+- [ ] Second review 2026-11-13: 27/40 (P1 3→2; snapshot in `.impeccable/critique/`). She chose, before Part A:
+      (1) print moment (`harden`): keep the missing-answer warning visible in the print bar with a Fix link,
+      disable print at 0 questions, progress strip while chained print windows run, Part directions above
+      the print bar; (2) editor (`layout`): Question + answers first, compact row Type/Points/Unit/Section/
+      Standard, "More details" fold (open when any filled), caret at end; (3) Help built into the app
+      (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
