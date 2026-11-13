@@ -148,8 +148,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 
 ## Status (2026-11-12)
 
-- Version 0.5.0 in `VERSION`; lots under [Unreleased] (CI, wiki, tests, release tooling, 3 fixes) → next
-  release would be 0.6.0.
+- **v0.6.0 released 2026-11-13**: GitHub Release with the app HTML and Docker zip attached; images
+  `:0.6.0`, `:0.6`, `:latest` on GHCR. Repo has a description, wiki homepage link and topics.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
   push done 2026-11-12. First CI run failed on broken `package.json` (fixed, CI green since); Wiki published after she
   created the first page. No release/tag yet. `gh` is installed and signed in on her Mac.
@@ -170,7 +170,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
       still can't find `node`, prefix commands with `PATH=/opt/homebrew/bin:$PATH`.
 - [x] Updated to Node 26, newest Actions, pdf.js 6.5.438; Dependabot added (2026-11-12).
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
-- [ ] Collect her feedback from trying the single-file version; release v0.6.0.
+- [x] Release v0.6.0 (2026-11-13).
+- [ ] Collect her feedback from trying the single-file version.
 
 ## Work log
 
@@ -189,3 +190,5 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - **2026-11-12**: `gh` installed and signed in; CI green, image public on GHCR, wiki published. She asked
   to always use the newest packages (rule 7): Node 22 → 26 LTS, Actions to newest majors, pdf.js 6.5.438,
   Dependabot. Kept images on GHCR (not Docker Hub).
+- **2026-11-13**: native Homebrew + Node 26.13.1 on her M1 Mac; released v0.6.0 (CI, Release, image
+  tags all green); set repo description/topics.
