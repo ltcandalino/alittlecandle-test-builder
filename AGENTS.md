@@ -170,7 +170,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.7.0 released 2026-11-13**: design-review fixes, Display settings, database choice (SQLite/Postgres/
+- **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
   zip; images `:0.7.0`, `:0.7`, `:latest` on GHCR. CI green.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
@@ -259,3 +259,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-13**: released v0.7.0 (CI, Release, image tags all green).
 - **2026-11-13**: fixed blank first printed page (`.pt-version:first-child` never matched: runJobs puts a <style>
   first in #printRoot; now `:first-of-type`); ui tests check break-before in print media. compose uses GHCR by default.
+- **2026-11-13**: released v0.7.1 (CI, Release, image tags green; image checked for the fix).
