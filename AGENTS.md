@@ -173,6 +173,14 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [x] Release v0.6.0 (2026-11-13).
 - [ ] Collect her feedback from trying the single-file version.
+- [ ] Design review 2026-11-13 (`/impeccable critique`, 27/40, snapshot in `.impeccable/critique/`). She chose
+      all 5 issues, work-protection first: (1) editor asks before discarding edits (`harden`); (2) Restore
+      offers Replace vs Add missing, Backup moved up with last-backup reminder (`clarify`); (3) preview
+      before Print on Build & print (`layout`); (4) contrast of `--muted`, keyboard-reachable symbol bar,
+      focus styles, tab roles (`audit`); (5) fewer always-visible controls, labeled unit/section chips,
+      one accent color (`distill`); then `polish`.
+- [ ] Saved tests: save and reprint named tests (like ExamView) instead of one current test per course.
+      She wants it, planned as its own feature after the review fixes.
 
 ## Work log
 
