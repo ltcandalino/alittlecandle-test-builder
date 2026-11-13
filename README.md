@@ -44,12 +44,14 @@ to keep a copy or move to another computer.
 | `wiki/` | The user guide. Published to the GitHub wiki automatically. |
 | `.github/workflows/` | GitHub Actions: builds and publishes the Docker image, and publishes the wiki. |
 | `CHANGELOG.md` | What changed in each version. |
+| `AGENTS.md` | Notes for AI assistants (Claude Code and others): how it's built, status, to-do list, work log. `CLAUDE.md` points to it. |
+| `tests/` | Automatic check that every document type still builds (`npm test`). |
 
 ## Making changes
 
 1. Edit files in `src/`.
 2. Run `python3 build.py`.
-3. Open `ALittleCandleTestBuilder.html` to check.
+3. Open `ALittleCandleTestBuilder.html` to check. Developers can also run `npm test`.
 4. Add a line to `CHANGELOG.md` under **Unreleased**. For significant changes, update this README and the
    matching page in `wiki/`. Then commit.
 

@@ -11,6 +11,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   GitHub Container Registry (`latest` on the main branch, version tags like `v1.2.0`).
 - Option in `docker/docker-compose.yml` to use the GitHub-built image instead of building on the server.
 - This changelog.
+- `AGENTS.md` handoff notes for AI assistants (architecture, rules, status, backlog, work log).
+- Smoke test (`npm test`) that renders every document type and answer key to PDF.
 - User guide in `wiki/` (Getting Started, Importing Questions, Question Bank, Building Documents,
   Printing and Answer Keys, Courses, Backups and Sync, Website Setup, Troubleshooting) and a
   workflow that publishes it to the GitHub wiki.

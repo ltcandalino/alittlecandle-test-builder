@@ -2,3 +2,5 @@
 __pycache__/
 *.bak*
 node_modules/
+tests/out/
+package-lock.json

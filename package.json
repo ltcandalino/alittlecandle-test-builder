@@ -1,0 +1,12 @@
+{
+  "name": "alittlecandle-test-builder",
+  "private": true,
+  "description": "Development tools for ALittleCandleTestBuilder (the app itself needs no install).",
+  "scripts": {
+    "build": "python3 build.py",
+    "test": "python3 build.py && node tests/smoke.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
