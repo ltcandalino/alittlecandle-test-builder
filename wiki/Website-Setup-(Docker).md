@@ -5,9 +5,9 @@ The `docker/` folder runs ALittleCandleTestBuilder as a website on your web host
 The full step-by-step guide is in [`docker/README.md`](../blob/HEAD/docker/README.md). In short:
 
 1. **Point a web address** (like `tests.yourschool.org`) at your server with an A record.
-2. **Copy** the `docker/` folder to the server.
+2. **Copy** `docker-compose.yml` and `Caddyfile` from the `docker/` folder to the server.
 3. In `docker-compose.yml`, set **ADMIN_EMAIL** and **ADMIN_PASSWORD** (used only the first time). In `Caddyfile`, put your web address.
-4. Run `docker compose up -d --build`.
+4. Run `docker compose up -d`. Docker downloads the ready-made image from GitHub.
 5. Sign in, then use your email menu → **Manage accounts** to add colleagues with temporary passwords.
 
 ## Which database?
@@ -25,15 +25,21 @@ port **8080**. Let only the proxy reach that port, pass `X-Forwarded-For`, and a
 step, with nginx and Apache examples: **Behind your own proxy** in
 [`docker/README.md`](../blob/HEAD/docker/README.md#behind-your-own-proxy-https-handled-elsewhere).
 
-## Using the image GitHub builds
+## Updating and versions
 
-Every change to the main branch builds an image at `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`. Tags like `v1.2.0` publish `:1.2.0` too. To use it, replace `build: .` in `docker-compose.yml` with that image, then update with:
+`docker-compose.yml` uses the ready-made image `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`.
+To update the server:
 
 ```
 docker compose pull && docker compose up -d
 ```
 
-The image is public, so the server can download it without signing in to GitHub.
+To stay on one version, change `:latest` to a version like `:0.7.0`. Check the version number next to the
+app's name after updating.
+
+**Still seeing an old version after updating?** If `docker-compose.yml` has a `build: .` line, Docker
+builds the app from the files in that folder instead of downloading it. Delete the `build: .` line, then
+run the update again.
 
 ## Accounts
 

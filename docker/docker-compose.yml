@@ -1,16 +1,16 @@
 # ALittleCandleTestBuilder with automatic HTTPS (Caddy).
 # 1. Change the two ADMIN_ lines below.
 # 2. Put your web address in Caddyfile.
-# 3. Run:  docker compose up -d --build
-#    (or use the ready-made image from GitHub; see the app: section below)
+# 3. Run:     docker compose up -d
+#    Update:  docker compose pull && docker compose up -d
 services:
   app:
-    build: .
-    image: alittlecandle-testbuilder
-    # Once the repo is on GitHub, you can use the image GitHub builds instead of building here:
-    # delete the two lines above, uncomment the next line ,
-    # and update with:  docker compose pull && docker compose up -d
-    # image: ghcr.io/ltcandalino/alittlecandle-test-builder:latest
+    # The ready-made image GitHub builds and scans. ":latest" is the newest release; to stay on one
+    # version, use its number instead, like ":0.7" (fixes only) or ":0.7.0" (exactly that version).
+    image: ghcr.io/ltcandalino/alittlecandle-test-builder:latest
+    # To build the image yourself from the files in this folder instead, delete the image: line above
+    # and put "build: ." in its place. Don't keep both: with build: present, Docker builds from this
+    # folder's files and ignores the version in image:.
     restart: unless-stopped
     environment:
       ADMIN_EMAIL: you@yourschool.org        # your sign-in email

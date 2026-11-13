@@ -26,15 +26,16 @@ DNS can take a few minutes to update.
 
 ## 2. Copy this folder to the server
 
-Copy these files into a folder on the server, such as `~/alittlecandle`:
+Copy these two files into a folder on the server, such as `~/alittlecandle`:
 
 ```
-Dockerfile
 docker-compose.yml
 Caddyfile
-server.js
-index.html
 ```
+
+That's all the server needs: the app itself is the ready-made image GitHub builds
+(`ghcr.io/ltcandalino/alittlecandle-test-builder`), which Docker downloads for you. Add
+`compose.postgres.yml` or `compose.mariadb.yml` too if you want one of those databases.
 
 For example, from your computer: `scp -r alittlecandle/ you@your-server:~/`
 
@@ -52,7 +53,7 @@ In **Caddyfile**: replace `tests.yourdomain.com` with your web address.
 In that folder on the server:
 
 ```
-docker compose up -d --build
+docker compose up -d
 ```
 
 After a minute, open `https://tests.yourdomain.com` and sign in.
@@ -78,25 +79,27 @@ Open your current ALittleCandleTestBuilder → **Import & backup** → **Downloa
 
 ## Updating
 
-When you get a new `index.html` (or `server.js`), replace the file in the folder and run:
+In the folder on the server:
 
 ```
-docker compose up -d --build
+docker compose pull && docker compose up -d
 ```
 
-Your accounts and banks are kept; they live in the `alctb-data` volume, not in the container.
+Your accounts and banks are kept; they live in the `alctb-data` volume, not in the container. The version
+number next to the app's name shows which version is running.
 
-### Using the image GitHub builds
+### Which version runs
 
-When this repo is on GitHub, every change to the main branch builds a fresh image at
-`ghcr.io/ltcandalino/alittlecandle-test-builder:latest` (see `.github/workflows/docker.yml`).
-Then the server only needs `docker-compose.yml` and `Caddyfile`:
+`docker-compose.yml` uses `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`, the newest release. Each
+release is also published as `:0.7.0` (exactly that version) and `:0.7` (that version plus later fixes), so
+you can pin the server to a version by changing the tag.
 
-1. In `docker-compose.yml`, delete `build: .` and `image: alittlecandle-testbuilder`, and uncomment the `ghcr.io/...` image line.
-2. GitHub keeps new images private. Either make the package public (GitHub → your profile → **Packages** → the package → **Package settings** → **Change visibility**), or sign the server in once with `docker login ghcr.io`.
-3. To update: `docker compose pull && docker compose up -d`.
+### Building the image yourself
 
-Version tags work too: pushing a tag like `v1.2.0` publishes `:1.2.0` and `:1.2`, so you can pin the server to a version.
+To build from the files in the `docker/` folder (`Dockerfile`, `server.js`, `db.js`, `package.json`,
+`index.html`) instead, replace the `image:` line in `docker-compose.yml` with `build: .` and run
+`docker compose up -d --build`. **Don't keep both lines:** with `build: .` there, Docker builds from the
+files in your folder, even if `image:` names a newer version, and you keep running the old files.
 
 ## Choosing the database: SQLite, PostgreSQL or MySQL/MariaDB
 
@@ -162,6 +165,12 @@ database with its own tool, for example:
 docker compose -f docker-compose.yml -f compose.postgres.yml exec db pg_dump -U alctb alctb > alctb-$(date +%F).sql
 docker compose -f docker-compose.yml -f compose.mariadb.yml exec db sh -c 'mariadb-dump -ualctb -p"$MARIADB_PASSWORD" alctb' > alctb-$(date +%F).sql
 ```
+
+## Still seeing an old version after updating?
+
+Look at `docker-compose.yml`: if it has a `build: .` line, Docker builds the app from the files in that
+folder instead of downloading the new version, even when `image:` names the new one. Delete the
+`build: .` line and run `docker compose pull && docker compose up -d`.
 
 ## If you're locked out of the admin account
 
