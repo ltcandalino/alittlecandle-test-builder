@@ -1,6 +1,6 @@
 # Plan: accessibility options and saved tests
 
-Status: **approved by Leigh 2026-11-13**. Not built yet. Work through it in the order below.
+Status: **approved by Leigh 2026-11-13; all three parts built and released next.**
 
 Order of work (each step ends with tests, changelog and notes, like every change):
 
@@ -77,6 +77,8 @@ Then, under Print:
 - An automated contrast check.
 
 ## Part C: saved tests
+
+**Done 2026-11-13.**
 
 **What you'll see:**
 - Build & print gets **Save test** and a **Saved tests** list for the current course: name, date

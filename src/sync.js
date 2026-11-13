@@ -49,7 +49,7 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
-  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected};}
+  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[]};}
   function sigState(st){return fnv(canon(statePart(st)));}
 
   /* ---------- pictures ---------- */
@@ -110,7 +110,7 @@ var CLOUD=(function(){
       if(row&&row.data&&row.data.courses){
         var remoteSig=sigState(row.data);
         var localUnchanged=meta.stateSig===null||sigState(st)===meta.stateSig;
-        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
+        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
       }
       // look back two minutes so nothing saved at the same moment is missed
       if(maxSeen){var t=Date.parse(maxSeen);meta.lastPull=isNaN(t)?maxSeen:new Date(t-120000).toISOString();}
@@ -146,6 +146,11 @@ var CLOUD=(function(){
     })(ups.slice(b,b+20));
     if(dels.length)chain=chain.then(function(){
       return call('POST','/rest/v1/questions?on_conflict=user_id,id',dels.map(function(id){return {user_id:uid,id:id,data:{},deleted:true,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){dels.forEach(function(id){delete meta.synced[id];});return saveMeta();});
+    });
+    // saved tests keep frozen copies of questions: move their pictures to online storage too (same files)
+    if(stateDirty)chain=chain.then(function(){
+      var qs=[];(hooks.getState().savedTests||[]).forEach(function(t){(t.questions||[]).forEach(function(q){qs.push(q);});});
+      return qs.reduce(function(p,q){return p.then(function(){return hostImages(q.html).then(function(h){q.html=h;return Promise.all((q.choices||[]).map(hostImages)).then(function(ch){if(q.choices)q.choices=ch;});});});},Promise.resolve());
     });
     if(stateDirty)chain=chain.then(function(){
       var now=new Date().toISOString(),cur=hooks.getState(),body=JSON.parse(JSON.stringify(statePart(cur))),sg=sigState(cur);

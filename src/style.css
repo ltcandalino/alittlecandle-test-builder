@@ -436,3 +436,20 @@ details.fold[open]>summary{margin-bottom:12px}
 .pt .acc-break{break-after:page}
 .sheet.pt .acc-break{border-bottom:1px dashed #b9b4a8;padding-bottom:10pt}
 .acc-fields{margin-top:10px}
+
+/* ---- saved tests ---- */
+.sv-head{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.sv-now h2{margin-bottom:4px}
+.sv-now p{margin:0}
+.sv-dirty{color:#7a4a0c;font-weight:600}
+.sv-frozen{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;padding:10px 12px;border:1px solid #f0d9a6;background:#fff4dc;color:#6b4e12;border-radius:8px;font-size:13px}
+.sv-list{margin-top:12px}
+.sv-list input[type=search]{width:100%;margin:0 0 8px}
+.svl{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;max-height:320px;overflow:auto}
+.svl li{display:flex;gap:6px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line)}
+.svl li:last-child{border-bottom:none}
+.svl li.cur{background:#f7fbfa}
+.svl .svn{flex:1;min-width:0}
+.svl .svn b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svl .svn small{color:var(--ink2);font-size:12px}
+@media (max-width:640px){.svl li{flex-wrap:wrap}.svl .svn{flex-basis:100%}}

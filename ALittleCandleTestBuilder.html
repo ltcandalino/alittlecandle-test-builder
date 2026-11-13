@@ -448,6 +448,23 @@ details.fold[open]>summary{margin-bottom:12px}
 .pt .acc-break{break-after:page}
 .sheet.pt .acc-break{border-bottom:1px dashed #b9b4a8;padding-bottom:10pt}
 .acc-fields{margin-top:10px}
+
+/* ---- saved tests ---- */
+.sv-head{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.sv-now h2{margin-bottom:4px}
+.sv-now p{margin:0}
+.sv-dirty{color:#7a4a0c;font-weight:600}
+.sv-frozen{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;padding:10px 12px;border:1px solid #f0d9a6;background:#fff4dc;color:#6b4e12;border-radius:8px;font-size:13px}
+.sv-list{margin-top:12px}
+.sv-list input[type=search]{width:100%;margin:0 0 8px}
+.svl{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;max-height:320px;overflow:auto}
+.svl li{display:flex;gap:6px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line)}
+.svl li:last-child{border-bottom:none}
+.svl li.cur{background:#f7fbfa}
+.svl .svn{flex:1;min-width:0}
+.svl .svn b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svl .svn small{color:var(--ink2);font-size:12px}
+@media (max-width:640px){.svl li{flex-wrap:wrap}.svl .svn{flex-basis:100%}}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -1493,7 +1510,7 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
-  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected};}
+  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[]};}
   function sigState(st){return fnv(canon(statePart(st)));}
 
   /* ---------- pictures ---------- */
@@ -1554,7 +1571,7 @@ var CLOUD=(function(){
       if(row&&row.data&&row.data.courses){
         var remoteSig=sigState(row.data);
         var localUnchanged=meta.stateSig===null||sigState(st)===meta.stateSig;
-        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
+        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
       }
       // look back two minutes so nothing saved at the same moment is missed
       if(maxSeen){var t=Date.parse(maxSeen);meta.lastPull=isNaN(t)?maxSeen:new Date(t-120000).toISOString();}
@@ -1590,6 +1607,11 @@ var CLOUD=(function(){
     })(ups.slice(b,b+20));
     if(dels.length)chain=chain.then(function(){
       return call('POST','/rest/v1/questions?on_conflict=user_id,id',dels.map(function(id){return {user_id:uid,id:id,data:{},deleted:true,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){dels.forEach(function(id){delete meta.synced[id];});return saveMeta();});
+    });
+    // saved tests keep frozen copies of questions: move their pictures to online storage too (same files)
+    if(stateDirty)chain=chain.then(function(){
+      var qs=[];(hooks.getState().savedTests||[]).forEach(function(t){(t.questions||[]).forEach(function(q){qs.push(q);});});
+      return qs.reduce(function(p,q){return p.then(function(){return hostImages(q.html).then(function(h){q.html=h;return Promise.all((q.choices||[]).map(hostImages)).then(function(ch){if(q.choices)q.choices=ch;});});});},Promise.resolve());
     });
     if(stateDirty)chain=chain.then(function(){
       var now=new Date().toISOString(),cur=hooks.getState(),body=JSON.parse(JSON.stringify(statePart(cur))),sg=sigState(cur);
@@ -1779,6 +1801,8 @@ function normalize(s){
   if(s.courses.indexOf(s.course)<0)s.courses.push(s.course);
   s.courseTests=s.courseTests||{};
   var ids={};s.questions.forEach(function(q){ids[q.id]=1;});
+  s.savedTests=Array.isArray(s.savedTests)?s.savedTests.filter(function(t){return t&&t.id;}):[];
+  var fz=s.settings.frozen&&s.savedTests.filter(function(t){return t.id===s.settings.savedId;})[0];if(fz)(fz.questions||[]).forEach(function(q){ids[q.id]=1;});
   s.selected=Array.isArray(s.selected)?s.selected.filter(function(id,i,a){return ids[id]&&a.indexOf(id)===i;}):[];
   s.banks=s.banks||{};
   return s;
@@ -1805,7 +1829,35 @@ window.addEventListener('beforeunload',function(){saveUi();if(saveTimer){clearTi
 function byId(id){for(var i=0;i<state.questions.length;i++)if(state.questions[i].id===id)return state.questions[i];return null;}
 function isSel(id){return state.selected.indexOf(id)>=0;}
 function uniq(field){var t={};cq().forEach(function(q){var v=q[field];if(v){if(field==='standard')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
-function selectedQs(){return state.selected.map(byId).filter(Boolean);}
+function selectedQs(){return state.selected.map(selQ).filter(Boolean);}
+/* ---- Saved tests ----
+   state.savedTests: [{id,name,course,created,savedAt,printedAt,settings,selected,questions}]
+   questions = frozen copies of exactly what was on the test, so a reprint can match what was handed out.
+   settings.savedId = the saved test the current test came from; settings.frozen = use its frozen copies. */
+function savedById(id){var a=state.savedTests||[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
+function frozenMap(){var s=state.settings,t=s.frozen&&s.savedId&&savedById(s.savedId);if(!t)return null;var m={};(t.questions||[]).forEach(function(q){m[q.id]=q;});return m;}
+function selQ(id){var m=frozenMap();return (m&&m[id])||byId(id);}
+// What matters on paper: wording, pictures (by position, not address), choices, answer, space.
+function paperSig(q){var lite=function(h){return String(h||'').replace(/src="[^"]*"/g,'src');};
+  return JSON.stringify([q.type,lite(q.html),(q.choices||[]).map(lite),q.answer,q.points,q.lines,q.space,q.answerArea,!!q.inImage,!!q.lockChoices]);}
+function savedDiff(t){var edited=0,gone=0;(t.questions||[]).forEach(function(q){var b=byId(q.id);if(!b)gone++;else if(paperSig(b)!==paperSig(q))edited++;});return {edited:edited,gone:gone};}
+function testSnapshot(){var st=JSON.parse(JSON.stringify(state.settings));delete st.savedId;delete st.frozen;return {settings:st,selected:state.selected.slice()};}
+function defaultTestName(){return docTitle()||DOC_TYPES[docType()];}
+function saveTest(opts){opts=opts||{};
+  var s=state.settings,t=!opts.asNew&&s.savedId&&savedById(s.savedId),now=new Date().toISOString(),snap=testSnapshot();
+  if(!t){t={id:uid(),name:opts.name||defaultTestName(),course:state.course,created:now};state.savedTests.unshift(t);}
+  t.settings=snap.settings;t.selected=snap.selected;t.questions=JSON.parse(JSON.stringify(selectedQs()));t.savedAt=now;t.course=state.course;
+  if(opts.printed)t.printedAt=now;
+  s.savedId=t.id;changed();return t;}
+function isDirty(){var t=savedById(state.settings.savedId);if(!state.selected.length)return false;if(!t)return true;
+  var a=testSnapshot();return JSON.stringify(a.settings)!==JSON.stringify(t.settings)||a.selected.join()!==(t.selected||[]).join();}
+function openSaved(id,mode){var t=savedById(id);if(!t)return;
+  state.settings=migrateSettings(Object.assign({},DEFAULT_SETTINGS,JSON.parse(JSON.stringify(t.settings||{})),{savedId:t.id,frozen:false}),state.course);
+  state.selected=(t.selected||[]).slice();
+  var d=savedDiff(t);if(d.edited||d.gone)state.settings.frozen=mode!=='latest';
+  if(!state.settings.frozen){var have={};state.questions.forEach(function(q){have[q.id]=1;});state.selected=state.selected.filter(function(x){return have[x];});}
+  if(ui.pv==='acc'&&!accom().on)ui.pv=0;changed();renderTabs();renderBuild();}
+function fmtDay(iso){var t=Date.parse(iso);return isNaN(t)?'':new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}
 function totalPts(){return selectedQs().reduce(function(a,q){return a+num(q.points,0);},0);}
 function nVersions(){return Math.max(1,Math.min(8,parseInt(state.settings.versions,10)||1));}
 
@@ -2093,10 +2145,11 @@ function printJobs(kind){
 }
 function printNow(kind){
   if(!state.selected.length){toast('Add some questions to the test first.');return;}
+  saveTest({printed:true});drawSaved();
   runJobs(printJobs(kind));
 }
 window.__printJobs=printJobs;
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -2206,7 +2259,7 @@ function switchCourse(name){
   var t=state.courseTests[name];
   state.course=name;
   state.settings=migrateSettings(Object.assign({},DEFAULT_SETTINGS,{course:name,roles:{},concepts:{},bonus:{},seed:Math.floor(Math.random()*2147483647)},t?t.settings:{}),name);
-  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){var q=byId(id);return q&&q.course===name;}):[];
+  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){var q=selQ(id);return q&&(q.course===name||!byId(id));}):[];
   ['q','bank','topic','type','std','unit','section','source','year','month','cluster','sub','pickBank','pickTopic','pickType','pickUnit','pickSection'].forEach(function(k){ui[k]='';});
   ui.limit=40;saveUi();changed();render();toast('Switched to '+name+'.');
 }
@@ -2525,7 +2578,7 @@ function renderBuild(){
     (nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
     cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></details></div>'+
-'<div style="display:grid;gap:18px;min-width:0"><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
+'<div style="display:grid;gap:18px;min-width:0"><div class="card savedcard" id="savedCard"></div><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions on the Question bank tab. Questions print in this order unless you shuffle or group them.</p></div>'+
@@ -2570,7 +2623,7 @@ function renderBuild(){
     var prev=s.seed;s.seed=Math.floor(Math.random()*2147483647);changed();b.classList.remove('danger');b.textContent='↻ New scramble';drawPreview();
     toast('New versions made. Print new answer keys too.',function(){s.seed=prev;changed();drawPreview();});};
   $('#showAns').onchange=function(){ui.showAns=this.checked;saveUi();drawPreview();};
-  drawPreview();drawPrintBar();
+  drawPreview();drawPrintBar();drawSaved();
 }
 function accSection(){var a=accom(),n=nVersions(),dis=a.on?'':' disabled';
   function sel(k,label,opts,hint){return '<label><span class="lbl">'+label+'</span><select data-acc="'+k+'"'+dis+'>'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(a[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';}
@@ -2581,6 +2634,40 @@ function accSection(){var a=accom(),n=nVersions(),dis=a.on?'':' disabled';
     '<div class="row">'+sel('perPage','Questions per page',[[0,'As many as fit'],[1,'1 per page'],[2,'2 per page']],docType()==='lesson'?'Lessons keep their own layout.':'')+(n>1?sel('version','Make it from',Array.apply(null,Array(n)).map(function(_,v){return [v,'Version '+LETTERS[v]];})):'<span></span>')+'</div>'+
     '<div class="checks"><label><input type="checkbox" data-acc="spacing"'+(a.spacing?' checked':'')+dis+'><span>Extra spacing<small>More space between lines, answer choices and questions.</small></span></label></div>'+
     '</div></details>';}
+function drawSaved(){var box=$('#savedCard');if(!box)return;var s=state.settings,cur=savedById(s.savedId),mine=state.savedTests.filter(function(t){return t.course===state.course;});
+  var q=(ui.svQ||'').toLowerCase(),list=mine.filter(function(t){return !q||t.name.toLowerCase().indexOf(q)>=0;});
+  var status=cur?'<b>'+esc(cur.name)+'</b> · saved '+fmtDay(cur.savedAt)+(cur.printedAt?' · printed '+fmtDay(cur.printedAt):'')+(isDirty()?' · <span class="sv-dirty">changed since</span>':''):(state.selected.length?'Not saved yet. Printing saves it for you.':'Pick questions to start a test, or open a saved one.');
+  var h='<div class="sv-head"><div class="sv-now"><h2>Saved tests</h2><p class="hint" id="svStatus">'+status+'</p></div><span class="spacer"></span>'+
+    '<button class="small" id="svSave"'+(state.selected.length?'':' disabled')+'>'+(cur?'Save changes':'Save test')+'</button>'+(cur?'<button class="small ghost" id="svNew">Save as new</button>':'')+'</div>';
+  if(s.frozen&&cur){var d=savedDiff(cur);h+='<div class="sv-frozen" role="status"><span>'+(d.edited?d.edited+' question'+(d.edited>1?'s were':' was')+' edited':'')+(d.edited&&d.gone?' and ':'')+(d.gone?d.gone+' question'+(d.gone>1?'s were':' was')+' deleted from the bank':'')+' since you saved this. You’re using the questions <b>as printed</b>, so copies and keys match what you handed out.</span><button class="small" id="svLatest">Use the latest versions</button></div>';}
+  if(mine.length)h+='<details class="fold sv-list" id="svList"'+(ui.svOpen?' open':'')+'><summary>All saved tests <span class="hint">('+mine.length+')</span></summary>'+
+    (mine.length>5?'<input type="search" id="svQ" placeholder="Find a saved test…" aria-label="Find a saved test" value="'+esc(ui.svQ||'')+'">':'')+
+    '<ul class="svl">'+list.map(function(t){return '<li data-sv="'+t.id+'"'+(cur&&cur.id===t.id?' class="cur"':'')+'><span class="svn"><b>'+esc(t.name)+'</b><small>'+(t.selected||[]).length+' questions · saved '+fmtDay(t.savedAt)+(t.printedAt?' · printed '+fmtDay(t.printedAt):'')+'</small></span>'+
+      '<button class="small" data-svopen="'+t.id+'">'+(cur&&cur.id===t.id?'Reopen':'Open')+'</button><button class="small ghost" data-svren="'+t.id+'">Rename</button><button class="small ghost" data-svdup="'+t.id+'">Duplicate</button><button class="small ghost" data-svdel="'+t.id+'">Delete</button></li>';}).join('')+(list.length?'':'<li class="hint">No saved test matches.</li>')+'</ul></details>';
+  box.innerHTML=h+'<div id="svAsk"></div>';
+  var refresh=function(){drawSaved();};
+  $('#svSave').onclick=function(){var t=saveTest();toast('Saved “'+t.name+'”.');refresh();};
+  if($('#svNew'))$('#svNew').onclick=function(){var t=saveTest({asNew:true,name:(cur?cur.name+' (new)':defaultTestName())});state.settings.frozen=false;toast('Saved as “'+t.name+'”.');renderBuild();};
+  if($('#svLatest'))$('#svLatest').onclick=function(){openSaved(cur.id,'latest');toast('Using the latest versions. Print new answer keys too.');};
+  if($('#svList'))$('#svList').ontoggle=function(){ui.svOpen=this.open;saveUi();};
+  if($('#svQ'))$('#svQ').oninput=function(){ui.svQ=this.value;var pos=this.selectionStart;drawSaved();var f=$('#svQ');f.focus();f.setSelectionRange(pos,pos);};
+  $$('[data-svopen]',box).forEach(function(b){b.onclick=function(){var id=b.dataset.svopen,t=savedById(id);
+    var go=function(){openSaved(id);var d=savedDiff(t);toast('Opened “'+t.name+'”.'+(d.edited||d.gone?' Some questions changed since; see the note above.':''));};
+    if(!isDirty()||(cur&&cur.id===id&&!isDirty()))return go();
+    var ask=$('#svAsk');ask.innerHTML='<div class="confirm-bar" role="alert"><span>Your current test has changes that aren’t saved.</span><span class="spacer"></span><button type="button" class="small" id="svAskSave">Save it, then open</button><button type="button" class="small danger" id="svAskDrop">Open without saving</button><button type="button" class="small ghost" id="svAskNo">Cancel</button></div>';
+    $('#svAskSave').focus();$('#svAskSave').onclick=function(){saveTest();go();};$('#svAskDrop').onclick=go;$('#svAskNo').onclick=function(){ask.innerHTML='';b.focus();};};});
+  $$('[data-svren]',box).forEach(function(b){b.onclick=function(){var t=savedById(b.dataset.svren),li=b.closest('li');
+    li.innerHTML='<input type="text" value="'+esc(t.name)+'" aria-label="New name" style="flex:1"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
+    var inp=$('input',li),bs=$$('button',li);inp.focus();inp.select();
+    var done=function(){var nn=inp.value.trim();if(nn){t.name=nn;changed();}refresh();};bs[0].onclick=done;bs[1].onclick=refresh;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')refresh();};};});
+  $$('[data-svdup]',box).forEach(function(b){b.onclick=function(){var t=savedById(b.dataset.svdup),c=JSON.parse(JSON.stringify(t)),now=new Date().toISOString();
+    c.id=uid();c.name=t.name+' (copy)';c.created=c.savedAt=now;delete c.printedAt;state.savedTests.splice(state.savedTests.indexOf(t),0,c);changed();ui.svOpen=true;refresh();toast('Duplicated. Open the copy to change it.');};});
+  $$('[data-svdel]',box).forEach(function(b){b.onclick=function(){
+    if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Confirm';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3000);return;}
+    var t=savedById(b.dataset.svdel),i=state.savedTests.indexOf(t),wasCur=state.settings.savedId===t.id,wasFrozen=state.settings.frozen;
+    state.savedTests.splice(i,1);if(wasCur){state.settings.savedId=null;state.settings.frozen=false;}changed();renderBuild();
+    toast('Deleted “'+t.name+'”.',function(){state.savedTests.splice(i,0,t);if(wasCur){state.settings.savedId=t.id;state.settings.frozen=wasFrozen;}changed();renderBuild();});};});
+}
 function refreshAuto(){var t=$('#main [data-set=title]');if(t)t.placeholder='auto: '+autoTitle();var c=$('#lcode');if(c)c.textContent=lessonCode()||'Q#W##D###';var src=$('#main [data-set=lessonSource]');if(src)src.placeholder=lessonSource()||'e.g. Big Ideas Geometry';}
 function drawSel(){
   var ul=$('#selList'),qs=selectedQs(),dt=docType(),st=state.settings;
@@ -2593,11 +2680,11 @@ function drawSel(){
   $$('[data-role]',ul).forEach(function(x){x.onchange=function(){st.roles=Object.assign({},st.roles);st.roles[x.dataset.role]=x.value;after();};});
   $$('[data-exc]',ul).forEach(function(x){x.oninput=function(){st.concepts=Object.assign({},st.concepts);st.concepts[x.dataset.exc]=x.value;changed();drawPreviewSoon();};});
   $$('[data-bonus]',ul).forEach(function(b){b.onclick=function(){st.bonus=Object.assign({},st.bonus);if(st.bonus[b.dataset.bonus])delete st.bonus[b.dataset.bonus];else st.bonus[b.dataset.bonus]=true;after();};});
-  $$('[data-bm]',ul).forEach(function(b){b.onclick=function(){var s=state.settings,q=byId(b.dataset.bm);s.bmOverride=s.bmOverride||{};var next=bmChoices(q)?'without':'with';if(next===s.bmMode)delete s.bmOverride[q.id];else s.bmOverride[q.id]=next;after();};});
+  $$('[data-bm]',ul).forEach(function(b){b.onclick=function(){var s=state.settings,q=selQ(b.dataset.bm);s.bmOverride=s.bmOverride||{};var next=bmChoices(q)?'without':'with';if(next===s.bmMode)delete s.bmOverride[q.id];else s.bmOverride[q.id]=next;after();};});
 }
 function noAnswer(){return selectedQs().filter(function(q){return (isMC(q.type)&&!q.inImage&&(q.answer<0||q.answer>=q.choices.length))||(q.inImage&&q.answer<0)||(q.type==='tf'&&q.answer!=='T'&&q.answer!=='F');});}
 function printCheck(){var m=noAnswer();if(!m.length)return '';return '<span class="pb-warn" role="status"><b>'+m.length+' question'+(m.length>1?'s have':' has')+' no correct answer,</b> so the answer key will be blank there. <button type="button" class="small" id="fixAns" data-fix="'+m[0].id+'">Fix'+(m.length>1?' the first one':'')+'</button></span>';}
-function drawPrintBar(){var b=$('#pbSum');if(!b)return;b.textContent=printSummary();var w=$('#pbWarn');w.innerHTML=printCheck();var f=$('#fixAns');if(f)f.onclick=function(){openEditor(byId(f.dataset.fix));};
+function drawPrintBar(){var b=$('#pbSum');if(!b)return;var svs=$('#svStatus');if(svs&&savedById(state.settings.savedId)){var c=savedById(state.settings.savedId);svs.innerHTML='<b>'+esc(c.name)+'</b> · saved '+fmtDay(c.savedAt)+(c.printedAt?' · printed '+fmtDay(c.printedAt):'')+(isDirty()?' · <span class="sv-dirty">changed since</span>':'');}b.textContent=printSummary();var w=$('#pbWarn');w.innerHTML=printCheck();var f=$('#fixAns');if(f)f.onclick=function(){var q=byId(f.dataset.fix);if(q)openEditor(q);else toast('That question was deleted from the bank. Use the latest versions to take it off the test.');};
   var none=!state.selected.length;$$('[data-print]').forEach(function(x){x.disabled=none;});var nm=$('#pbNone');if(nm)nm.hidden=!none;}
 function printSummary(){var n=nVersions(),q=state.selected.length,p=totalPts();return n+' version'+(n===1?'':'s')+(accOn()?' + accommodated copy':'')+' · '+q+' question'+(q===1?'':'s')+' · '+p+' point'+(p===1?'':'s');}
 var pvT;function drawPreviewSoon(){clearTimeout(pvT);pvT=setTimeout(drawPreview,250);}
@@ -2633,10 +2720,10 @@ function restoreChoice(incoming,saved){
   $('#rsCancel').onclick=function(){res.className='result';res.innerHTML='';};
   $('#rsReplace').onclick=function(){var prev=state;state=incoming;changed();render();var r=$('#bkRes');r.className='result ok';r.textContent='Replaced everything with the backup ('+n+' question'+(n===1?'':'s')+').';
     toast('Replaced everything with the backup.',function(){state=prev;changed();render();});};
-  $('#rsAdd').onclick=function(){var prevQ=state.questions,prevC=state.courses;state.questions=state.questions.concat(added);
-    state.courses=state.courses.concat(incoming.courses.filter(function(c){return state.courses.indexOf(c)<0;}));
+  $('#rsAdd').onclick=function(){var prevQ=state.questions,prevC=state.courses,prevT=state.savedTests;state.questions=state.questions.concat(added);
+    state.courses=state.courses.concat(incoming.courses.filter(function(c){return state.courses.indexOf(c)<0;}));var haveT={};state.savedTests.forEach(function(t){haveT[t.id]=1;});state.savedTests=state.savedTests.concat((incoming.savedTests||[]).filter(function(t){return !haveT[t.id];}));
     changed();render();var r=$('#bkRes');r.className='result ok';r.textContent='Added '+added.length+' question'+(added.length===1?'':'s')+'. Nothing you had was changed.';
-    toast('Added '+added.length+' question'+(added.length===1?'':'s')+' from the backup.',function(){state.questions=prevQ;state.courses=prevC;changed();render();});};
+    toast('Added '+added.length+' question'+(added.length===1?'':'s')+' from the backup.',function(){state.questions=prevQ;state.courses=prevC;state.savedTests=prevT;changed();render();});};
   $('#rsReplace').focus();
 }
 function renderIO(){
@@ -2670,16 +2757,16 @@ function renderIO(){
   $$('[data-crename]').forEach(function(b){b.onclick=function(){
     var li=b.closest('li'),name=b.dataset.crename;li.innerHTML='<input type="text" value="'+esc(name)+'" style="flex:1"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
     var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
-    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){if(state.courses.indexOf(nn)>=0){toast('You already have '+nn+'.');return;}state.courses[state.courses.indexOf(name)]=nn;state.questions.forEach(function(q){if(q.course===name)q.course=nn;});if(state.courseTests[name]){state.courseTests[nn]=state.courseTests[name];delete state.courseTests[name];}if(state.course===name){state.course=nn;if(state.settings.course===name)state.settings.course=nn;}changed();}render();};
+    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){if(state.courses.indexOf(nn)>=0){toast('You already have '+nn+'.');return;}state.courses[state.courses.indexOf(name)]=nn;state.questions.forEach(function(q){if(q.course===name)q.course=nn;});state.savedTests.forEach(function(t){if(t.course===name)t.course=nn;});if(state.courseTests[name]){state.courseTests[nn]=state.courseTests[name];delete state.courseTests[name];}if(state.course===name){state.course=nn;if(state.settings.course===name)state.settings.course=nn;}changed();}render();};
     bs[0].onclick=done;bs[1].onclick=renderIO;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')renderIO();};
   };});
   $$('[data-cdel]').forEach(function(b){b.onclick=function(){
     var name=b.dataset.cdel,n=state.questions.filter(function(q){return q.course===name;}).length;
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent=n?'Delete with '+n+' questions?':'Delete?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3500);return;}
-    var prev=JSON.parse(JSON.stringify({questions:state.questions,courses:state.courses,courseTests:state.courseTests}));
+    var prev=JSON.parse(JSON.stringify({questions:state.questions,courses:state.courses,courseTests:state.courseTests,savedTests:state.savedTests}));
     if(state.course===name){var other=state.courses.filter(function(c){return c!==name;})[0];switchCourse(other);}
-    state.questions=state.questions.filter(function(q){return q.course!==name;});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];
-    changed();render();toast('Deleted '+name+'.',function(){state.questions=prev.questions;state.courses=prev.courses;state.courseTests=prev.courseTests;changed();render();});
+    state.questions=state.questions.filter(function(q){return q.course!==name;});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];state.savedTests=state.savedTests.filter(function(t){return t.course!==name;});
+    changed();render();toast('Deleted '+name+'.',function(){state.questions=prev.questions;state.courses=prev.courses;state.courseTests=prev.courseTests;state.savedTests=prev.savedTests;changed();render();});
   };});
   $('#bkOut').onclick=function(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');ui.lastBackup=d.toISOString();saveUi();renderIO();};
   $('#bkIn').onchange=function(){

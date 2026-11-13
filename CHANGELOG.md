@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Saved tests** on Build & print: save a test under a name, and come back to it later to look at, change or reprint it, the way ExamView worked. **Printing saves the test automatically** with the print date. Open, Rename, Duplicate (e.g. to start next year's version) and Delete (with Undo); find one by name when you have many. If the current test has unsaved changes, opening another asks first.
+- If questions were edited or deleted from the bank since a test was saved, opening it says so and uses the questions **as printed** (so reprints and keys match what was handed out), with **Use the latest versions** to switch. Saved tests are in backups and sync to the website version (their pictures reuse the uploaded files).
 - **Accommodations** on Build & print: print an extra accommodated copy of one version with a dyslexia-friendly font (Atkinson Hyperlegible or OpenDyslexic, built in), large print (14 or 18 pt, with pictures and answer spaces scaled up), extra spacing, and 1 or 2 questions per page. It has the same questions and answer order as its version, so that version's answer key works (the key says so), and nothing on the student's copy says "accommodated". Preview it with the **Accommodated** tab; print it with **Print tests + answer keys** or **Accommodated only**.
 - Atkinson Hyperlegible and OpenDyslexic can also be chosen as the font for a whole test (Page style → Font).
 - **Help** at the top now opens a short help panel inside the app (bringing in questions, picking, printing, answer keys, backups, keyboard), with a link to the full user guide.

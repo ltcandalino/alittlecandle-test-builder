@@ -50,6 +50,17 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 **Footer (pages 2+):** the Q#W##D### code and *Source:* on the left, the page number on the right.
 
+## Saved tests
+
+The **Saved tests** box at the top of **Build & print** keeps every test you make, per course.
+
+- **Printing saves the test for you**, named from its title (like "Quarter 1 – Unit 3 Exam") with the date you printed it. **Save test** / **Save changes** saves without printing, and **Save as new** keeps the old one and starts a new one.
+- **All saved tests** lists them, newest first. **Open** one to look at it, change it or reprint it. **Rename**, **Duplicate** (handy for next year's version) and **Delete** (with Undo) are next to it. With more than five, a search box finds them by name.
+- If the test you're working on has unsaved changes, opening another one asks first: save it, open without saving, or cancel.
+- **When questions changed since you saved it:** opening it tells you, for example "1 question was edited since you saved this", and uses the questions **as printed**, so reprints and answer keys match the copies you handed out. A question you've since deleted from the bank still prints. Click **Use the latest versions** to pick up your fixes instead, and print new answer keys too.
+
+Saved tests are in your backups, and on the website version they're on every computer you sign in on.
+
 ## Settings for every type
 
 The settings you rarely change are folded under **Page style** at the bottom of the Document box. Click it to open it; it stays open or closed the way you left it.

@@ -10,6 +10,7 @@ before(async () => {
   browser = await launch();
   const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
   await A.call('POST', '/admin/api/users', { token: t, body: { email: 'teacher@example.com', password: 'teacher-pass-1' } });
+  await A.call('POST', '/admin/api/users', { token: t, body: { email: 'saver@example.com', password: 'saver-pass-1' } });
 });
 after(async () => { await browser.close(); await srv.stop(); });
 
@@ -39,6 +40,23 @@ async function serverHas(token, check) {
 }
 
 describe('website version', () => {
+  test('saved tests sync to another computer, with their pictures uploaded', async () => {
+    const a = await signIn('saver@example.com', 'saver-pass-1');
+    await a.page.evaluate(png => {
+      const T = window.__tb, st = T.state;
+      st.questions.push({ id: 'sv-1', course: st.course, type: 'mc', html: 'Saved one <img src="' + png + '">', choices: ['a', 'b'], answer: 0, bank: 'B', points: 2 });
+      T.state = T.normalize(st); T.state.selected = ['sv-1'];
+      T.fn.saveTest({ name: 'Synced exam' });
+    }, PNG);
+    await a.page.evaluate(() => window.__tb.fn.persist());
+    await syncNow(a.page);
+    const b = await signIn('saver@example.com', 'saver-pass-1');
+    await b.page.waitForFunction(() => (window.__tb.state.savedTests || []).some(t => t.name === 'Synced exam'), null, { timeout: 15000 });
+    const html = await b.page.evaluate(() => window.__tb.state.savedTests.find(t => t.name === 'Synced exam').questions[0].html);
+    assert.doesNotMatch(html, /data:image/, 'the saved copy points at the uploaded picture');
+    await a.context.close(); await b.context.close();
+  });
+
   test('wrong password shows a message', async () => {
     const s = await openApp(browser, srv.url);
     await s.page.waitForSelector('#le');

@@ -298,6 +298,51 @@ describe('accommodated copy', () => {
   });
 });
 
+describe('saved tests', () => {
+  const st = () => page.evaluate(() => window.__tb.state);
+  test('old data has no saved tests and still loads', async () => {
+    assert.deepEqual(await page.evaluate(() => window.__tb.normalize({ questions: [] }).savedTests), []);
+  });
+  test('saving keeps a frozen copy of every question, and saving again updates it', async () => {
+    const t = await fn(page, 'saveTest', { name: 'Unit 3 Exam' });
+    assert.equal(t.name, 'Unit 3 Exam'); assert.equal(t.questions.length, 7); assert.equal(t.selected.length, 7);
+    assert.equal((await st()).settings.savedId, t.id);
+    await page.evaluate(() => { window.__tb.state.selected.pop(); });
+    assert.equal(await fn(page, 'isDirty'), true);
+    const t2 = await fn(page, 'saveTest');
+    assert.equal(t2.id, t.id); assert.equal(t2.selected.length, 6);
+    assert.equal((await st()).savedTests.length, 1);
+    assert.equal(await fn(page, 'isDirty'), false);
+  });
+  test('reopening after a question was edited uses what was printed, or the latest on request', async () => {
+    const t = await fn(page, 'saveTest', { printed: true });
+    const before = await version(1);
+    await page.evaluate(id => { const q = window.__tb.state.questions.find(x => x.id === id); q.html = 'MC one, fixed'; q.topic = 'not a paper change'; }, ids[0]);
+    await fn(page, 'openSaved', t.id);
+    assert.deepEqual(await fn(page, 'savedDiff', t), { edited: 1, gone: 0 });
+    assert.equal((await st()).settings.frozen, true);
+    assert.deepEqual(await version(1), before, 'same questions, same order, same scramble as printed');
+    await fn(page, 'openSaved', t.id, 'latest');
+    assert.equal((await st()).settings.frozen, false);
+    assert.ok((await version(0)).some(it => it.html === 'MC one, fixed'));
+  });
+  test('a question deleted from the bank can still be reprinted from the saved copy', async () => {
+    const t = await fn(page, 'saveTest');
+    await page.evaluate(id => { const s = window.__tb.state; s.questions = s.questions.filter(q => q.id !== id); }, ids[1]);
+    await fn(page, 'openSaved', t.id);
+    assert.ok((await version(0)).some(it => it.html === 'MC two'), 'still on the test');
+    assert.equal((await st()).selected.length, 7);
+    await fn(page, 'openSaved', t.id, 'latest');
+    assert.equal((await st()).selected.length, 6, 'taken off with the latest versions');
+  });
+  test('a picture-address change from syncing is not counted as an edit', async () => {
+    await page.evaluate(id => { window.__tb.state.questions.find(q => q.id === id).html = 'MC one <img src="data:image/png;base64,AAAA">'; }, ids[0]);
+    const t = await fn(page, 'saveTest');
+    await page.evaluate(id => { window.__tb.state.questions.find(q => q.id === id).html = 'MC one <img src="https://example.org/a.png">'; }, ids[0]);
+    assert.deepEqual(await fn(page, 'savedDiff', t), { edited: 0, gone: 0 });
+  });
+});
+
 describe('courses', () => {
   test('each course keeps its own settings and questions', async () => {
     const r = await page.evaluate(() => {

@@ -470,3 +470,58 @@ describe('accommodations', () => {
     assert.equal(await page.evaluate(() => window.__tb.ui().pv), 'acc');
   });
 });
+
+describe('saved tests', () => {
+  const stubPrint = () => page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
+  test('printing saves the test; save, rename, duplicate, delete and undo', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
+    await select(page, ids); await settings(page, { unitNum: '3', quarter: '1' });
+    await gotoTab(page, 'build');
+    assert.match(await page.textContent('#svStatus'), /Not saved yet/);
+    await stubPrint(); await page.click('[data-print="tests"]');
+    assert.match(await page.textContent('#svStatus'), /Unit 3 Exam.*printed/);
+    const saved = () => page.evaluate(() => window.__tb.state.savedTests.map(t => t.name));
+    const names = await saved();
+    assert.equal(names.length, 1); assert.match(names[0], /Unit 3 Exam/, 'named from the title');
+    assert.ok(await page.evaluate(() => !!window.__tb.state.savedTests[0].printedAt), 'print date recorded');
+    await page.click('#svList summary');
+    await page.click('[data-svren]'); await page.fill('.svl input', 'Unit 3 Exam, Nov 2026'); await page.keyboard.press('Enter');
+    assert.deepEqual(await saved(), ['Unit 3 Exam, Nov 2026']);
+    await page.click('[data-svdup]');
+    assert.deepEqual(await saved(), ['Unit 3 Exam, Nov 2026 (copy)', 'Unit 3 Exam, Nov 2026']);
+    const copy = await page.evaluate(() => window.__tb.state.savedTests[0].id);
+    await page.click(`[data-svdel="${copy}"]`); await page.click(`[data-svdel="${copy}"]`);
+    assert.deepEqual(await saved(), ['Unit 3 Exam, Nov 2026']);
+    await page.click('#toastUndo');
+    assert.equal((await saved()).length, 2);
+  });
+  test('opening another saved test asks first when the current one has unsaved changes', async () => {
+    const ids = await addQuestions(page, [{ html: 'A' }, { html: 'B' }, { html: 'C' }]);
+    await select(page, ids.slice(0, 1)); await gotoTab(page, 'build');
+    await page.click('#svSave');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]);
+    await page.click('#svNew');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[2]);
+    await gotoTab(page, 'build');
+    await page.click('#svList summary');
+    const first = await page.evaluate(() => window.__tb.state.savedTests[1].id);
+    await page.click(`[data-svopen="${first}"]`);
+    assert.ok(await page.isVisible('#svAskSave'), 'asks before leaving unsaved changes');
+    await page.click('#svAskSave');
+    assert.deepEqual(await page.evaluate(() => window.__tb.state.selected.length), 1, 'opened the first test');
+    assert.equal(await page.evaluate(() => window.__tb.state.savedTests[0].selected.length), 3, 'and saved the changes first');
+  });
+  test('an edited question shows the note and lets you switch to the latest versions', async () => {
+    const ids = await addQuestions(page, [{ html: 'Original' }]);
+    await select(page, ids); await gotoTab(page, 'build');
+    await page.click('#svSave');
+    const id = await page.evaluate(() => window.__tb.state.settings.savedId);
+    await page.evaluate(q => { window.__tb.state.questions.find(x => x.id === q).html = 'Edited'; }, ids[0]);
+    await page.click('#svList summary'); await page.click(`[data-svopen="${id}"]`);
+    assert.match(await page.textContent('.sv-frozen'), /1 question was edited/);
+    assert.match(await page.textContent('#paper'), /Original/);
+    await page.click('#svLatest');
+    assert.match(await page.textContent('#paper'), /Edited/);
+    assert.equal(await page.$('.sv-frozen') === null, true);
+  });
+});
