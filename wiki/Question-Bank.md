@@ -27,6 +27,8 @@ Click a question to open it. You can fix the wording, choices or answer, and fil
 
 Use **+ New question** to write one from scratch, or **Save & add another** to enter several in a row.
 
+The editor shows the type, points, unit, section and standard first, then the question box, where the cursor starts at the end of the text, then the answers. Bank, topic, part, subtopic, cluster, your notes, reference, source and exam month/year/question # are under **More details**. It opens by itself when a question has any of them.
+
 If you press **Esc**, click **Cancel** or click outside the editor after changing something, it asks first: **Keep editing** or **Discard changes**. Nothing you typed is thrown away without asking.
 
 ## Question types

@@ -14,6 +14,10 @@ Your work is saved automatically in that browser on that computer. Opening the f
 
 The **Course** menu at the top switches between courses. Each course has its own questions and settings.
 
+## Help
+
+Click **Help** at the top for a short guide inside the app. Its **Full user guide** link opens this wiki.
+
 ## Display settings
 
 Click **Aa Display** at the top to make the app easier on your eyes:

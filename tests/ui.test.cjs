@@ -31,12 +31,26 @@ describe('tabs', () => {
 });
 
 describe('question editor', () => {
+  test('the question box comes first; More details opens when a question has them', async () => {
+    const [plainQ, tagged] = await addQuestions(page, [{ html: 'Plain', bank: 'My questions', topic: '', source: '' }, { html: 'Tagged', ref: '061924', bank: 'My questions', topic: '', source: '' }]);
+    await gotoTab(page, 'bank');
+    await page.click('#newQ');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'e-text', 'cursor starts in the question box');
+    assert.ok(!(await page.isVisible('#e-ref')), 'details folded for a new question');
+    await page.keyboard.press('Escape');
+    await page.click(`[data-edit="${tagged}"]`);
+    assert.ok(await page.isVisible('#e-ref'), 'details open when the question has some');
+    assert.equal(await page.evaluate(() => { const s = getSelection(); return s.anchorOffset === s.anchorNode.textContent.length || s.anchorNode.id === 'e-text'; }), true, 'cursor at the end');
+    await page.keyboard.press('Escape');
+    await page.click(`[data-edit="${plainQ}"]`);
+    assert.ok(!(await page.isVisible('#e-ref')));
+  });
   test('closing without changes needs no question', async () => {
     const [id] = await addQuestions(page, [{ html: 'Leave me' }]);
     await gotoTab(page, 'bank');
     await page.click(`[data-edit="${id}"]`);
     await page.keyboard.press('Escape');
-    assert.equal(await page.$('#ov'), null);
+    assert.equal(await page.$('#ov') === null, true, 'editor closed');
     assert.equal(await page.evaluate(() => document.activeElement.dataset.edit), id, 'focus goes back to Edit');
   });
   test('Escape, Cancel or a click outside asks before throwing away edits', async () => {
@@ -47,14 +61,14 @@ describe('question editor', () => {
     await page.keyboard.press('Escape');
     assert.ok(await page.isVisible('#e-confirm'), 'Escape shows the question');
     await page.click('#e-keep');
-    assert.ok(!(await page.isVisible('#e-confirm')) && await page.$('#ov'), 'Keep editing stays open');
+    assert.ok(!(await page.isVisible('#e-confirm')) && (await page.$('#ov')) !== null, 'Keep editing stays open');
     await page.mouse.click(5, 5);
     assert.ok(await page.isVisible('#e-confirm'), 'clicking outside shows the question');
     await page.keyboard.press('Escape');
-    assert.ok(!(await page.isVisible('#e-confirm')) && await page.$('#ov'), 'Escape on the question keeps editing');
+    assert.ok(!(await page.isVisible('#e-confirm')) && (await page.$('#ov')) !== null, 'Escape on the question keeps editing');
     await page.click('#e-cancel');
     await page.click('#e-discard');
-    assert.equal(await page.$('#ov'), null);
+    assert.equal(await page.$('#ov') === null, true, 'editor closed');
     assert.equal(await page.evaluate(id => window.__tb.state.questions.find(q => q.id === id).html, id), 'Original text');
   });
   test('write a new multiple-choice question', async () => {
@@ -79,6 +93,7 @@ describe('question editor', () => {
     await gotoTab(page, 'bank');
     await page.click('#newQ');
     await page.click('#e-text'); await page.keyboard.type('Ref question');
+    await page.click('#e-moreD summary');
     await page.fill('#e-ref', '062412'); await page.dispatchEvent('#e-ref', 'input');
     if (await page.$('#e-fromref')) await page.click('#e-fromref');
     await page.click('[data-ct="0"]'); await page.keyboard.type('a'); await page.click('[data-ct="1"]'); await page.keyboard.type('b'); await page.check('[data-ci="0"]');
@@ -393,7 +408,7 @@ describe('simpler screens', () => {
   test('main filters show; the rest are behind More filters, with chips to remove them', async () => {
     await addQuestions(page, [{ html: 'A', type: 'mc', year: 2024 }, { html: 'B', type: 'es', year: 2025 }]);
     await gotoTab(page, 'bank');
-    assert.equal(await page.$('#fyr'), null, 'year filter is tucked away');
+    assert.equal(await page.$('#fyr') === null, true, 'year filter is tucked away');
     await page.click('#moreF');
     await page.selectOption('#fy', 'es');
     assert.equal(await page.textContent('#moreF .count'), '1');
@@ -419,5 +434,16 @@ describe('simpler screens', () => {
     await page.waitForFunction(() => window.__tb.ui().pageStyle === true);
     await page.reload(); await page.waitForFunction(() => window.__tb); await gotoTab(page, 'build');
     assert.ok(await page.isVisible('[data-set="shuffleQ"]'), 'stays open after reload');
+  });
+});
+
+describe('help', () => {
+  test('Help opens inside the app with the main how-tos and a link to the full guide', async () => {
+    await page.click('.helpbtn');
+    assert.ok(await page.isVisible('#helpPop'));
+    assert.match(await page.textContent('#helpPop'), /Bring in questions[\s\S]*Answer keys always match/);
+    assert.match(await page.getAttribute('#helpPop a', 'href'), /wiki/);
+    await page.keyboard.press('Escape');
+    assert.ok(!(await page.isVisible('#helpPop')));
   });
 });

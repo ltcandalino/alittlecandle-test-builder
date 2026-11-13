@@ -23,7 +23,10 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 5. Update this file's Status / Backlog / Work log.
 6. Commit with a clear message. On her Mac (Claude Code) `git push` and `gh` work (signed in as
    ltcandalino); the cloud sandbox has no GitHub access, so there the user pushes herself.
-7. **Keep everything on the newest versions (security).** Node = current LTS (Docker `FROM`, CI
+7. **Keep everything on the newest versions (security).** The image must scan clean: CI runs Trivy (fails on
+   fixable HIGH/CRITICAL, SARIF to the Security tab) and rebuilds weekly; locally `docker scout cves <image>`.
+   The Dockerfile is two-stage so npm/yarn/corepack aren't in the final image, and runs `apk upgrade`.
+   Also watch CI after every push (`gh run list`): a red run went unnoticed for hours on 2026-11-13. Node = current LTS (Docker `FROM`, CI
    `node-version`, README). GitHub Actions = newest major. Dependabot opens weekly PRs for Actions,
    Docker and npm; review and merge them after CI passes. pdf.js isn't covered: at the start of a
    session compare `npm view pdfjs-dist version` with `vendor/pdfjs/VERSION.txt` and copy
@@ -149,6 +152,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   (gitignored; on her Mac it has `GEO2024-2026EXAMs.bnk` and `Geometry_Unit_3_Exam_v1.docx`), and are
   tested automatically when present.
 - Margin-box headers only render when printing; check real Chrome print preview for layout work.
+- Linux check without CI: `docker run node:26`, install python3 + Playwright chromium, `npm test` (the CI
+  OOM crash on 2026-11-13 only showed on Linux: never pass Playwright ElementHandles to `assert`).
 - Firefox isn't available in the cloud sandbox; the user has reported Firefox slowness before.
 - Docker isn't reachable from the cloud sandbox or the desktop bridge VM; the user runs
   `npm run test:docker` on her Mac (Docker Desktop installed 2026-11-12) and the log lands in
@@ -186,7 +191,10 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) DONE `--muted` #5f656c, symbol bar toolbar
       (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) DONE `MORE_F` + chips (`chipsHtml`), "Unit 3 · Sec 2",
       `details#pageStyle` (`ui.pageStyle`), teal for all selected states. Next: `/impeccable polish`, re-run critique.
-- [ ] Second review 2026-11-13: 27/40 (P1 3→2; snapshot in `.impeccable/critique/`). She chose, before Part A:
+- [x] Second-review items done 2026-11-13 (print bar, editor, in-app Help, New scramble confirm).
+- [ ] Docker Scout still reports musl CVE-2026-107891 (HIGH): no fixed package in Alpine 3.24 yet; the weekly
+      CI rebuild picks it up once published. Trivy doesn't flag it.
+- [ ] (done, kept for context) Second review 2026-11-13: 27/40. She chose, before Part A:
       (1) print moment (`harden`): keep the missing-answer warning visible in the print bar with a Fix link,
       disable print at 0 questions, progress strip while chained print windows run, Part directions above
       the print bar; (2) editor (`layout`): Question + answers first, compact row Type/Points/Unit/Section/
@@ -229,3 +237,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-13**: database support: `docker/db.js` (SQLite default, PostgreSQL preferred, MySQL/MariaDB) via
   `DATABASE_URL`, auto-copy from SQLite, compose add-ons, `npm run test:db`, CI `databases` matrix. 36/36 server
   tests on each. Paused mid-way: editor (question first), in-app Help, print-bar docs/changelog (next).
+- **2026-11-13**: CI had been red since the first review fix: a test passed an ElementHandle to assert, the
+  failure serialization ran the runner out of memory (Linux only), hiding a real bug (Esc missed before the
+  editor focused). Fixed both; editor is question-first with a More details fold; in-app Help; Docker image
+  two-stage without npm + `apk upgrade` (Scout 1C/7H → 1H unfixable); Trivy + weekly rebuild in CI. 167 tests.

@@ -250,6 +250,18 @@ docker compose up -d
 
 Open `https://tests.yourdomain.com/healthz`. It should show the version. Then sign in at your address.
 
+## Security updates
+
+Every image GitHub builds is scanned for known vulnerabilities before it's published, and the image is
+rebuilt and scanned again every Monday, so it picks up fixes in the base system. To get them on your
+server, update it (see **Updating**). The results are on GitHub under **Security → Code scanning**.
+
+To scan the image yourself with Docker's free scanner:
+
+```
+docker scout cves ghcr.io/ltcandalino/alittlecandle-test-builder:latest
+```
+
 ## Details
 
 - One container, Node 26 (current LTS). Data: SQLite in `/data` by default, or PostgreSQL / MySQL / MariaDB through `DATABASE_URL`; pictures are files in `/data/images`. The only packages are the database drivers (`pg`, `mysql2`), loaded only when used.

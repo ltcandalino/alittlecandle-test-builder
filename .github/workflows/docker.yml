@@ -4,6 +4,8 @@
 #   ghcr.io/<owner>/<repo>:1.2.3, :1.2, :1   when you push a tag like v1.2.3 (":1" only from 1.0.0 on)
 #   ghcr.io/<owner>/<repo>:sha-abc1234       every published build
 # Pull requests are tested and built but not published.
+# Every image is scanned for known vulnerabilities (Trivy) before it is published; results go to the
+# repository's Security tab. A weekly run rebuilds from fresh base images and scans again.
 name: CI
 
 on:
@@ -12,10 +14,13 @@ on:
     tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'   # Mondays: rebuild with the latest base-image fixes and scan again
 
 permissions:
   contents: read
   packages: write
+  security-events: write   # upload scan results to the Security tab
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -129,7 +134,7 @@ jobs:
 
       - name: Smoke test the image
         run: |
-          docker build --build-arg APP_VERSION="$APP_VERSION" -t alctb-test docker
+          docker build --pull --no-cache --build-arg APP_VERSION="$APP_VERSION" -t alctb-test docker
           docker run -d --name alctb -p 8080:8080 \
             -e ADMIN_EMAIL=ci@example.com -e ADMIN_PASSWORD=ci-test-password alctb-test
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done
@@ -140,6 +145,29 @@ jobs:
             -H 'Content-Type: application/json' -d '{"email":"ci@example.com","password":"ci-test-password"}' | grep -q access_token
           docker logs alctb
           docker rm -f alctb
+
+      - name: Scan the image (all findings, for the Security tab)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: alctb-test
+          format: sarif
+          output: trivy.sarif
+
+      - name: Upload the scan to the Security tab
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy.sarif
+          category: container-image
+
+      - name: Stop if a high or critical vulnerability has a fix available
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: alctb-test
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
 
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
@@ -174,5 +202,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          pull: true
+          no-cache: ${{ github.event_name == 'schedule' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

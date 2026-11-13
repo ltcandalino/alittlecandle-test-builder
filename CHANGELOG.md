@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Help** at the top now opens a short help panel inside the app (bringing in questions, picking, printing, answer keys, backups, keyboard), with a link to the full user guide.
+- GitHub checks scan every Docker image for known vulnerabilities (Trivy) before it's published, show the results in the repository's Security tab, and stop if a high or critical problem has a fix available. A weekly run rebuilds the image from the latest base-image fixes and scans again.
 - Website (Docker) version: choose the database. SQLite stays the default (nothing to set up); set `DATABASE_URL` to use **PostgreSQL** (preferred) or **MySQL / MariaDB**. Ready-made add-ons `compose.postgres.yml` and `compose.mariadb.yml`. Switching from SQLite copies all accounts, questions and settings over on the first start. The app waits for a database that is still starting.
 - `npm run test:db`: runs the server and sync tests on real PostgreSQL, MariaDB and MySQL in Docker; GitHub runs them on every change too.
 - Print bar: a warning that stays visible when questions have no correct answer (with a **Fix** button), and a "Printing 2 of 4: Version B" strip with **Stop after this one** while several print windows open.
@@ -14,6 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Keyboard and screen-reader support: a visible outline on whatever has keyboard focus; the math symbol row in the editor is reachable with the keyboard (one Tab stop, arrow keys inside) and each symbol has a spoken name; Tab stays inside the question editor; the current section is announced; each "Put on test" checkbox names its question.
 
 ### Changed
+- Question editor: Type, Points, Unit, Section and Standard in one row, then the question box (the cursor starts there, at the end of the text), then the answers. Everything else is under **More details**, which opens by itself when a question has any of those filled in.
 - Print buttons are greyed out until you pick questions. **New scramble** asks "Make new versions?" first and offers Undo. Part directions moved above the preview.
 - Setup guide: a full **Behind your own proxy** section for running without the bundled Caddy (port 8080 for the proxy only, `X-Forwarded-For`, 25 MB uploads, nginx / Apache / Nginx Proxy Manager examples).
 - Works on phones and narrow windows: no sideways scrolling, the header scrolls away, and question cards put Edit / Copy / Delete under the question.
@@ -28,6 +31,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Backup is now the first box on Import & backup, and shows when you last downloaded one (bold after two weeks).
 
 ### Fixed
+- Docker image: fixed the vulnerabilities Docker Scout reported (1 critical, 7 high): Alpine packages are upgraded during the build, and npm, which brought six of them, is no longer in the finished image (the server doesn't use it).
+- Pressing Esc right after opening the question editor now closes it (the key used to be missed for a moment).
 - The question editor no longer throws away your changes when you press Esc, click Cancel or click outside it: it asks **Keep editing** or **Discard changes**. Closing it puts you back on the question's Edit button.
 - **Restore a backup** used to quietly merge (skipping edited questions and your settings) when you already had questions. It now asks: **Replace everything with this backup** (with Undo) or **Add the missing questions**.
 - "That isn't a ALittleCandleTestBuilder backup file" now reads "an".

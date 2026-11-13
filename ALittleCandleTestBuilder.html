@@ -375,8 +375,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 html[data-font=atkinson]{--uif:'Atkinson Hyperlegible Next',"Segoe UI",system-ui,sans-serif}
 html[data-font=opendyslexic]{--uif:'OpenDyslexic',"Segoe UI",system-ui,sans-serif}
 html[data-font=atkinson] body,html[data-font=opendyslexic] body,
-html[data-font=atkinson] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote),
-html[data-font=opendyslexic] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote){font-family:var(--uif)}
+html[data-font=atkinson] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.helppop h3,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote),
+html[data-font=opendyslexic] :is(.brand,.card h2,.empty b,.stat b,.dialog h2,.imp-top b,.disp h2,.helppop h3,.qbody,.rich,.rich:empty::before,.choices li b,.keyline,.mynote){font-family:var(--uif)}
 
 /* Text size (screens only) */
 @media screen{html[data-size=l] body{zoom:1.15} html[data-size=xl] body{zoom:1.3}}
@@ -417,8 +417,11 @@ details.fold[open]>summary{margin-bottom:12px}
 }
 /* Delete looks like what it does */
 .qactions button[data-del]{color:var(--danger)}
-.helplink{font-size:13px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}
-.helplink:hover{color:var(--accent)}
+.helpbtn{color:var(--ink2)}
+.helppop{width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow:auto}
+.helppop h3{font-size:13.5px;margin:12px 0 2px;color:var(--ink)}
+.helppop p{margin:0;font-size:13.5px;color:var(--ink2);line-height:1.5}
+.helppop a{color:var(--accent);text-underline-offset:3px}
 
 /* ---- print bar check + progress ---- */
 .pb-warnrow{flex-basis:100%}
@@ -427,6 +430,11 @@ details.fold[open]>summary{margin-bottom:12px}
 .printstrip{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:20;display:flex;gap:12px;align-items:center;max-width:calc(100vw - 24px);padding:10px 14px;background:var(--ink);color:#fff;border-radius:9px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 .printstrip button{color:var(--ink);background:#fff}
 @media print{.printstrip{display:none!important}}
+
+/* ---- question editor: question first ---- */
+.dialog .ed-main{grid-template-columns:1.3fr .6fr .8fr .8fr 1.2fr}
+.dialog details.ed-more{margin-top:16px}
+@media (max-width:640px){.dialog .row4,.dialog .ed-main{grid-template-columns:1fr 1fr!important}}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -2150,7 +2158,7 @@ function fileBase(t){return String(t||'Test').replace(/[\\\/:*?"<>|]+/g,'').repl
 /* ================= shell ================= */
 var root=document.getElementById('root');
 function shell(){
-  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><a class="helplink" href="https://github.com/ltcandalino/alittlecandle-test-builder/wiki" target="_blank" rel="noopener">Help</a><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
+  root.innerHTML='<header class="top"><div class="brand"><span class="mark">✎</span>ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><button type="button" class="ghost small helpbtn" popovertarget="helpPop">Help</button><div popover id="helpPop" class="disp helppop" role="dialog" aria-labelledby="helpT">'+HELP_HTML+'</div><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;
@@ -2343,15 +2351,14 @@ function openEditor(q){
   ed=q?JSON.parse(JSON.stringify(q)):{id:uid(),type:lastNew.type||'mc',bank:lastNew.bank||ui.bank||'My questions',unit:lastNew.unit||(ui.unit&&ui.unit!=='__none'?ui.unit:''),section:lastNew.section||(ui.section&&ui.section!=='__none'?ui.section:''),topic:lastNew.topic||'',standard:lastNew.standard||'',points:lastNew.points||1,html:'',choices:['','','',''],answer:-1,lockChoices:false,lines:1,answerArea:'lines',space:3};
   if(isMC(ed.type)&&!ed.choices)ed.choices=['','','',''];
   $('#modal').innerHTML='<div class="overlay" id="ov"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT"><h2 id="dlgT">'+(edIsNew?'New question':'Edit question')+'</h2>'+
-    '<div class="row4" style="grid-template-columns:1.1fr 1.2fr 1.2fr .7fr .6fr"><label><span class="lbl">Type</span><select id="e-type">'+TYPE_ORDER.map(function(t){return '<option value="'+t+'"'+(ed.type===t?' selected':'')+'>'+TYPES[t]+'</option>';}).join('')+'</select></label>'+
-    '<label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label>'+
-    '<label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label>'+
-    '<label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Points</span><input type="number" id="e-pts" min="0" step="0.5" value="'+esc(ed.points)+'"></label></div>'+
-    '<div class="row4" style="grid-template-columns:1.1fr .9fr .8fr 1.8fr"><label><span class="lbl">Course</span><select id="e-course">'+state.courses.map(function(c){return '<option'+((ed.course||state.course)===c?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></label><label><span class="lbl">Unit</span><input type="text" id="e-unit" list="unitList2" value="'+esc(ed.unit||'')+'" placeholder="e.g. Unit 3"><datalist id="unitList2">'+uniq('unit').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Section</span><input type="text" id="e-sec" list="secList2" value="'+esc(ed.section||'')+'" placeholder="e.g. 3.2"><datalist id="secList2">'+uniq('section').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">My notes <span class="hint" style="font-weight:400">— never printed on tests</span></span><input type="text" id="e-notes" value="'+esc(ed.notes||'')+'" placeholder="e.g. good warm-up; students mix up arcs"></label></div>'+
-    '<div class="row4" style="grid-template-columns:1fr 1fr 1fr 1fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Standard</span><input type="text" id="e-std" value="'+esc(ed.standard)+'" placeholder="e.g. G.CO.A.2"></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label></div>'+
-    '<div class="row4" style="grid-template-columns:1.6fr 1.1fr .7fr .7fr auto"><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="36" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div>'+
+    '<div class="row4 ed-main"><label><span class="lbl">Type</span><select id="e-type">'+TYPE_ORDER.map(function(t){return '<option value="'+t+'"'+(ed.type===t?' selected':'')+'>'+TYPES[t]+'</option>';}).join('')+'</select></label><label><span class="lbl">Points</span><input type="number" id="e-pts" min="0" step="0.5" value="'+esc(ed.points)+'"></label><label><span class="lbl">Unit</span><input type="text" id="e-unit" list="unitList2" value="'+esc(ed.unit||'')+'" placeholder="e.g. Unit 3"><datalist id="unitList2">'+uniq('unit').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Section</span><input type="text" id="e-sec" list="secList2" value="'+esc(ed.section||'')+'" placeholder="e.g. 3.2"><datalist id="secList2">'+uniq('section').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Standard</span><input type="text" id="e-std" value="'+esc(ed.standard)+'" placeholder="e.g. G.CO.A.2"></label></div>'+
     '<span class="lbl">Question</span>'+richBox('e-text',ed.html,'Type the question. Use the buttons for symbols, segments and pictures.',true)+
-    '<div id="e-spec" style="margin-top:14px"></div><p class="err" id="e-err"></p><div id="e-confirm" class="confirm-bar" role="alert" hidden></div><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
+    '<div id="e-spec" style="margin-top:14px"></div>'+
+    '<details class="fold ed-more" id="e-moreD"'+(edMoreOpen(ed)?' open':'')+'><summary>More details <span class="hint">course, bank, topic, part, my notes, reference, source…</span></summary>'+
+    '<div class="row4" style="grid-template-columns:1fr 1.2fr 1.2fr .8fr"><label><span class="lbl">Course</span><select id="e-course">'+state.courses.map(function(c){return '<option'+((ed.course||state.course)===c?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></label><label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label></div>'+
+    '<div class="row4" style="grid-template-columns:1fr 1fr 2fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">My notes <span class="hint" style="font-weight:400">— never printed on tests</span></span><input type="text" id="e-notes" value="'+esc(ed.notes||'')+'" placeholder="e.g. good warm-up; students mix up arcs"></label></div>'+
+    '<div class="row4" style="grid-template-columns:1fr 1.5fr .9fr .7fr .7fr auto"><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="36" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div></details>'+
+    '<p class="err" id="e-err"></p><div id="e-confirm" class="confirm-bar" role="alert" hidden></div><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
   wireRich($('#modal'));
   $('#e-type').onchange=function(){collect();var t=this.value;ed.type=t;
     if(isMC(t)){if(t==='bm')ed.space=ed.space&&ed.space<=6?ed.space:2;if(!Array.isArray(ed.choices)||!ed.choices.length)ed.choices=['','','',''];if(typeof ed.answer!=='number')ed.answer=-1;}
@@ -2365,8 +2372,11 @@ function openEditor(q){
   if($('#e-more'))$('#e-more').onclick=function(){commitEditor(true);};
   $('#ov').onmousedown=function(e){if(e.target.id==='ov'){e.preventDefault();requestClose();}};
   $('#ov').onkeydown=function(e){if(e.key==='Tab'){var f=$$('.dialog button:not([disabled]),.dialog input:not([tabindex="-1"]),.dialog select,.dialog textarea,.dialog [contenteditable="true"],.dialog [tabindex="0"]').filter(function(x){return x.offsetParent!==null;});if(f.length){var a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}}if(e.key==='Escape'){e.preventDefault();if(!$('#e-confirm').hidden)hideDiscard();else requestClose();}if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();commitEditor(false);}};
-  drawSpec();collect();edSnap=JSON.stringify(ed);edReturn=q?q.id:null;setTimeout(function(){$('#e-text').focus();},30);
+  drawSpec();collect();edSnap=JSON.stringify(ed);edReturn=q?q.id:null;caretToEnd($('#e-text'));
 }
+function caretToEnd(el){el.focus();var r=document.createRange();r.selectNodeContents(el);r.collapse(false);var sl=window.getSelection();sl.removeAllRanges();sl.addRange(r);}
+/* "More details" starts open when any of its fields has something in it. */
+function edMoreOpen(q){return !!(q.topic||q.part||q.subtopic||q.cluster||q.notes||q.ref||q.source||q.month||q.year||q.qnum||(q.course&&q.course!==state.course)||(q.bank&&q.bank!=='My questions'));}
 /* Closing the editor never throws away typing without asking. */
 var edSnap='',edReturn=null;
 function requestClose(){collect();if(JSON.stringify(ed)===edSnap){closeEditor();return;}
@@ -2990,6 +3000,15 @@ function loadUsers(){
 function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.className='toast';t.id='toast';document.body.appendChild(t);}toast(msg);}
 
 /* ================= start ================= */
+/* Short in-app help; the full guide is the wiki. */
+var HELP_HTML='<h2 id="helpT">Help</h2>'+
+  '<h3>Bring in questions</h3><p>On <b>Import &amp; backup</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, a spreadsheet (CSV), or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
+  '<h3>Find and pick questions</h3><p>On <b>Question bank</b>, search or filter by unit, section, topic and standard (<b>More filters</b> for the rest). Tick a question to put it on the test.</p>'+
+  '<h3>Build and print</h3><p>On <b>Build &amp; print</b>, choose Test, Quiz, Review or Lesson, fill in the details and pick how many <b>Versions</b>. Check the paper in the preview, then use the print bar under it. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
+  '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
+  '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+
+  '<div class="dlg-actions" style="margin-top:12px"><a href="https://github.com/ltcandalino/alittlecandle-test-builder/wiki" target="_blank" rel="noopener">Full user guide</a><span class="spacer"></span><button type="button" class="small primary" popovertarget="helpPop" popovertargetaction="hide">Done</button></div>';
 /* Personal display settings (this browser only; never change the printouts). */
 var DISPLAY={font:[['','Standard'],['atkinson','Atkinson Hyperlegible'],['opendyslexic','OpenDyslexic']],size:[['','Normal'],['l','Large'],['xl','Larger']]};
 function applyDisplay(){var d=ui.display||{},h=document.documentElement;h.dataset.font=d.font||'';h.dataset.size=d.size||'';h.classList.toggle('hc',!!d.contrast);h.classList.toggle('calm',!!d.calm);}
