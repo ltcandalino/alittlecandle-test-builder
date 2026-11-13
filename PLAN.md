@@ -135,3 +135,60 @@ A question that has since been deleted from the bank can still be reprinted from
 - **Several accommodated copies at once** (e.g. one large print and one with the dyslexia font):
   not in the first version, which has one set of accommodations per test. It can be added later if
   you need it.
+
+---
+
+# Plan 2: download as PDF, Word or LaTeX
+
+Status: **approved by Leigh 2026-11-13.** Building in the order below.
+
+**Goal:** one click downloads the test, answer keys or both as a file, instead of going through the print
+window. Files stay small, everything works offline in the single file and on the website, and adding a format
+later (Google Docs / Google Drive once social sign-in exists) is a small job.
+
+## What you'll see
+
+- The print bar gets a **Format** menu: **PDF** (default), **Word (.docx)**, **LaTeX (.tex)**, and **Print…**
+  (the browser's print window, kept for printing straight to paper).
+- The buttons follow the format: **Download tests**, **Download answer keys**, **Download tests + keys**
+  (and **Accommodated only** when that's on). Saving a test still happens automatically.
+- **File names** say what's inside, e.g. `Geometry Q1 Unit 3 Exam - Version A.pdf`. Several versions download as
+  one file with each version starting on a new page, or one file per version when "Print each version
+  separately" is on (bundled in a .zip).
+
+## How it's built (efficient, small files)
+
+1. **One description of the document.** The test, keys and accommodated copy are turned once into simple
+   blocks: header lines, part headings and directions, numbered questions, answer choices, answer lines or work
+   space, pictures, score box, page breaks. Question text keeps its bold, italics, super/subscripts, segment and
+   arc marks, fractions and tables.
+2. **Three small writers** turn those blocks into files:
+   - **PDF:** built with **pdfmake** (free, MIT licence, works offline). Only the letters actually used are
+     embedded, so a test is typically 50 to 150 KB. Fonts: a free Century Schoolbook look-alike (TeX Gyre
+     Schola), Atkinson Hyperlegible and OpenDyslexic, plus a small symbol font for ∠ △ ≅ and friends.
+     Headers and footers match the current paper (course name, bar, unit label, page numbers, "v. 1").
+   - **Word:** written directly (a .docx is a zip of text files; the browser's built-in compression makes the
+     zip, so there's nothing extra to download). Editable, styled like your templates, with real Word equations for
+     overlines and fractions, and pictures. Opens in Word, Pages and Google Docs.
+   - **LaTeX:** a .zip with the `.tex` file (the standard `exam` class: parts, points, choices, answer lines,
+     `\printanswers` for the key) and its pictures. Ready for Overleaf.
+3. **Pictures** are shrunk to the size they print at (about 200 dpi) before going into any file, to keep files
+   small.
+
+## Order of work
+
+1. Document description + Format menu + **Word** (shares the most with the current layout).
+2. **LaTeX**.
+3. **PDF** (the biggest piece; until it's done, PDF uses the print window as now).
+
+Each step: tests (open the files, check pages, text, fonts and size), sample files in `tests/out/` that I look
+at page by page, guide and changelog updates.
+
+## Open decisions (defaults unless you say otherwise)
+
+- The PDF will match the current paper closely but is laid out by a different engine, so line breaks can fall
+  slightly differently. The **Print…** choice stays for anyone who wants the browser's version.
+- The app file grows by about 1.5 MB for the PDF engine and fonts (2.9 MB → about 4.4 MB). It still opens
+  instantly from disk. Downloaded files stay small.
+- Lessons and Reviews get the same three formats. Their special headings (Papyrus, Chalkduster…) are Mac
+  fonts that can't be built in, so PDF and Word use the closest free look-alikes.

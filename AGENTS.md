@@ -210,7 +210,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       the print bar; (2) editor (`layout`): Question + answers first, compact row Type/Points/Unit/Section/
       Standard, "More details" fold (open when any filled), caret at end; (3) Help built into the app
       (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
-- [x] PLAN Parts A, B, C all done and released in v0.7.0 (2026-11-13). Next: her feedback; maybe re-run the design review.
+- [x] PLAN Parts A, B, C all done and released in v0.7.0 (2026-11-13).
+- [ ] PLAN.md **Plan 2** (approved 2026-11-13): Format menu + downloads as Word (.docx), LaTeX (.tex zip), PDF (pdfmake)
+      from one document description. Order: Word, LaTeX, PDF. Later: Google Drive/Docs once social sign-in exists.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
