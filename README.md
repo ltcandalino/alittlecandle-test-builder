@@ -3,10 +3,14 @@
 Builds printed tests, quizzes, reviews and lessons for high school math courses
 from your own question banks.
 
+## User guide
+
+The full guide is in the [GitHub wiki](../../wiki) (source in `wiki/`).
+
 ## Try it
 
 Open **`ALittleCandleTestBuilder.html`** in Chrome or Edge. No setup needed.
-Your questions are saved in that browser on that computer. Use **Import & backup → Export backup**
+Your questions are saved in that browser on that computer. Use **Import & backup → Download backup**
 to keep a copy or move to another computer.
 
 ## What it does
@@ -37,11 +41,31 @@ to keep a copy or move to another computer.
 | `ALittleCandleTestBuilder.html` | Built: the single-file version you open from your computer. |
 | `docker/` | The website version with logins: server, Dockerfile, setup guide. `docker/index.html` is built. |
 | `supabase/` | An alternative setup using GitHub Pages + Supabase instead of Docker. |
+| `wiki/` | The user guide. Published to the GitHub wiki automatically. |
+| `.github/workflows/` | GitHub Actions: builds and publishes the Docker image, and publishes the wiki. |
+| `CHANGELOG.md` | What changed in each version. |
 
 ## Making changes
 
 1. Edit files in `src/`.
 2. Run `python3 build.py`.
-3. Open `ALittleCandleTestBuilder.html` to check, then commit.
+3. Open `ALittleCandleTestBuilder.html` to check.
+4. Add a line to `CHANGELOG.md` under **Unreleased**. For significant changes, update this README and the
+   matching page in `wiki/`. Then commit.
 
-For the website version, see `docker/README.md`.
+## Releasing
+
+Move the **Unreleased** notes in `CHANGELOG.md` under a new version number, commit, and tag it
+(for example `git tag v0.6.0`). Once the repo is on GitHub, pushing the tag publishes a matching
+Docker image (`ghcr.io/<owner>/<repo>:0.6.0`).
+
+## GitHub setup (once the repo is pushed)
+
+- **Docker image:** nothing to do. `.github/workflows/docker.yml` runs on every push.
+- **Wiki:** in the repo's **Settings → Features**, tick **Wikis**. Open the **Wiki** tab and create any first page
+  (GitHub needs one before the wiki can be updated). Then run the **Wiki** workflow from the **Actions** tab,
+  or push a change in `wiki/`. Edit pages in `wiki/`; edits made directly on GitHub get replaced.
+
+## Website version
+
+See `docker/README.md`. GitHub Actions builds the image automatically from `.github/workflows/docker.yml`.

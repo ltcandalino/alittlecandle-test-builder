@@ -2,10 +2,15 @@
 # 1. Change the two ADMIN_ lines below.
 # 2. Put your web address in Caddyfile.
 # 3. Run:  docker compose up -d --build
+#    (or use the ready-made image from GitHub; see the app: section below)
 services:
   app:
     build: .
     image: alittlecandle-testbuilder
+    # Once the repo is on GitHub, you can use the image GitHub builds instead of building here:
+    # delete the two lines above, uncomment the next line (with your GitHub name and repo),
+    # and update with:  docker compose pull && docker compose up -d
+    # image: ghcr.io/YOUR-GITHUB-NAME/alittlecandle-test-builder:latest
     restart: unless-stopped
     environment:
       ADMIN_EMAIL: you@yourschool.org        # your sign-in email

@@ -86,6 +86,18 @@ docker compose up -d --build
 
 Your accounts and banks are kept; they live in the `alctb-data` volume, not in the container.
 
+### Using the image GitHub builds
+
+When this repo is on GitHub, every change to the main branch builds a fresh image at
+`ghcr.io/YOUR-GITHUB-NAME/alittlecandle-test-builder:latest` (see `.github/workflows/docker.yml`).
+Then the server only needs `docker-compose.yml` and `Caddyfile`:
+
+1. In `docker-compose.yml`, delete `build: .` and `image: alittlecandle-testbuilder`, and uncomment the `ghcr.io/...` image line.
+2. GitHub keeps new images private. Either make the package public (GitHub → your profile → **Packages** → the package → **Package settings** → **Change visibility**), or sign the server in once with `docker login ghcr.io`.
+3. To update: `docker compose pull && docker compose up -d`.
+
+Version tags work too: pushing a tag like `v1.2.0` publishes `:1.2.0` and `:1.2`, so you can pin the server to a version.
+
 ## Backing up the server
 
 This saves everyone's accounts, banks and pictures into one file in the current folder:
