@@ -145,8 +145,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - Version 0.5.0 in `VERSION`; lots under [Unreleased] (CI, wiki, tests, release tooling, 3 fixes) → next
   release would be 0.6.0.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
-  push done 2026-11-12. First CI run failed on broken `package.json` (fixed, CI green since); Wiki run failed because
-  the wiki has no first page yet. No release/tag yet. `gh` is installed and signed in on her Mac.
+  push done 2026-11-12. First CI run failed on broken `package.json` (fixed, CI green since); Wiki published after she
+  created the first page. No release/tag yet. `gh` is installed and signed in on her Mac.
 - Claude Code desktop on her Mac is now the main way of working (node 26, Playwright installed).
 - The user is trying the single-file version; Docker Desktop is installed on her Mac for local image tests.
 - The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Templates and banks are hers; private
@@ -156,7 +156,7 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 
 - [x] CI passes on GitHub (2026-11-12); image `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`
       is published and pullable without login (public).
-- [ ] She creates the first wiki page (Wiki tab → Create the first page), then re-run the Wiki workflow.
+- [x] Wiki published (2026-11-12); all `wiki/` pages are on GitHub.
 - [ ] Workflows use Node 20 actions (checkout@v4 etc.); GitHub warns they're deprecated. Bump when new
       majors exist.
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
