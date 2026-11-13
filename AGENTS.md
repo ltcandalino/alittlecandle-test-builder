@@ -257,3 +257,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-13**: PLAN Part C saved tests (card, auto-save on print, frozen copies + as-printed/latest choice,
   rename/duplicate/delete, dirty check, sync incl. pictures, backups, course rename/delete). 182 tests; test:db green.
 - **2026-11-13**: released v0.7.0 (CI, Release, image tags all green).
+- **2026-11-13**: fixed blank first printed page (`.pt-version:first-child` never matched: runJobs puts a <style>
+  first in #printRoot; now `:first-of-type`); ui tests check break-before in print media. compose uses GHCR by default.

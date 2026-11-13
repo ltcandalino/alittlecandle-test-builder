@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Website setup: `docker-compose.yml` now uses the ready-made GitHub image by default, so a server only needs `docker-compose.yml` and `Caddyfile`, and updates are `docker compose pull && docker compose up -d`. Building it yourself is still possible (`build: .` instead of `image:`).
 
 ### Fixed
+- Printing no longer starts with a blank page. The first version was getting a page break in front of it, because the print's page settings sit before it in the page.
 - An old `docker-compose.yml` that kept `build: .` next to a new `image:` line silently ran the old version from the local files. The setup guide now explains it, and the default file no longer has the trap.
 
 ## [0.7.0] - 2026-11-13

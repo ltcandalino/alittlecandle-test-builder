@@ -226,7 +226,7 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
   body>*:not(#printRoot){display:none!important}
   #printRoot{display:block}
   .pt-version{break-before:page}
-  .pt-version:first-child{break-before:auto}
+  .pt-version:first-of-type{break-before:auto}  /* first <section>: a <style> block comes before it in #printRoot */
   .pt .pt-ch li.ans,.pt .pt-tf .ans{background:none;outline:none}
 }
 

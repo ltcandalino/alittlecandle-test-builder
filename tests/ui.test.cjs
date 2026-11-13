@@ -525,3 +525,23 @@ describe('saved tests', () => {
     assert.equal(await page.$('.sv-frozen') === null, true);
   });
 });
+
+describe('printing', () => {
+  // What actually goes to the printer: the first version starts on page 1, each later one on a new page.
+  const breaks = () => page.evaluate(() => [...document.querySelectorAll('#printRoot section')].map(x => getComputedStyle(x).breakBefore));
+  for (const [label, kind, perVersion, want] of [['tests, one window per version', 'tests', true, ['auto']],
+                                                  ['all versions in one window', 'tests', false, ['auto', 'page']],
+                                                  ['answer keys', 'keys', true, ['auto', 'page']]]) {
+    test('no blank first page: ' + label, async () => {
+      const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
+      await select(page, ids); await settings(page, { versions: 2, perVersion });
+      await gotoTab(page, 'build');
+      await page.evaluate(() => { window.print = () => {}; });
+      await page.click(`[data-print="${kind}"]`);
+      await page.waitForFunction(() => document.querySelector('#printRoot section'));
+      await page.emulateMedia({ media: 'print' });
+      assert.deepEqual(await breaks(), want);
+      await page.emulateMedia({ media: 'screen' });
+    });
+  }
+});
