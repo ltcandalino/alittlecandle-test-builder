@@ -170,8 +170,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.6.0 released 2026-11-13**: GitHub Release with the app HTML and Docker zip attached; images
-  `:0.6.0`, `:0.6`, `:latest` on GHCR. Repo has a description, wiki homepage link and topics.
+- **v0.7.0 released 2026-11-13**: design-review fixes, Display settings, database choice (SQLite/Postgres/
+  MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
+  zip; images `:0.7.0`, `:0.7`, `:latest` on GHCR. CI green.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
   push done 2026-11-12. First CI run failed on broken `package.json` (fixed, CI green since); Wiki published after she
   created the first page. No release/tag yet. `gh` is installed and signed in on her Mac.
@@ -209,7 +210,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       the print bar; (2) editor (`layout`): Question + answers first, compact row Type/Points/Unit/Section/
       Standard, "More details" fold (open when any filled), caret at end; (3) Help built into the app
       (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
-- [x] PLAN Parts A, B, C all done 2026-11-13. Next: release 0.7.0 (lots under [Unreleased]), then her feedback.
+- [x] PLAN Parts A, B, C all done and released in v0.7.0 (2026-11-13). Next: her feedback; maybe re-run the design review.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
@@ -255,3 +256,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   print job/button, key label; accommodation PDFs in tests/out checked page by page. 173 tests (Mac + Linux).
 - **2026-11-13**: PLAN Part C saved tests (card, auto-save on print, frozen copies + as-printed/latest choice,
   rename/duplicate/delete, dirty check, sync incl. pictures, backups, course rename/delete). 182 tests; test:db green.
+- **2026-11-13**: released v0.7.0 (CI, Release, image tags all green).
