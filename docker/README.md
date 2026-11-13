@@ -121,16 +121,88 @@ docker compose start app
 
 In `docker-compose.yml`, set a new `ADMIN_PASSWORD`, uncomment `ADMIN_RESET: "1"`, and run `docker compose up -d`. Sign in with the new password, then comment `ADMIN_RESET` out again and run `docker compose up -d` once more.
 
-## Already running a web server on ports 80/443?
+## Behind your own proxy (HTTPS handled elsewhere)
 
-Skip Caddy: delete the `caddy:` section from `docker-compose.yml`, add this under `app:`
+Already have a web server or reverse proxy on ports 80/443 (nginx, Apache, Nginx Proxy Manager, Traefik,
+Caddy, a cPanel proxy) that handles HTTPS? You don't need the bundled Caddy. The app speaks plain HTTP on
+port **8080**, and your proxy forwards to it.
 
-```
+**1. `docker-compose.yml`:** delete the `caddy:` section and the `caddy-data` / `caddy-config` volumes, and
+publish the app's port:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/ltcandalino/alittlecandle-test-builder:latest
+    restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8080:8080"   # proxy on the same machine
+    environment:
+      ADMIN_EMAIL: you@yourschool.org
+      ADMIN_PASSWORD: change-this-password
+    volumes:
+      - alctb-data:/data
+volumes:
+  alctb-data:
 ```
 
-and point your existing web server (nginx, Apache, cPanel proxy) at `http://127.0.0.1:8080`. Keep HTTPS on, so passwords are protected.
+If the proxy runs on a **different machine**, publish on this machine's network address instead (for example
+`"192.168.1.20:8080:8080"`), and make sure **only the proxy** can reach port 8080 (a firewall rule, or a
+private network between the two). If the proxy is another container, you can skip `ports:` entirely and put
+both containers on the same Docker network, then forward to `http://app:8080`.
+
+> **Why only the proxy:** the app trusts the `X-Forwarded-For` header to know who is signing in. That's how
+> it pauses sign-ins after too many wrong passwords. Anyone who could reach port 8080 directly could fake
+> that header.
+
+**2. Point the proxy at it.** It needs to:
+
+- **forward `X-Forwarded-For`** with the visitor's address (most proxies do this on their own);
+- **allow uploads up to 25 MB**, since question pictures go through it (nginx's default is only 1 MB);
+- **stay HTTPS-only**, so passwords never travel unencrypted.
+
+nginx:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name tests.yourdomain.com;
+    # ssl_certificate / ssl_certificate_key: your existing certificate
+
+    client_max_body_size 25m;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+```
+
+Apache (with `mod_proxy` and `mod_proxy_http`; Apache adds `X-Forwarded-For` itself):
+
+```apache
+<VirtualHost *:443>
+    ServerName tests.yourdomain.com
+    # SSLEngine on / SSLCertificateFile …: your existing certificate
+    LimitRequestBody 26214400
+    ProxyPreserveHost On
+    ProxyPass        / http://127.0.0.1:8080/
+    ProxyPassReverse / http://127.0.0.1:8080/
+</VirtualHost>
+```
+
+Caddy elsewhere: `tests.yourdomain.com { reverse_proxy 127.0.0.1:8080 }`. **Nginx Proxy Manager:** forward
+to the app's address and port 8080, turn on SSL, and add `client_max_body_size 25m;` under the host's
+**Advanced** tab. **Traefik** forwards the header and allows large uploads by default.
+
+**3. Start and check:**
+
+```
+docker compose up -d
+```
+
+Open `https://tests.yourdomain.com/healthz`. It should show the version. Then sign in at your address.
 
 ## Details
 

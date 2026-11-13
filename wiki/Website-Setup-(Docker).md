@@ -10,6 +10,13 @@ The full step-by-step guide is in [`docker/README.md`](../blob/HEAD/docker/READM
 4. Run `docker compose up -d --build`.
 5. Sign in, then use your email menu → **Manage accounts** to add colleagues with temporary passwords.
 
+## Already have a proxy that handles HTTPS?
+
+Leave out the bundled Caddy and forward your proxy (nginx, Apache, Nginx Proxy Manager, Traefik…) to the app on
+port **8080**. Let only the proxy reach that port, pass `X-Forwarded-For`, and allow uploads up to 25 MB. Step by
+step, with nginx and Apache examples: **Behind your own proxy** in
+[`docker/README.md`](../blob/HEAD/docker/README.md#behind-your-own-proxy-https-handled-elsewhere).
+
 ## Using the image GitHub builds
 
 Every change to the main branch builds an image at `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`. Tags like `v1.2.0` publish `:1.2.0` too. To use it, replace `build: .` in `docker-compose.yml` with that image, then update with:
@@ -18,7 +25,7 @@ Every change to the main branch builds an image at `ghcr.io/ltcandalino/alittlec
 docker compose pull && docker compose up -d
 ```
 
-GitHub keeps new images private: make the package public, or run `docker login ghcr.io` on the server once.
+The image is public, so the server can download it without signing in to GitHub.
 
 ## Accounts
 

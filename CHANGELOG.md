@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Keyboard and screen-reader support: a visible outline on whatever has keyboard focus; the math symbol row in the editor is reachable with the keyboard (one Tab stop, arrow keys inside) and each symbol has a spoken name; Tab stays inside the question editor; the current section is announced; each "Put on test" checkbox names its question.
 
 ### Changed
+- Setup guide: a full **Behind your own proxy** section for running without the bundled Caddy (port 8080 for the proxy only, `X-Forwarded-For`, 25 MB uploads, nginx / Apache / Nginx Proxy Manager examples).
 - Works on phones and narrow windows: no sideways scrolling, the header scrolls away, and question cards put Edit / Copy / Delete under the question.
 - A **Help** link at the top opens the user guide. The empty Question bank offers **Import questions** (ExamView, Word, PDF, spreadsheet, paste), not only ExamView. The paste example is math. The editor explains what **Bimodal** means. **Delete** on a card is red.
 - **Copy** no longer adds "(copy)" to the question's reference. The Questions box no longer shows versions as a count (the print bar shows it).
