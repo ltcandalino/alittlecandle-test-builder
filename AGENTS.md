@@ -20,8 +20,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 4. Significant change → update `README.md`, the matching page(s) in `wiki/`, and `docker/README.md`
    if the server or setup changed. Never edit the GitHub wiki directly (the workflow overwrites it).
 5. Update this file's Status / Backlog / Work log.
-6. Commit with a clear message. Pushing: the cloud sandbox has no SSH access to GitHub, so the user
-   pushes from her Mac (`git push`, and `git push origin vX.Y.Z` for releases).
+6. Commit with a clear message. On her Mac (Claude Code) `git push` and `gh` work (signed in as
+   ltcandalino); the cloud sandbox has no GitHub access, so there the user pushes herself.
 7. Saved user data must keep loading: when settings or question fields change, migrate old data
    (`migrateSettings`, `normalize` in `src/app.js`) instead of breaking it.
 8. Releases follow semantic versioning (MAJOR breaks saved data/backups/server setup, MINOR adds
@@ -146,8 +146,7 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   release would be 0.6.0.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
   push done 2026-11-12. First CI run failed on broken `package.json` (fixed); Wiki run failed because
-  the wiki has no first page yet. No release/tag yet. `gh` isn't installed on her Mac; the public
-  GitHub API (curl) works for reading run results.
+  the wiki has no first page yet. No release/tag yet. `gh` is installed and signed in on her Mac.
 - Claude Code desktop on her Mac is now the main way of working (node 26, Playwright installed).
 - The user is trying the single-file version; Docker Desktop is installed on her Mac for local image tests.
 - The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Templates and banks are hers; private
