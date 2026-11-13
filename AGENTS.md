@@ -166,8 +166,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [x] Wiki published (2026-11-12); all `wiki/` pages are on GitHub.
 - [x] Her Mac is an Apple M1 Max. She reinstalled Homebrew natively in `/opt/homebrew` (the old one was
       the Intel copy in `/usr/local`); Node 26.13.1; 152 tests pass. Update with `brew upgrade node`.
-- [ ] She adds `eval "$(/opt/homebrew/bin/brew shellenv)"` to `~/.zprofile` (agents may not edit it).
-      Until then, prefix commands with `PATH=/opt/homebrew/bin:$PATH`.
+- [x] `~/.zprofile` loads `/opt/homebrew` (she added it; agents may not edit it). If a session's shell
+      still can't find `node`, prefix commands with `PATH=/opt/homebrew/bin:$PATH`.
 - [x] Updated to Node 26, newest Actions, pdf.js 6.5.438; Dependabot added (2026-11-12).
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [ ] Collect her feedback from trying the single-file version; release v0.6.0.
