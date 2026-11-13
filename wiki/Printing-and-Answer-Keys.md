@@ -2,7 +2,7 @@
 
 ## Versions and scrambling
 
-Choose 1 to 8 **Versions** (A–H) on **Build & print**.
+Choose 1 to 8 **Versions** (A–H) on **Build & print**. The scrambling choices are under **Page style**.
 
 - **Shuffle question order**: within each part or section
 - **Shuffle answer choices**: "All of the above" and "None of the above" stay last

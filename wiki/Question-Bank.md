@@ -4,7 +4,11 @@ The **Question bank** tab lists every question in the current course.
 
 ## Finding questions
 
-Search by words, then filter by bank, source, topic, subtopic, cluster, month, year and more, and sort the list. Tick the questions you want in your document. They're added to the list on **Build & print** in the order you pick them.
+Search by words, or filter by **unit**, **section**, **topic** and **standard**. Click **More filters** for bank, type, year, month, cluster, subtopic and source; the button shows how many of those are in use.
+
+Every filter you're using shows as a chip under the filters, like **Unit: 3 ✕**. Click a chip to remove that filter, or **Clear filters** to remove them all. **Sort** (next to "Showing … of …") puts the list in bank order, by exam date, by standard, or by unit and section.
+
+Tick the questions you want in your document. They're added to the list on **Build & print** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
 
 ## Editing a question
 

@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Keyboard and screen-reader support: a visible outline on whatever has keyboard focus; the math symbol row in the editor is reachable with the keyboard (one Tab stop, arrow keys inside) and each symbol has a spoken name; Tab stays inside the question editor; the current section is announced; each "Put on test" checkbox names its question.
 
 ### Changed
+- Question bank: four main filters (unit, section, topic, standard); the rest are under **More filters**, which shows how many are in use. Active filters show as chips you can click to remove, plus **Clear filters**. Sort moved next to "Showing … of …".
+- Question cards say **Unit 3 · Sec 2** instead of two bare numbers, ticked cards get a teal outline, and notes are labeled **My note:**. The unit and section menus say "Unit 3" and "Section 2".
+- Build & print: font, size, answer labels, bimodal printing, scrambling and layout are folded under **Page style** (remembers open or closed). "Students need" for lessons stays in view.
+- One color (teal) for every selected button: document type, version letters, toggles.
 - Gray hint text is darker so it's easy to read (it now meets the WCAG AA contrast standard), and so is the "Short answer" label. The "Saved" dot is a clearer green.
 - Build & print: the paper preview now comes right after the question list, and the print buttons sit in a bar at the bottom of the preview that stays in view while you scroll and shows "3 versions · 12 questions · 26 points". **New scramble** moved next to the version letters; Part directions moved below the preview.
 - Backup is now the first box on Import & backup, and shows when you last downloaded one (bold after two weeks).

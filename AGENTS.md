@@ -180,8 +180,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
       all 5 issues, work-protection first: (1) DONE editor asks before discarding edits (`requestClose`); (2) DONE
       Restore offers Replace vs Add missing (`restoreChoice`), Backup card first with `ui.lastBackup` line; (3) DONE preview
       before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) DONE `--muted` #5f656c, symbol bar toolbar
-      (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) fewer always-visible controls, labeled unit/section chips,
-      one accent color (`distill`); then `polish`.
+      (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) DONE `MORE_F` + chips (`chipsHtml`), "Unit 3 · Sec 2",
+      `details#pageStyle` (`ui.pageStyle`), teal for all selected states. Next: `/impeccable polish`, re-run critique.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
@@ -212,3 +212,5 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
   Fix 3: Build & print order Questions → Preview (+ sticky print bar) → Part directions. 157 tests pass.
 - **2026-11-13**: fix 4 + PLAN Part B: readable muted color, keyboard symbol bar, focus outlines, Display popover
   (native `popover`; `ui.display` in `tb-ui`; fonts via `--uif` on screen only, `zoom` for size, `.hc`, `.calm`). 162 tests.
+- **2026-11-13**: fix 5: bank filters (4 main + More filters + chips + Clear), labeled unit/section, Page style fold,
+  one accent color, no side stripes. `.impeccable/critique/ignore.md` accepts the print-template fonts. 165 tests.

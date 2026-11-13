@@ -388,3 +388,36 @@ describe('accessibility and display', () => {
     assert.equal(await page.getAttribute('html', 'data-font'), '');
   });
 });
+
+describe('simpler screens', () => {
+  test('main filters show; the rest are behind More filters, with chips to remove them', async () => {
+    await addQuestions(page, [{ html: 'A', type: 'mc', year: 2024 }, { html: 'B', type: 'es', year: 2025 }]);
+    await gotoTab(page, 'bank');
+    assert.equal(await page.$('#fyr'), null, 'year filter is tucked away');
+    await page.click('#moreF');
+    await page.selectOption('#fy', 'es');
+    assert.equal(await page.textContent('#moreF .count'), '1');
+    assert.match(await page.textContent('#chips'), /Type: Open response/);
+    assert.match(await page.textContent('#subbar'), /Showing 1 of 2/);
+    await page.click('[data-unf="type"]');
+    assert.match(await page.textContent('#subbar'), /Showing 2 of 2/);
+    await page.fill('#fq', 'zzz');
+    assert.match(await page.textContent('#chips'), /Search: “zzz”/);
+    await page.click('#clearF');
+    assert.equal(await page.inputValue('#fq'), '');
+  });
+  test('cards say Unit and Sec instead of bare numbers', async () => {
+    await addQuestions(page, [{ html: 'A', unit: '3', section: '2' }]);
+    await gotoTab(page, 'bank');
+    assert.equal(await page.textContent('.tag.unit'), 'Unit 3 · Sec 2');
+  });
+  test('Page style folds away and remembers', async () => {
+    await gotoTab(page, 'build');
+    assert.ok(!(await page.isVisible('[data-set="shuffleQ"]')), 'folded by default');
+    await page.click('#pageStyle summary');
+    assert.ok(await page.isVisible('[data-set="shuffleQ"]'));
+    await page.waitForFunction(() => window.__tb.ui().pageStyle === true);
+    await page.reload(); await page.waitForFunction(() => window.__tb); await gotoTab(page, 'build');
+    assert.ok(await page.isVisible('[data-set="shuffleQ"]'), 'stays open after reload');
+  });
+});

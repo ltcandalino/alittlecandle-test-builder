@@ -52,6 +52,8 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 ## Settings for every type
 
+The settings you rarely change are folded under **Page style** at the bottom of the Document box. Click it to open it; it stays open or closed the way you left it.
+
 - **Font** and **Size** (Century Schoolbook 12 pt by default)
 - **Answer choice labels**: a. b. c. d., A. B. C. D., a) b) c) d), or (1) (2) (3) (4) Regents style
 - **Name and date line**

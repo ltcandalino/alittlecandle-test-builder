@@ -568,17 +568,27 @@ function render(){renderTabs();if(ui.tab==='build')renderBuild();else if(ui.tab=
 /* ================= bank tab ================= */
 function opts(list,sel,allLabel){return '<option value="">'+esc(allLabel)+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
 function typeOpts(sel,allLabel){return '<option value="">'+allLabel+'</option>'+TYPE_ORDER.map(function(t){return '<option value="'+t+'"'+(sel===t?' selected':'')+'>'+TYPES[t]+'</option>';}).join('');}
+/* Filters: search + unit/section/topic/standard always; the rest behind "More filters". */
+var MORE_F=['bank','type','year','month','cluster','sub','source'];
+var F_LABEL={q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source'};
+function fValue(k,v){if(v==='__none')return '(none)';if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
+function activeFilters(){return Object.keys(F_LABEL).filter(function(k){return ui[k]!==''&&ui[k]!=null;});}
+function moreCount(){return MORE_F.filter(function(k){return ui[k];}).length;}
 function moreFilters(){
-  var yrs=uniq('year'),mos=uniq('month'),cls=uniq('cluster'),subs=uniq('subtopic');
-  var h='<div class="toolbar" style="margin-top:-2px">';
-  if(yrs.length)h+='<select id="fyr">'+'<option value="">All years</option>'+yrs.map(function(y){return '<option value="'+esc(y)+'"'+(String(ui.year)===String(y)?' selected':'')+'>'+esc(y)+'</option>';}).join('')+'</select>';
-  if(mos.length)h+='<select id="fmo"><option value="">All months</option>'+mos.map(function(m){return '<option value="'+esc(m)+'"'+(ui.month===m?' selected':'')+'>'+esc(monthName(m)||m)+'</option>';}).join('')+'</select>';
-  if(cls.length)h+='<select id="fcl">'+opts(cls,ui.cluster,'All clusters').replace('<option value="">','<option value="">')+'</select>';
-  if(subs.length)h+='<select id="fsub">'+opts(subs,ui.sub,'All subtopics')+'</select>';
-  var srcs=uniq('source');if(srcs.length)h+='<select id="fsrc">'+opts(srcs,ui.source,'All sources')+'</select>';
-  h+='<span class="spacer"></span><label class="hint" style="display:flex;gap:6px;align-items:center">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, then question #</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label></div>';
-  return h;
+  if(!ui.moreF)return '';
+  var yrs=uniq('year'),mos=uniq('month'),cls=uniq('cluster'),subs=uniq('subtopic'),banks=uniq('bank'),srcs=uniq('source');
+  var h='<div class="toolbar morebar" id="moreBar">';
+  if(banks.length>1)h+='<select id="fb" aria-label="Bank">'+opts(banks,ui.bank,'All banks')+'</select>';
+  h+='<select id="fy" aria-label="Type">'+typeOpts(ui.type,'All types')+'</select>';
+  if(yrs.length)h+='<select id="fyr" aria-label="Year"><option value="">All years</option>'+yrs.map(function(y){return '<option value="'+esc(y)+'"'+(String(ui.year)===String(y)?' selected':'')+'>'+esc(y)+'</option>';}).join('')+'</select>';
+  if(mos.length)h+='<select id="fmo" aria-label="Month"><option value="">All months</option>'+mos.map(function(m){return '<option value="'+esc(m)+'"'+(ui.month===m?' selected':'')+'>'+esc(monthName(m)||m)+'</option>';}).join('')+'</select>';
+  if(cls.length)h+='<select id="fcl" aria-label="Cluster">'+opts(cls,ui.cluster,'All clusters')+'</select>';
+  if(subs.length)h+='<select id="fsub" aria-label="Subtopic">'+opts(subs,ui.sub,'All subtopics')+'</select>';
+  if(srcs.length)h+='<select id="fsrc" aria-label="Source">'+opts(srcs,ui.source,'All sources')+'</select>';
+  return h+'</div>';
 }
+function chipsHtml(){var a=activeFilters();if(!a.length)return '';
+  return '<div class="chips" aria-label="Active filters">'+a.map(function(k){return '<button type="button" class="chip" data-unf="'+k+'" aria-label="Remove filter '+esc(F_LABEL[k])+': '+esc(fValue(k,ui[k]))+'"><span>'+esc(F_LABEL[k])+':</span> '+esc(fValue(k,ui[k]))+' <span aria-hidden="true">✕</span></button>';}).join('')+'<button type="button" class="small ghost" id="clearF">Clear filters</button></div>';}
 function monthOrder(m){var n=parseInt(m,10);return isNaN(n)?0:n;}
 function sortList(list){
   if(ui.sort==='exam')return list.slice().sort(function(a,b){return (num(a.year,0)-num(b.year,0))||(monthOrder(a.month)-monthOrder(b.month))||(num(a.qnum,0)-num(b.qnum,0));});
@@ -586,7 +596,7 @@ function sortList(list){
   if(ui.sort==='unit')return list.slice().sort(function(a,b){return String(a.unit||'~').localeCompare(String(b.unit||'~'),undefined,{numeric:true})||String(a.section||'~').localeCompare(String(b.section||'~'),undefined,{numeric:true});});
   return list;
 }
-function unitSelect(id,sel,allLabel,field){field=field||'unit';var u=uniq(field);if(!u.length)return '';return '<select id="'+id+'"><option value="">'+esc(allLabel)+'</option>'+u.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('')+(state.questions.some(function(q){return !q[field];})?'<option value="__none"'+(sel==='__none'?' selected':'')+'>(no '+field+')</option>':'')+'</select>';}
+function unitSelect(id,sel,allLabel,field){field=field||'unit';var u=uniq(field);if(!u.length)return '';return '<select id="'+id+'" aria-label="'+(field==='section'?'Section':'Unit')+'"><option value="">'+esc(allLabel)+'</option>'+u.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(/^\d/.test(x)?(field==='section'?'Section ':'Unit ')+x:x)+'</option>';}).join('')+(state.questions.some(function(q){return !q[field];})?'<option value="__none"'+(sel==='__none'?' selected':'')+'>(no '+field+')</option>':'')+'</select>';}
 function matches(q,f){
   if(f.bank&&q.bank!==f.bank)return false;
   if(f.topic&&q.topic!==f.topic)return false;
@@ -609,8 +619,8 @@ function qCard(q){
   else if(isMC(q.type))body+='<ol class="choices qbody">'+q.choices.map(function(c,i){return '<li class="'+(i===q.answer?'correct':'')+'"><b>'+LETTERS[i]+'.</b><span>'+c+'</span></li>';}).join('')+'</ol>'+(q.answer<0?'<div class="keyline" style="color:var(--danger)">No correct answer set</div>':'');
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
-  if(q.notes)body+='<div class="mynote">'+textToHtml(q.notes)+'</div>';
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit?'<span class="tag unit" title="Unit">'+esc(q.unit)+'</span>':'')+(q.section?'<span class="tag unit" title="Section">'+esc(q.section)+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
 }
 function renderBank(){
@@ -620,21 +630,28 @@ function renderBank(){
     $('#newQ').onclick=function(){openEditor(null);};$('#goImport').onclick=function(){ui.tab='io';render();};return;
   }
   var banks=uniq('bank');
-  main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" value="'+esc(ui.q)+'">'+(banks.length>1?'<select id="fb">'+opts(banks,ui.bank,'All banks')+'</select>':'')+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs">'+opts(uniq('standard'),ui.std,'All standards')+'</select><select id="fy">'+typeOpts(ui.type,'All types')+'</select><button class="primary" id="newQ">+ New question</button></div>'+moreFilters()+'<div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  var mc=moreCount();
+  main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span><button class="primary" id="newQ">+ New question</button></div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  $('#moreF').onclick=function(){ui.moreF=!ui.moreF;saveUi();renderBank();var b=$('#moreF');if(b)b.focus();};
   $('#fq').oninput=function(){ui.q=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fb'))$('#fb').onchange=function(){ui.bank=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fu'))$('#fu').onchange=function(){ui.unit=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fsec'))$('#fsec').onchange=function(){ui.section=this.value;ui.limit=40;saveUi();drawList();};
   $('#ft').onchange=function(){ui.topic=this.value;ui.limit=40;saveUi();drawList();};
   $('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();drawList();};
-  $('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();drawList();};
+  if($('#fy'))$('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();drawList();};
   $('#newQ').onclick=function(){openEditor(null);};
-  [['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source'],['fsort','sort']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();drawList();};});
+  [['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();drawList();};});
   drawList();
 }
 function drawList(){
   var list=sortList(filtered()),on=list.filter(function(q){return isSel(q.id);}).length;
-  $('#subbar').innerHTML='<span>Showing '+list.length+' of '+cq().length+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Set unit / section for these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
+  var ch=$('#chips');if(ch){ch.innerHTML=chipsHtml();
+    $$('[data-unf]',ch).forEach(function(b){b.onclick=function(){ui[b.dataset.unf]='';ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};});
+    if($('#clearF'))$('#clearF').onclick=function(){activeFilters().forEach(function(k){ui[k]='';});ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};
+    var mb=$('#moreF'),mc=moreCount();if(mb)mb.innerHTML='More filters'+(mc?' <span class="count">'+mc+'</span>':'');}
+  $('#subbar').innerHTML='<span>Showing '+list.length+' of '+cq().length+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, then question #</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Set unit / section for these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
+  $('#fsort').onchange=function(){ui.sort=this.value;ui.limit=40;saveUi();drawList();};
   var su=$('#setUnit');if(su)su.onclick=function(){
     var box=$('#unitBox');box.innerHTML='<input type="text" id="unitIn" list="unitList" placeholder="Unit (blank = keep)" style="width:150px;padding:4px 8px"><datalist id="unitList">'+uniq('unit').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist> <input type="text" id="secIn" list="secList" placeholder="Section (blank = keep)" style="width:160px;padding:4px 8px"><datalist id="secList">'+uniq('section').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist> <button class="small primary" id="unitGo">Apply to '+list.length+'</button> <button class="small ghost" id="unitX">Cancel</button>';
     var inp=$('#unitIn');inp.focus();
@@ -835,11 +852,13 @@ function renderBuild(){
     '<h3 style="margin:8px 0 0">Notes</h3>'+ta('lessonNotes','Notes text','optional',2)+
     '<label style="max-width:220px"><span class="lbl">Space for notes</span><span style="display:flex;gap:6px;align-items:center"><input type="number" data-set="notesSpace" min="0" max="8" step=".25" value="'+esc(s.notesSpace)+'" style="width:80px"> inches</span></label>'+
     '<h3 style="margin:8px 0 0">Success Criteria</h3>'+ta('success','One per line','I can …\nI can …',3)+
+    '<div><h3 style="margin:8px 0 0">Students need</h3><p class="hint" style="margin:2px 0 8px">Pictures in the top-left corner of the first page.</p><div class="checks">'+cb('toolCompass','Compass')+cb('toolRuler','Ruler')+cb('toolTrace','Tracing paper')+'</div></div>'+
     '<p class="hint">Mark each question as Warm Up, Example or Practice in the list on the right.</p>';
   main.innerHTML='<div class="grid2"><div class="card"><h2>Document</h2><div class="doctypes">'+Object.keys(DOC_TYPES).map(function(k){return '<button type="button" data-doctype="'+k+'" class="'+(k===dt?'on':'')+'">'+DOC_TYPES[k]+'</button>';}).join('')+'</div><div class="fields">'+
     '<label><span class="lbl">Course name <span class="hint" style="font-weight:400">— centered above the bar on every page</span></span><input type="text" data-set="headerText" value="'+esc(s.headerText)+'" placeholder="'+esc(state.course)+'"></label>'+
     details+
     '<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+
+    '</div><details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
     '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions in the list on the right.</span></label>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
@@ -847,11 +866,10 @@ function renderBuild(){
     '<h3>Layout</h3><div class="checks">'+
     (exam?cb('group','Group into parts','Part I, Part II… with directions and totals like [14].')+cb('computeBox','“Use this space for computations.” box','At the start of each multiple-choice part.')+cb('showCredits','Show credits like [2] under each open-response question')+cb('scoreBox','Score box at the end','Shows the total, like  /33. Bonus questions don’t count.'):'')+
     (dt==='review'?cb('showRef','Show the reference under each question','Source and exam, like “Regents June 2024 #12”, in small gray type.'):'')+
-    (dt==='lesson'?'</div><h3>Students need</h3><p class="hint" style="margin:-4px 0 8px">Pictures in the top-left corner of the first page.</p><div class="checks">'+cb('toolCompass','Compass')+cb('toolRuler','Ruler')+cb('toolTrace','Tracing paper')+'</div><h3>More</h3><div class="checks">':'')+
     cb('nameLine','Name and date line')+
     (nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
-    cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></div>'+
+    cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></details></div>'+
 '<div style="display:grid;gap:18px;min-width:0"><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div><div><b>'+nVersions()+'</b>version'+(nVersions()>1?'s':'')+'</div></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
@@ -868,6 +886,7 @@ function renderBuild(){
     var h=function(){s[k]=el.type==='checkbox'?el.checked:(k==='versions'?parseInt(el.value,10):k==='fontSize'?num(el.value,12):el.value);changed();if(k==='bmMode'){s.bmOverride={};drawSel();}if(k==='versions'||k==='calc'||k==='time'||k==='group'){if(ui.pv>=nVersions())ui.pv=0;renderBuild();}else{refreshAuto();drawPreviewSoon();}};
     if(el.type==='checkbox'||el.tagName==='SELECT')el.onchange=h;else el.oninput=h;
   });
+  $('#pageStyle').ontoggle=function(){ui.pageStyle=this.open;saveUi();};
   $$('[data-doctype]',main).forEach(function(b){b.onclick=function(){s.docType=b.dataset.doctype;changed();renderBuild();renderTabs();};});
   drawSel();
   $('#pkN').oninput=function(){ui.pickN=parseInt(this.value,10)||1;saveUi();};

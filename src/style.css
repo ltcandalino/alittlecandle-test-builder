@@ -46,7 +46,7 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 .subbar{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--muted);margin:0 0 10px;flex-wrap:wrap}
 .qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .qcard{display:grid;grid-template-columns:34px 1fr auto;gap:6px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 12px 8px}
-.qcard.on{border-color:#9cc3be;box-shadow:inset 3px 0 0 var(--accent)}
+.qcard.on{border-color:var(--accent);background:#f7fbfa}
 .qcard .pick{display:flex;justify-content:center;padding-top:2px}
 .qcard input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
 .qmeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -61,7 +61,7 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 .choices li b{min-width:22px;color:var(--muted);font-weight:600;font-family:system-ui,sans-serif;font-size:13px;padding-top:2px}
 .choices li.correct{background:var(--accent-soft);border-radius:5px}
 .choices li.correct b{color:var(--accent)}
-.mynote{margin-top:6px;font-size:12.5px;color:#6b4e12;background:#fff7e4;border-left:3px solid #e2b54f;padding:4px 8px;border-radius:0 5px 5px 0;font-family:system-ui,sans-serif}
+.mynote{margin-top:6px;font-size:12.5px;color:#6b4e12;background:#fff7e4;border:1px solid #f0d9a6;padding:4px 8px;border-radius:6px;font-family:system-ui,sans-serif}
 .badge.bm{background:#e8eefb;color:#3b4fa8}
 .tag.exam{background:#eef1f6;color:#2f5d9e}
 .tag.unit{background:#e3efed;color:var(--accent);font-weight:600}
@@ -105,7 +105,7 @@ sup,sub{font-size:.7em;line-height:0}
 .sel .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sel .t small{color:var(--muted);margin-left:6px}
 .sel button{padding:2px 7px;font-size:12px}
-.sel button.bmt{font-size:11px;color:#3b4fa8;white-space:nowrap}
+.sel button.bmt{font-size:11px;color:var(--accent);white-space:nowrap}
 .pickrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;margin:12px 0}
 .pickrow input[type=number]{width:62px}
 .pickrow select{max-width:180px}
@@ -113,7 +113,7 @@ sup,sub{font-size:.7em;line-height:0}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
 .vtabs{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .vtabs button{padding:4px 11px;font-size:13px}
-.vtabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.vtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .paperwrap{background:#e9e6df;border-radius:var(--radius);padding:22px;overflow:auto;max-height:900px}
 .pvtop{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .pvtop .vtabs{margin-bottom:0}
@@ -234,7 +234,7 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .imp-warn{font-size:11.5px;color:#8a5a00;background:#fff4dc;border-radius:10px;padding:1px 8px}
 .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
 .seg button{border:none;border-radius:0;padding:3px 10px;font-size:12px;background:#fff}
-.seg button.on{background:var(--ink);color:#fff}
+.seg button.on{background:var(--accent);color:#fff}
 .imp-opts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;font-size:13px}
 .imp-opts select{padding:3px 6px}
 .ansbtns{display:inline-flex;gap:4px}
@@ -300,7 +300,7 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .doctypes{display:flex;gap:0;margin:0 0 14px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .doctypes button{flex:1;border:none;border-radius:0;background:transparent;padding:8px 0;font-weight:600;color:var(--muted);box-shadow:none}
 .doctypes button+button{border-left:1px solid var(--line)}
-.doctypes button.on{background:#3b4fa8;color:#fff}
+.doctypes button.on{background:var(--accent);color:#fff}
 .sel button.bmt.on{background:#fff4d6;color:#8a5a00}
 .sel .rolesel{font-size:11px;padding:2px 4px;margin-right:4px}
 .sel .exc{display:block;width:100%;margin-top:4px;font-size:12px;padding:3px 6px}
@@ -377,3 +377,18 @@ html.hc .badge{outline:1px solid currentColor}
 /* Less motion: the switch, and the computer's own setting */
 html.calm *,html.calm *::before,html.calm *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ---- bank filters ---- */
+#moreF .count{display:inline-block;min-width:18px;padding:0 6px;margin-left:4px;border-radius:9px;background:var(--accent);color:#fff;font-size:11.5px}
+.morebar{margin-top:-2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.chip{display:inline-flex;gap:4px;align-items:center;padding:3px 10px;border-radius:999px;font-size:12.5px;background:var(--accent-soft);border-color:#b9d6d2;color:var(--ink)}
+.chip span:first-child{color:var(--ink2)}
+.sortby{display:flex;gap:6px;align-items:center;margin-left:8px}
+.sortby select{padding:2px 6px;font-size:12.5px}
+
+/* ---- Build: folded page style ---- */
+details.fold{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+details.fold>summary{cursor:pointer;font-weight:600;font-size:14px;list-style-position:outside;margin-left:16px}
+details.fold>summary .hint{font-weight:400;margin-left:6px}
+details.fold[open]>summary{margin-bottom:12px}
