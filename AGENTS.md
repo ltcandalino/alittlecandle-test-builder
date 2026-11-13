@@ -47,7 +47,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/style.css` | App styles + print styles. |
 | `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |
 | `build.py` | Concatenates everything into `ALittleCandleTestBuilder.html` (no config) and `docker/index.html` (loads `config.js`). |
-| `docker/server.js` | Node 22 server, no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
+| `docker/server.js` | Node server (26 LTS in the image), no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
@@ -153,7 +153,8 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
   push done 2026-11-12. First CI run failed on broken `package.json` (fixed, CI green since); Wiki published after she
   created the first page. No release/tag yet. `gh` is installed and signed in on her Mac.
-- Claude Code desktop on her Mac is now the main way of working (node 26, Playwright installed).
+- Claude Code desktop on her Mac (Apple M1 Max) is now the main way of working (Node 26.13.1 from
+  Homebrew in `/opt/homebrew`, Playwright installed).
 - The user is trying the single-file version; Docker Desktop is installed on her Mac for local image tests.
 - The user keeps original `.bnk`/`.pdf`/`.docx` files on a NAS. Templates and banks are hers; private
   copies for tests live only in `tests/fixtures/private/` on her Mac.
@@ -163,8 +164,10 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 - [x] CI passes on GitHub (2026-11-12); image `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`
       is published and pullable without login (public).
 - [x] Wiki published (2026-11-12); all `wiki/` pages are on GitHub.
-- [ ] Node on her Mac is Homebrew 26.5.0 (Intel Mac; Homebrew no longer supports Intel, upgrades
-      would build from source). Suggested: official nodejs.org macOS installer for current LTS.
+- [x] Her Mac is an Apple M1 Max. She reinstalled Homebrew natively in `/opt/homebrew` (the old one was
+      the Intel copy in `/usr/local`); Node 26.13.1; 152 tests pass. Update with `brew upgrade node`.
+- [ ] She adds `eval "$(/opt/homebrew/bin/brew shellenv)"` to `~/.zprofile` (agents may not edit it).
+      Until then, prefix commands with `PATH=/opt/homebrew/bin:$PATH`.
 - [x] Updated to Node 26, newest Actions, pdf.js 6.5.438; Dependabot added (2026-11-12).
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [ ] Collect her feedback from trying the single-file version; release v0.6.0.
