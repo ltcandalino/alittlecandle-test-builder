@@ -50,6 +50,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `docker/server.js` | Node server (26 LTS in the image), no npm deps (`node:sqlite`, scrypt). Serves the app + a Supabase-subset API. |
 | `docker/` | Dockerfile, compose (app + Caddy for HTTPS), Caddyfile, README (setup guide for the user). |
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
+| `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
