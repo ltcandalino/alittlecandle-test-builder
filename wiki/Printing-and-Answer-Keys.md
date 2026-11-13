@@ -23,6 +23,16 @@ Each version gets its own key, listing every question's answer in that version's
 - **Show unit and standards on the answer key**
 - **Show my notes on the answer key** (notes never print on student copies)
 
+## Download as a file: Word, PDF or print
+
+The **Format** menu in the print bar chooses what the buttons do:
+
+- **Word (.docx)**: the buttons say **Download…** and save one Word file you can edit, named for what's in it (for example `Geometry Quarter 1 – Unit 3 Exam - tests and keys.docx`). Each version, the accommodated copy and each answer key starts on a new page with its own page numbers and headers. Segment and arc marks, fractions and square roots are real Word equations, and pictures and tables come along. It opens in Word, Pages, Google Docs and LibreOffice.
+- **PDF**: for now this opens the browser's print window. Choose **Save as PDF** as the printer. A one-click PDF download is coming.
+- **Print…**: the browser's print window, for printing straight to paper.
+
+Downloading saves the test in **Saved tests** too, just like printing.
+
 ## Accommodated copies
 
 For a student with an IEP or 504 plan, open **Accommodations** on **Build & print** and tick **Also print an

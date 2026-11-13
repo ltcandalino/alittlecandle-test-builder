@@ -305,7 +305,10 @@ var DOCX=(function(){
       if(it.label&&/Letter/.test(it.fmt||'')){curChoice={html:it.html};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
       var typedCh=!it.label&&t.match(/^\(?([a-hA-H]|[1-8])[.)]\s+\S/);
       if(typedCh&&(stem.length||choices.length)&&(/[a-hA-H]/.test(typedCh[1])?typedCh[1].toLowerCase().charCodeAt(0)-97:+typedCh[1]-1)===choices.length&&(/\(/.test(t[0])||/[a-hA-H]/.test(typedCh[1]))){
-        curChoice={html:it.html.replace(/^((<[^>]+>)*)\s*\(?([a-hA-H]|[1-8])[.)]\s*/,'$1')};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
+        // several choices on one line, separated by tabs: "(1) a<tab>(2) b<tab>(3) c"
+        it.html.split(/(?:&emsp;|\s)*&emsp;(?=(?:<[^>]+>)*\s*\(?(?:[a-hA-H]|[1-8])[.)](?:<\/[^>]+>)*\s)/).forEach(function(part){
+          curChoice={html:part.replace(/^((<[^>]+>)*)\s*\(?([a-hA-H]|[1-8])[.)]((<\/[^>]+>)*)\s*/,'$1$4').replace(/<(b|strong|i|em)><\/\1>/g,'')};choices.push(curChoice);});
+        lastWasChoice=true;trailingEmpty=0;return;}
       if(!t&&!it.hasImg){trailingEmpty++;if(curChoice)curChoice=null;return;}
       if(curChoice&&it.hasImg&&!t){curChoice.html+='<br>'+it.html;return;}
       curChoice=null;

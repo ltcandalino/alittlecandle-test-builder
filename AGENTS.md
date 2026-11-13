@@ -47,6 +47,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/bnk.js` | ExamView `.bnk` parser → `BNK.parse(buf, name)` → `{title, questions, warnings, found}`. |
 | `src/pdfimp.js` | PDF import helpers on pdf.js: `PDFIMP.open/cropAll/clip/thumb/imgHtml`. |
 | `src/docx.js` | Word import: `DOCX.parse(buf, name)` → `{questions, header}`. |
+| `src/export.js` | Downloads. `makeExporter(api)` (app.js passes the functions it needs) → `EXP.sections(kind)`, `EXP.docx(kind)`, `EXP.zip` (CompressionStream deflate-raw + CRC32), `EXP.download`. Writers walk the paper HTML by class (`cl-*`, `pt-*`, `rv-*`, `ls-*`); `inlines()` turns text + m-ov/m-acc/m-frac/m-sqrt into runs → OMML. |
 | `src/sync.js` | `CLOUD` module: login + sync against a Supabase-style REST API (Supabase or our Docker server). |
 | `src/icon.svg` | App icon (candle): `build.py` adds it as the favicon (`<link rel=icon>`, data URL) and as `BRAND_SVG` for the header mark. |
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
@@ -99,6 +100,12 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   (used by `selectedQs`) prefer the frozen copies. `saveTest` (also on every print), `openSaved(id, 'latest')`,
   `savedDiff` via `paperSig` (ignores picture addresses). Synced in `app_state` (`statePart`), pictures hosted
   before the state push. normalize keeps frozen-only ids in `selected`.
+- Downloads (Plan 2): Format menu `ui.fmt` (`outFmt()`: pdf | docx | print); `printNow` saves the test then
+  prints or calls `EXP.download('docx', kind)`. Word: one section per version/acc/key (`titlePg`, page numbers
+  restart, keys get a blank header), a paragraph style per section carries its font/size, underscore tab
+  leaders for lines, header parts get their own .rels. Check visually with LibreOffice
+  (`soffice --headless --convert-to pdf`), swapping "Century Schoolbook" → "Times New Roman" in a copy first
+  (LibreOffice can't draw the Office copy of that font on her Mac). QuickLook/textutil don't draw equations.
 - Per-question lesson roles, example concepts and bonus flags live in settings
   (`roles`, `concepts`, `bonus`, keyed by question id).
 - **Print uses `window.print()` with CSS `@page` margin boxes** (Chrome/Edge 131+). Headers are SVG
@@ -213,7 +220,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
 - [x] PLAN Parts A, B, C all done and released in v0.7.0 (2026-11-13).
 - [ ] PLAN.md **Plan 2** (approved 2026-11-13): Format menu + downloads as Word (.docx), LaTeX (.tex zip), PDF (pdfmake)
-      from one document description. Order: Word, LaTeX, PDF. Later: Google Drive/Docs once social sign-in exists.
+      from one document description. Order: Word (DONE 2026-11-13), LaTeX, PDF. Later: Google Drive/Docs once social sign-in exists.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
@@ -263,3 +270,6 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-13**: fixed blank first printed page (`.pt-version:first-child` never matched: runJobs puts a <style>
   first in #printRoot; now `:first-of-type`); ui tests check break-before in print media. compose uses GHCR by default.
 - **2026-11-13**: released v0.7.1 (CI, Release, image tags green; image checked for the fix).
+- **2026-11-13**: favicon (candle, `src/icon.svg`). Plan 2 step 1: Format menu + Word export (`src/export.js`),
+  checked with LibreOffice renders and a round trip through our Word importer (which now splits tab-separated
+  choices). 190 tests. Her local test edits to docker/docker-compose.yml are uncommitted on purpose.

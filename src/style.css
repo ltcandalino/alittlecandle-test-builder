@@ -454,3 +454,5 @@ details.fold[open]>summary{margin-bottom:12px}
 .svl .svn b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svl .svn small{color:var(--ink2);font-size:12px}
 @media (max-width:640px){.svl li{flex-wrap:wrap}.svl .svn{flex-basis:100%}}
+.fmtsel{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink2);margin-left:auto}
+.fmtsel select{padding:5px 8px}

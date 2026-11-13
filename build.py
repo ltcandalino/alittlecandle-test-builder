@@ -15,7 +15,7 @@ import urllib.parse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, 'src')
-SCRIPTS = ['bnk.js', 'pdfimp.js', 'docx.js', 'sync.js', 'icons.js', 'app.js']
+SCRIPTS = ['bnk.js', 'pdfimp.js', 'docx.js', 'sync.js', 'icons.js', 'export.js', 'app.js']
 
 
 def read(*parts):

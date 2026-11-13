@@ -7,12 +7,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Download as Word (.docx):** a **Format** menu in the print bar (PDF, Word, Print…). With Word, the buttons download one editable file with the tests, answer keys and accommodated copy, each starting on a new page with its own page numbers and headers, laid out like the printed paper, with real Word equations, pictures (shrunk to print size) and tables. A test is typically 10 to 30 KB.
 - A candle icon for the browser tab (favicon) and the top-left corner of the app, in both the single file and the website.
 
 ## [0.7.1] - 2026-11-13
 
 ### Changed
 - Website setup: `docker-compose.yml` now uses the ready-made GitHub image by default, so a server only needs `docker-compose.yml` and `Caddyfile`, and updates are `docker compose pull && docker compose up -d`. Building it yourself is still possible (`build: .` instead of `image:`).
+
+### Changed
+- Word import recognises answer choices written on one line separated by tabs, like "(1) a ⇥ (2) b ⇥ (3) c".
 
 ### Fixed
 - Printing no longer starts with a blank page. The first version was getting a page break in front of it, because the print's page settings sit before it in the page.

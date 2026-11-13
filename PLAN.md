@@ -177,7 +177,7 @@ later (Google Docs / Google Drive once social sign-in exists) is a small job.
 
 ## Order of work
 
-1. Document description + Format menu + **Word** (shares the most with the current layout).
+1. Document description + Format menu + **Word** (shares the most with the current layout). **Done 2026-11-13.**
 2. **LaTeX**.
 3. **PDF** (the biggest piece; until it's done, PDF uses the print window as now).
 

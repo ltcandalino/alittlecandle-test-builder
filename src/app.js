@@ -491,13 +491,23 @@ function printJobs(kind){
   }
   return jobs;
 }
+/* Output format: PDF (the print window until the built-in PDF arrives), Word, or Print… */
+function outFmt(){return ui.fmt==='docx'||ui.fmt==='print'?ui.fmt:'pdf';}
+function fmtNote(){var f=outFmt();
+  if(f==='docx')return 'Downloads one Word file you can edit. Each version starts on a new page with its own page numbers.';
+  if(f==='pdf')return 'For now, PDF opens your browser’s print window: choose “Save as PDF” as the printer. With several versions, one window opens after another.';
+  return 'Opens your browser’s print window. With several versions, one window opens after another.';}
 function printNow(kind){
   if(!state.selected.length){toast('Add some questions to the test first.');return;}
   saveTest({printed:true});drawSaved();
+  if(outFmt()==='docx'){toast('Making the Word file…');
+    return EXP.download('docx',kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
+      .catch(function(e){console.error(e);toast('Couldn’t make the Word file: '+(e&&e.message||e));});}
   runJobs(printJobs(kind));
 }
 window.__printJobs=printJobs;
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
+var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -934,8 +944,9 @@ function renderBuild(){
     '<div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
-    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">Print '+T+(nVersions()>1?'s':'')+' + answer keys</button></div>'+
-    '<p class="note" style="margin-bottom:0">Opens your browser’s print window; to make a PDF, choose “Save as PDF”. With several versions, one window opens after another.</p></div>'+
+    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
+    '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
+    '<p class="note" id="fmtNote" style="margin-bottom:0">'+fmtNote()+'</p></div>'+
     '</div></div>';
   $$('[data-set]',main).forEach(function(el){
     var k=el.dataset.set;
@@ -966,6 +977,7 @@ function renderBuild(){
   $$('[data-pdir]',main).forEach(function(t){t.oninput=function(){s.partDirs=Object.assign({},s.partDirs||{});s.partDirs[t.dataset.pdir]=t.value;changed();drawPreviewSoon();};});
   if($('#pdirReset'))$('#pdirReset').onclick=function(){s.partDirs=null;changed();renderBuild();};
   $$('[data-print]',main).forEach(function(b){b.onclick=function(){printNow(b.dataset.print);};});
+  $('#fmtSel').onchange=function(){ui.fmt=this.value;saveUi();renderBuild();var f=$('#fmtSel');if(f)f.focus();};
   $('#reshuf').onclick=function(){var b=this;
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Make new versions?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='↻ New scramble';}},4000);return;}
     var prev=s.seed;s.seed=Math.floor(Math.random()*2147483647);changed();b.classList.remove('danger');b.textContent='↻ New scramble';drawPreview();
