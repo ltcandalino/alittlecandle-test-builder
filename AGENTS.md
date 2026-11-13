@@ -48,6 +48,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/pdfimp.js` | PDF import helpers on pdf.js: `PDFIMP.open/cropAll/clip/thumb/imgHtml`. |
 | `src/docx.js` | Word import: `DOCX.parse(buf, name)` → `{questions, header}`. |
 | `src/sync.js` | `CLOUD` module: login + sync against a Supabase-style REST API (Supabase or our Docker server). |
+| `src/icon.svg` | App icon (candle): `build.py` adds it as the favicon (`<link rel=icon>`, data URL) and as `BRAND_SVG` for the header mark. |
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
 | `src/style.css` | App styles + print styles. |
 | `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |

@@ -11,6 +11,7 @@ Run:  python3 build.py
 """
 import base64
 import os
+import urllib.parse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, 'src')
@@ -40,6 +41,8 @@ def font_faces():
 
 
 css = font_faces() + read('src', 'style.css')
+ICON = read('src', 'icon.svg').strip()
+ICON_URL = 'data:image/svg+xml,' + urllib.parse.quote(ICON, safe=" =:/'")
 js = {name: read('src', name) for name in SCRIPTS}
 lib = read('vendor', 'pdfjs', 'pdf.min.mjs')
 worker = read('vendor', 'pdfjs', 'pdf.worker.min.mjs')
@@ -53,11 +56,12 @@ def page(with_config):
         '<html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         '<meta name="version" content="' + VERSION + '">\n<title>ALittleCandleTestBuilder</title>\n'
+        '<link rel="icon" type="image/svg+xml" href="' + ICON_URL.replace('"', '&quot;') + '">\n'
         '<style>' + css + '</style></head>\n'
         '<body><div id="root"></div><div id="printRoot"></div>\n'
         '<script type="text/plain" id="pdflib">' + lib + '</script>\n'
         '<script type="text/plain" id="pdfworker">' + worker + '</script>\n'
-        + '<script>var APP_VERSION=' + repr(VERSION) + ';</script>\n'
+        + '<script>var APP_VERSION=' + repr(VERSION) + ';var BRAND_SVG=' + repr(ICON) + ';</script>\n'
         + ('<script src="config.js"></script>\n' if with_config else '')
         + ''.join('<script>' + js[name] + '</script>\n' for name in SCRIPTS)
         + '</body></html>'

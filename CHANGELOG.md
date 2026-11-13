@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- A candle icon for the browser tab (favicon) and the top-left corner of the app, in both the single file and the website.
+
 ## [0.7.1] - 2026-11-13
 
 ### Changed

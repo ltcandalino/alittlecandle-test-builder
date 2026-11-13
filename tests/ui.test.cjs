@@ -15,6 +15,15 @@ const count = () => page.evaluate(() => window.__tb.state.questions.filter(q => 
 const tab = async name => { await page.click(`#tabs [data-tab="${name}"]`); await page.waitForTimeout(100); };
 
 describe('tabs', () => {
+  test('the browser tab shows the candle icon, and so does the header', async () => {
+    const ok = await page.evaluate(async () => {
+      const img = new Image(); img.src = document.querySelector('link[rel=icon]').href;
+      try { await img.decode(); } catch (e) { return false; }
+      return img.naturalWidth > 0;
+    });
+    assert.equal(ok, true, 'favicon loads as an image');
+    assert.equal(await page.evaluate(() => !!document.querySelector('.brand .mark svg')), true);
+  });
   test('all three tabs open', async () => {
     await addQuestions(page, [{}, { type: 'es' }]);
     await gotoTab(page, 'bank');
