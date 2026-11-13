@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-13
+
 ### Changed
 - Website setup: `docker-compose.yml` now uses the ready-made GitHub image by default, so a server only needs `docker-compose.yml` and `Caddyfile`, and updates are `docker compose pull && docker compose up -d`. Building it yourself is still possible (`build: .` instead of `image:`).
 
