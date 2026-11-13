@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-13
+
 ### Added
 - GitHub Actions CI: runs all tests, then builds, checks and publishes the Docker image to
   GitHub Container Registry.
