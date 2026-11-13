@@ -1,0 +1,128 @@
+# ALittleCandleTestBuilder — Docker
+
+Everything runs in one container on your server:
+
+- the website
+- sign-ins for you and your colleagues (each person has private banks)
+- the question banks, tests and pictures, saved on your server
+
+There's no outside service and nothing to sign up for. A second, small container (**Caddy**) adds HTTPS so passwords travel safely.
+
+## What you need
+
+- A VPS or server with **Docker** and **Docker Compose** (any Linux VPS works: DigitalOcean, Linode, Hetzner, etc.)
+- A web address you control, like `tests.yourdomain.com`
+- About 15 minutes
+
+## 1. Point your web address at the server
+
+At your domain/DNS provider, add an **A record**:
+
+| Name | Value |
+|---|---|
+| `tests` (or whatever you like) | your server's IP address |
+
+DNS can take a few minutes to update.
+
+## 2. Copy this folder to the server
+
+Copy these files into a folder on the server, such as `~/alittlecandle`:
+
+```
+Dockerfile
+docker-compose.yml
+Caddyfile
+server.js
+index.html
+```
+
+For example, from your computer: `scp -r alittlecandle/ you@your-server:~/`
+
+## 3. Fill in three things
+
+In **docker-compose.yml**:
+
+- `ADMIN_EMAIL`: the email you'll sign in with
+- `ADMIN_PASSWORD`: your first password (8+ characters). It's only used the very first time the site starts; change it later from the site.
+
+In **Caddyfile**: replace `tests.yourdomain.com` with your web address.
+
+## 4. Start it
+
+In that folder on the server:
+
+```
+docker compose up -d --build
+```
+
+After a minute, open `https://tests.yourdomain.com` and sign in.
+
+## 5. Add your colleagues
+
+Click your email at the top right → **Manage accounts**. Type their email, click **Make one up** for a temporary password (or type one), and click **Add**. Send them the address, their email, and the temporary password. They can change it from the menu under their email.
+
+You can also reset passwords, make someone an admin, or delete an account there.
+
+## 6. Bring in the banks you already made
+
+Open your current ALittleCandleTestBuilder → **Import & backup** → **Download backup**. Then sign in on the new site → **Import & backup** → **Restore a backup**. Each colleague does the same with their own backup.
+
+---
+
+## Everyday notes
+
+- **☁ Synced** at the top means your latest changes are saved on the server. If the internet drops, keep working; it catches up when you're back online.
+- **Original files** (.bnk, .pdf, .docx) can stay on your NAS. Choose them from the NAS folder when you import.
+- **Signing out** removes the copy kept in that browser, which is good for shared school computers.
+- **Forgot password:** there are no reset emails. An admin resets it under Manage accounts.
+
+## Updating
+
+When you get a new `index.html` (or `server.js`), replace the file in the folder and run:
+
+```
+docker compose up -d --build
+```
+
+Your accounts and banks are kept; they live in the `alctb-data` volume, not in the container.
+
+## Backing up the server
+
+This saves everyone's accounts, banks and pictures into one file in the current folder:
+
+```
+docker compose stop app
+docker run --rm -v alittlecandle_alctb-data:/data -v "$PWD":/backup alpine tar czf /backup/alctb-backup-$(date +%F).tgz -C /data .
+docker compose start app
+```
+
+The volume name starts with the folder name (`alittlecandle_` above). Run `docker volume ls` to check it.
+
+To restore onto a new server, create the volume by starting the site once, stop the app, then:
+
+```
+docker run --rm -v alittlecandle_alctb-data:/data -v "$PWD":/backup alpine sh -c "rm -rf /data/* && tar xzf /backup/alctb-backup-DATE.tgz -C /data && chown -R 1000:1000 /data"
+docker compose start app
+```
+
+## If you're locked out of the admin account
+
+In `docker-compose.yml`, set a new `ADMIN_PASSWORD`, uncomment `ADMIN_RESET: "1"`, and run `docker compose up -d`. Sign in with the new password, then comment `ADMIN_RESET` out again and run `docker compose up -d` once more.
+
+## Already running a web server on ports 80/443?
+
+Skip Caddy: delete the `caddy:` section from `docker-compose.yml`, add this under `app:`
+
+```
+    ports:
+      - "127.0.0.1:8080:8080"
+```
+
+and point your existing web server (nginx, Apache, cPanel proxy) at `http://127.0.0.1:8080`. Keep HTTPS on, so passwords are protected.
+
+## Details
+
+- One container, Node 22, no extra packages. Data: SQLite database plus a pictures folder, both in `/data`.
+- Passwords are stored scrambled (scrypt), never as plain text. Sign-ins expire after 60 days of not using the site.
+- Too many wrong passwords in a row pause sign-in for that email for 15 minutes.
+- Health check: `https://tests.yourdomain.com/healthz`

@@ -1,0 +1,6 @@
+# Replace with your web address. Point its DNS "A record" at this server first.
+# Caddy gets and renews the HTTPS certificate for you.
+tests.yourdomain.com {
+    encode gzip
+    reverse_proxy app:8080
+}
