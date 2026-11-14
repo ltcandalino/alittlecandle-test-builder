@@ -210,6 +210,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [x] Release v0.6.0 (2026-11-13).
 - [ ] Collect her feedback from trying the single-file version.
+- [ ] ExamView equation codes not understood yet (shown as test diagnostics, the math around them still reads): 3 (251×),
+      16 (148×), 17 (65×), 23 (24×), 24 (14×), 2 (3×), mostly in older banks (GE 2008–2016, Sequential III, Math A/B,
+      Ch 9 Test Bank). Probably matrices/piles/limits; look at those questions next to ExamView output.
 - [ ] Design review 2026-11-13 (`/impeccable critique`, 27/40, snapshot in `.impeccable/critique/`). She chose
       all 5 issues, work-protection first: (1) DONE editor asks before discarding edits (`requestClose`); (2) DONE
       Restore offers Replace vs Add missing (`restoreChoice`), Backup card first with `ui.lastBackup` line; (3) DONE preview
@@ -290,4 +293,13 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-14**: question numbers in references up to 50 (was 36); `fillMeta` re-reads refs left blank by the old limit.
 - **2026-11-14**: accent color green → her purple #7851a9 (`--accent`, tints, hc #4e2f78, favicon); paper/key colors unchanged.
 - **2026-11-14 (cloud session)**: she reported the Algebra I 2018–2019 bank (`AICCSS2018-2019EXAMs.bnk`) freezing her browser on import. Not reproducible in Chromium (parse 0.3 s, import + bank render + sync all fast, no dialogs, pictures ≤600 px); asked which browser. Found and fixed a real bug in it: equation code 13 is "next line" and was dropped (`bnk.js` now emits `<br>`). Bank added to `tests/fixtures/private/`; new import tests: no skipped equation codes, two-equation choices keep their line break. Note: `export.test.cjs` Word/LaTeX tests fail only in the cloud sandbox (old Playwright download name, no TeX).
+- **2026-11-14 (cloud session, cont.)**: subtopic report on AICCSS2023-2024: newer banks' fields are
+  `"2pt multiple choice", ref, "AI", standards, topic, subtopics…, "EXAM 0123AI"`; old classifier took the points label
+  as topic. New `BNK.classify` (skips points label, EXAM, course codes AI/AII/A1/A2/GEO/GE/IA/MA/MB/PC, lone "NY:"),
+  `BNK.repairFields` run in `normalize` fixes saved questions. Freeze found: AIICCSS2018-2019 record 34 has 0x18 instead
+  of ff ff ff ff at the fields block; the old search hit a garbage length and `u16str` stopped advancing (infinite loop).
+  Fields block is at record+516 in all 36 banks checked; reader uses that, validates the length, and the string loop
+  always advances. New `tests/banks.test.cjs` reads each private bank in a worker with a 30 s limit (a hang fails instead
+  of freezing the run) and checks fields. Import tests relaxed for her full collection ("undefined" is real math text,
+  -1 answers are flagged "no answer", missing-picture check instead of "has pictures").
 - **2026-11-14**: no green left: `--es` #4e2f78, `--tf` plum #9b3b77, saved dot, key highlight #e9e0f4, keynote, icon tints.

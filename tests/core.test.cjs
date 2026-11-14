@@ -167,6 +167,24 @@ describe('random numbers', () => {
   });
 });
 
+describe('questions imported by older versions', () => {
+  test('mixed-up ExamView fields are put back in place when the app opens', async () => {
+    const q = await page.evaluate(() => {
+      const T = window.__tb;
+      const st = { questions: [
+        { id: 'o1', type: 'mc', html: 'Q', choices: ['a', 'b'], answer: 0, bank: 'B', standard: 'A.APR.A.1',
+          topic: '2pt multiple choice', subtopic: '012301ai; AI; Operations with Polynomials; subtraction; EXAM 0123AI', ref: '' },
+        { id: 'o2', type: 'mc', html: 'Q', choices: ['a', 'b'], answer: 0, bank: 'B', topic: 'Defining Functions', subtopic: 'AII', ref: '081701aii' },
+        { id: 'o3', type: 'mc', html: 'Q', choices: ['a', 'b'], answer: 0, bank: 'B', topic: 'Congruence', subtopic: 'SAS', ref: '061901geo' },
+      ] };
+      return T.normalize(st).questions.map(q => ({ ref: q.ref, topic: q.topic, subtopic: q.subtopic, month: q.month, year: Number(q.year), qnum: Number(q.qnum) }));
+    });
+    assert.deepEqual(q[0], { ref: '012301ai', topic: 'Operations with Polynomials', subtopic: 'subtraction', month: '01', year: 2023, qnum: 1 });
+    assert.equal(q[1].subtopic, '', 'the course code is not a subtopic');
+    assert.equal(q[2].subtopic, 'SAS', 'real short subtopics stay');
+  });
+});
+
 describe('saved settings from older versions', () => {
   test('old "Geometry Test" title and default instructions are cleared', async () => {
     const s = await page.evaluate(() => window.__tb.normalize({ course: 'Geometry', settings: { title: 'Geometry Test', style: 'standard', instructions: 'Read each question carefully.' }, questions: [] }).settings);

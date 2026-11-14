@@ -7,6 +7,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Fixed
+- ExamView banks: newer Regents banks (Algebra I 2020 onward, including 2023–2024 and 2023–2025) put "2pt multiple choice", the course code and "EXAM 0123AI" next to the topic. The reader mixed these up: the topic said "2pt multiple choice", the subtopic held "012301ai; AI; Operations with Polynomials; subtraction; EXAM 0123AI", and the reference was empty. Now the reference, topic and subtopic each land in their own field. Questions you already imported are fixed automatically the next time the app opens; no need to import them again.
+- ExamView banks: the Algebra II 2018–2019 bank froze the browser while importing. One question in it has an unusual layout that sent the reader into an endless loop. It now reads all 222 questions in a fraction of a second.
 - ExamView banks: equations written on more than one line (systems of equations, recursive formulas) ran together, like "3.50H+2.50P=43H+P=14". Each line now starts on its own line. Found in the Algebra I 2018–2019 bank (35 questions). Already-imported banks need to be imported again to pick this up.
 
 ## [0.8.3] - 2026-11-14

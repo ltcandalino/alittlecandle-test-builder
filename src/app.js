@@ -142,6 +142,7 @@ function normalize(s){
   s.settings=Object.assign({},DEFAULT_SETTINGS,s.settings||{});migrateSettings(s.settings,s.course);
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
+    if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
     if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.html=q.html||textToHtml(q.text||'');fillMeta(q);
     if(q.type==='bm'){q.space=q.space||2;}
     if(isMC(q.type)){q.choices=(Array.isArray(q.choices)?q.choices:[]).map(function(c){return c;});if(typeof q.answer!=='number')q.answer=-1;}
