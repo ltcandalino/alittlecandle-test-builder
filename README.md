@@ -30,7 +30,7 @@ to keep a copy or move to another computer.
   - **Lesson** – compass/ruler/tracing paper pictures, "I am learning to", Warm Up!, Notes,
     Essential Concept, Examples, Success Criteria, Practice, and a Q#W##D### / Source footer.
 - **Versions:** 1–8 scrambled versions with matching answer keys.
-- **Print or download:** print, or download as an editable Word file (PDF and LaTeX downloads are coming).
+- **Print or download:** print, or download as an editable Word file or a LaTeX project (a one-click PDF download is coming).
 - **Courses:** separate questions and settings for Geometry, Algebra 1, Algebra 2, Pre-Calculus…
 
 ## Folders

@@ -25,9 +25,10 @@ Each version gets its own key, listing every question's answer in that version's
 
 ## Download as a file: Word, PDF or print
 
-The **Format** menu in the print bar chooses what the buttons do:
+The **Format** menu in the print bar (PDF, Word, LaTeX, Print…) chooses what the buttons do:
 
 - **Word (.docx)**: the buttons say **Download…** and save one Word file you can edit, named for what's in it (for example `Geometry Quarter 1 – Unit 3 Exam - tests and keys.docx`). Each version, the accommodated copy and each answer key starts on a new page with its own page numbers and headers. Segment and arc marks, fractions and square roots are real Word equations, and pictures and tables come along. It opens in Word, Pages, Google Docs and LibreOffice.
+- **LaTeX (.tex)**: downloads a `.zip` with the LaTeX file (the standard `exam` class) and an `images` folder with the pictures. On Overleaf, choose **New Project → Upload Project** and pick the `.zip`; it compiles with Overleaf's default (pdfLaTeX). Math marks, fractions, roots and symbols like ∠ △ ≅ are real LaTeX math, and the font is TeX Gyre Schola, a free Century Schoolbook look-alike.
 - **PDF**: for now this opens the browser's print window. Choose **Save as PDF** as the printer. A one-click PDF download is coming.
 - **Print…**: the browser's print window, for printing straight to paper.
 

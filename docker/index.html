@@ -2027,12 +2027,179 @@ function makeExporter(A) {
   };
   var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
 
+  /* ---------- LaTeX (.zip with the .tex file and its pictures; pdfLaTeX, exam class) ---------- */
+  // Unicode symbols that show up in math questions → LaTeX (set up with \newunicodechar in the preamble)
+  var UNI = { '∠': '\\angle', '△': '\\triangle', '≅': '\\cong', '∼': '\\sim', '⊥': '\\perp', '∥': '\\parallel', '°': '^{\\circ}', 'π': '\\pi', '√': '\\surd', '≠': '\\neq', '≤': '\\leq', '≥': '\\geq', '±': '\\pm', '×': '\\times', '÷': '\\div', 'θ': '\\theta', '′': '^{\\prime}', '″': '^{\\prime\\prime}',
+    '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta',
+    'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\varepsilon', 'λ': '\\lambda', 'μ': '\\mu', 'σ': '\\sigma', 'φ': '\\varphi', 'ω': '\\omega', 'Δ': '\\Delta', 'Σ': '\\Sigma', 'Ω': '\\Omega' };
+  var FONT_PKG = { 'Century Schoolbook': '\\usepackage{tgschola}', 'Times New Roman': '\\usepackage{newtxtext}', 'Book Antiqua': '\\usepackage{tgpagella}', 'Georgia': '\\usepackage{tgschola}', 'Cambria': '\\usepackage{tgschola}', 'Garamond': '\\usepackage{ebgaramond}',
+    'Arial': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Calibri': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Verdana': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Comic Sans MS': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}',
+    'Atkinson Hyperlegible': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'OpenDyslexic': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}' };
+  function texEsc(s) {
+    return String(s).replace(/[\\{}$&#%_^~]/g, function (c) { return { '\\': '\\textbackslash{}', '{': '\\{', '}': '\\}', '$': '\\$', '&': '\\&', '#': '\\#', '%': '\\%', '_': '\\_', '^': '\\textasciicircum{}', '~': '\\textasciitilde{}' }[c]; })
+      .replace(/\u00a0/g, '~').replace(/[\u2003\u2002\u2009]/g, ' ');
+  }
+  function texMathText(s) { return String(s).replace(/[\\{}$&#%_]/g, function (c) { return c === '\\' ? '\\backslash ' : '\\' + c; }).replace(/\s+/g, '\\ '); }
+
+  function latex(kind) {
+    var secs = sections(kind), roots = secs.map(function (s) { return parse(s.html); });
+    var uses = []; roots.forEach(function (r) { Array.prototype.forEach.call(r.querySelectorAll('img'), function (i) { uses.push({ src: i.getAttribute('src'), w: inches(i.style.width) }); }); });
+    var lesson = docType() === 'lesson';
+    if (lesson) lessonTools().forEach(function (k) { uses.push({ src: LESSON_ICONS[k].src, w: LESSON_ICONS[k].w / 72 }); });
+    return prepareImages(uses).then(function (imgs) {
+      var w = new TexWriter(imgs), body = secs.map(function (s, i) { return w.section(s, roots[i], i === 0); }).join('\n');
+      var name = fileName(kind, 'tex').replace(/[^A-Za-z0-9 ._-]+/g, '').replace(/\s+/g, '-');
+      var files = [{ name: name, data: w.preamble() + '\n\\begin{document}\n' + body + '\n\\end{document}\n' }].concat(w.files);
+      return zip(files);
+    });
+  }
+  function TexWriter(imgs) { this.imgs = imgs; this.files = []; this.names = {}; this.used = {}; }
+  TexWriter.prototype = {
+    preamble: function () {
+      var s = appState().settings, lesson = docType() === 'lesson', m = lesson ? 'top=0.8in,bottom=0.8in,left=0.5in,right=0.5in' : 'top=1in,bottom=1in,left=0.75in,right=0.75in';
+      var uni = Object.keys(this.used).map(function (c) { return '\\newunicodechar{' + c + '}{\\ensuremath{' + UNI[c] + '}}'; }).join('\n');
+      return '% Made by ALittleCandleTestBuilder. Compile with pdfLaTeX (Overleaf\'s default).\n' +
+        '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ',headsep=0.25in]{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
+        (FONT_PKG[s.font] || FONT_PKG['Century Schoolbook']) + '\n' +
+        '\\usepackage{amsmath,amssymb,graphicx,array,tabularx,longtable,enumitem,needspace,newunicodechar}\n\\usepackage[table]{xcolor}\n' +
+        '\\definecolor{lessonpurple}{HTML}{8064A2}\\definecolor{mcshade}{HTML}{E5DFEC}\n' +
+        '\\setlength{\\parindent}{0pt}\\setlength{\\linefillheight}{24pt}\\setlength{\\fboxsep}{4pt}\n\\raggedbottom\n' + uni + '\n';
+    },
+    // inline runs → LaTeX
+    runs: function (rs) {
+      var self = this;
+      return rs.map(function (r) {
+        if (r.br) return '\\newline{}';
+        if (r.img) return self.pic(r.img, r.w);
+        if (r.math) return '$' + self.math(r) + '$';
+        if (!r.text) return '';
+        var t = self.uniText(r.text);
+        if (r.sup) t = '\\textsuperscript{' + t + '}'; if (r.sub) t = '\\textsubscript{' + t + '}';
+        if (r.b) t = '\\textbf{' + t + '}'; if (r.i) t = '\\textit{' + t + '}'; if (r.u) t = '\\underline{' + t + '}';
+        return t;
+      }).join('');
+    },
+    uniText: function (s) { var self = this; return texEsc(s).replace(/[^\x00-\x7f\u00a0-\u00ff\u2013\u2014\u2018\u2019\u201c\u201d\u2026]/g, function (c) { if (UNI[c]) { self.used[c] = 1; return c; } return '?'; }); },
+    math: function (r) {
+      var self = this;
+      var e = function (rs) { return (rs || []).map(function (x) { if (x.math) return self.math(x); if (!x.text) return ''; var t = texMathText(x.text).replace(/[^\x00-\x7f]/g, function (c) { return UNI[c] ? '{' + UNI[c] + '}' : '?'; }); return x.sup ? '^{' + t + '}' : x.sub ? '_{' + t + '}' : '\\mathrm{' + t + '}'; }).join(''); };
+      if (r.math === 'bar') return '\\overline{' + e(r.kids) + '}';
+      if (r.math === 'acc') return (r.chr === '\u20d7' ? '\\overrightarrow{' : r.chr === '\u0311' ? '\\overset{\\frown}{' : '\\overleftrightarrow{') + e(r.kids) + '}';
+      if (r.math === 'frac') return '\\dfrac{' + e(r.num) + '}{' + e(r.den) + '}'; // full size, as on paper
+      if (r.math === 'rad') return '\\sqrt{' + e(r.kids) + '}';
+      return '';
+    },
+    pic: function (src, wIn) {
+      var im = this.imgs[src]; if (!im) return '';
+      if (!this.names[src]) { var n = 'images/img' + (this.files.length + 1) + '.' + (im.ext === 'jpeg' ? 'jpg' : 'png'); this.files.push({ name: n, data: im.data }); this.names[src] = n; }
+      var w = Math.min(wIn || im.wIn, this.width);
+      return '\\includegraphics[width=' + (Math.round(w * 100) / 100) + 'in]{' + this.names[src] + '}';
+    },
+    para: function (rs) { var t = this.runs(rs).trim(); return t ? t + '\\par\n' : ''; },
+    blocks: function (root) { var self = this; return Array.prototype.map.call(root.children, function (el) { return self.block(el); }).join(''); },
+    mixed: function (el) {
+      var self = this, h = '', cur = [];
+      var flush = function () { if (cur.length) { h += self.para(inlines(wrapAll(cur))); cur = []; } };
+      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); } else cur.push(c); });
+      flush(); return h;
+    },
+    block: function (el) {
+      var cls = el.className || '', tag = el.tagName.toLowerCase(), self = this;
+      if (tag === 'style' || /\bcl-runfoot\b/.test(cls)) return '';
+      if (/\bcl-name\b/.test(cls)) return 'Name: \\rule{3.4in}{0.4pt}\\hfill Date: \\rule{1.9in}{0.4pt}\\par\\medskip\n';
+      if (/\bcl-title\b/.test(cls)) return '\\textbf{' + this.uniText(textOf(el.querySelector('b'))) + '}\\hfill\\textit{' + this.uniText(textOf(el.querySelector('i'))) + '}\\par\\smallskip\n';
+      if (/\bcl-acc\b/.test(cls)) return Array.prototype.map.call(el.querySelectorAll('i'), function (i) { return '\\textit{' + self.uniText(textOf(i)) + '}'; }).join('\\hfill ') + '\\par\\medskip\n';
+      if (/\bcl-part\b/.test(cls)) {
+        var dir = el.querySelector('.cl-dir'), tot = dir && dir.querySelector('.cl-tot'), dc = dir && dir.cloneNode(true); if (dc && dc.querySelector('.cl-tot')) dc.querySelector('.cl-tot').remove();
+        return '\\needspace{6\\baselineskip}\\begin{center}\\textbf{' + this.uniText(textOf(el.querySelector('.cl-pname'))) + '}\\end{center}\\vspace{-1.5ex}\n' + (dc ? '\\textbf{' + this.runs(inlines(dc)) + '}' + (tot ? '\\hfill\\textbf{' + texEsc(textOf(tot)) + '}' : '') + '\\par\\medskip\n' : '');
+      }
+      if (/\bcl-comp\b/.test(cls)) return '{\\hfill\\fbox{\\parbox{1.3in}{\\centering\\scriptsize\\bfseries\\itshape ' + this.uniText(textOf(el)) + '}}\\par}\n';
+      if (/\bcl-bonus\b/.test(cls)) return '\\begin{center}\\textbf{' + this.uniText(textOf(el)) + '}\\end{center}\n';
+      if (/\bcl-scorewrap\b/.test(cls)) { var sc = el.querySelector('.cl-score') || el, n = sc.querySelector('.cl-score-n'), lab = sc.cloneNode(true); if (lab.querySelector('.cl-score-n')) lab.querySelector('.cl-score-n').remove();
+        return '\\bigskip{\\hfill\\fbox{\\parbox[c][1.1in][s]{1.8in}{' + this.uniText(textOf(lab)) + '\\vfill\\hfill{\\Huge ' + texEsc(textOf(n)) + '}}}\\par}\n'; }
+      if (/\bpt-q\b/.test(cls) && tag !== 'tr') return this.question(el);
+      if (/\brv-title\b/.test(cls)) return '\\begin{center}\\textbf{' + this.uniText(textOf(el)) + '}\\end{center}\n';
+      if (tag === 'table') return this.table(el);
+      if (/\bpt-head\b/.test(cls)) return '{\\Large\\textbf{' + this.uniText(textOf(el.querySelector('h1'))) + '}}\\par\n{\\small ' + this.uniText(textOf(el.querySelector('.pt-sub'))) + '}\\par\n';
+      if (tag === 'hr') return '\\vspace{2pt}\\hrule\\medskip\n';
+      if (/\bls-unit\b/.test(cls)) return '{\\hfill\\textbf{' + this.uniText(textOf(el)) + '}\\par}\n';
+      if (/\bls-target\b/.test(cls)) return '\\textbf{' + this.uniText(textOf(el.querySelector('.ls-tl'))) + '} ' + this.runs(inlines(el.querySelector('.ls-tline') || document.createElement('i'))) + '\\par\\medskip\n';
+      if (/\bls-ex\b/.test(cls) && el.querySelector('.ls-exn')) return '\\needspace{4\\baselineskip}\\medskip\\textbf{' + this.uniText(textOf(el)) + '}\\par\n';
+      if (/\bls-h\b|\bls-notes\b/.test(cls) && !el.children.length) return '\\needspace{4\\baselineskip}\\bigskip{\\color{lessonpurple}\\textbf{' + this.uniText(textOf(el)) + '}}\\par\\smallskip\n';
+      if (/\bls-box\b/.test(cls)) return '\\noindent\\fbox{\\parbox{\\dimexpr\\linewidth-2\\fboxsep-2\\fboxrule}{' + this.runs(inlines(el)) + '}}\\par\\medskip\n';
+      if (/\bpt-lines\b/.test(cls)) return '\\fillwithlines{' + el.children.length + '\\linefillheight}\n';
+      if (/\bpt-space\b/.test(cls) || (tag === 'div' && !el.children.length && !textOf(el) && el.style.height)) return '\\vspace*{' + inches(el.style.height) + 'in}\n';
+      if (tag === 'ul' && /\bpt-ch\b/.test(cls)) return this.choices(el);
+      if (/\bpt-tf\b/.test(cls)) return '\\hspace*{0.1in}\\textbf{T}\\hspace{0.7in}\\textbf{F}\\par\n';
+      if (/\bcl-cred\b/.test(cls)) return '{\\hfill ' + texEsc(textOf(el)) + '\\par}\n';
+      if (/\bpt-keynote\b|\brv-ref\b/.test(cls)) return '{\\hfill\\color{gray}\\tiny ' + this.uniText(textOf(el)) + '\\par}\n';
+      if (tag === 'ul' || tag === 'ol') return '\\begin{' + (tag === 'ol' ? 'enumerate' : 'itemize') + '}[nosep]\n' + Array.prototype.map.call(el.children, function (li) { return '\\item ' + self.runs(inlines(li)) + '\n'; }).join('') + '\\end{' + (tag === 'ol' ? 'enumerate' : 'itemize') + '}\n';
+      return this.mixed(el);
+    },
+    question: function (el) {
+      var self = this, num = textOf(el.querySelector(':scope > .pt-num')), body = el.querySelector(':scope > div:not(.pt-num)') || el, keepW = this.width;
+      this.width = keepW - 0.4;
+      var inner = Array.prototype.map.call(body.children, function (c) { return /\bpt-qt\b/.test(c.className) ? self.mixed(c) : self.block(c); }).join('');
+      this.width = keepW;
+      return '\\needspace{5\\baselineskip}\\begin{itemize}[leftmargin=0.4in,labelwidth=0.35in,labelsep=0.05in,align=left,topsep=' + (this.spacing ? '16pt' : '10pt') + ']\n\\item[' + (num ? '\\textbf{' + texEsc(num) + '}' : '') + '] ' + inner + '\\end{itemize}\n' + (/\bacc-break\b/.test(el.className) ? '\\newpage\n' : '');
+    },
+    choices: function (ul) {
+      var self = this, cols = /\bc4\b/.test(ul.className) ? 4 : /\bc2\b/.test(ul.className) ? 2 : 1;
+      var items = Array.prototype.map.call(ul.querySelectorAll(':scope > li'), function (li) { var b = li.querySelector('b'), sp = li.querySelector('span'); return '\\textbf{' + texEsc(textOf(b)) + '}~' + self.runs(sp ? inlines(sp) : []); });
+      var rows = []; for (var i = 0; i < items.length; i += cols) { var r = items.slice(i, i + cols); while (r.length < cols) r.push(''); rows.push(r.join(' & ')); }
+      return '\\par\\smallskip\\noindent\\begin{tabularx}{\\linewidth}{@{}' + Array(cols + 1).join('X') + '@{}}\n' + rows.join(' \\\\[' + (this.spacing ? '8pt' : '3pt') + ']\n') + '\n\\end{tabularx}\\par\n';
+    },
+    table: function (tb) {
+      var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'); if (!rows.length) return '';
+      var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
+      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), W = this.width;
+      var widths = isRv ? [0.35, W - 0.35] : null; if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
+      var colspec = (isKey ? '' : '|') + widths.map(function (w) { return 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(isKey ? '' : '|') + (isKey ? '' : '|');
+      var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (isKey ? '\n' : '\\hline\n');
+      Array.prototype.forEach.call(rows, function (r) {
+        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
+        // when one cell needs a block (pictures, lists…), every cell in the row is top-aligned the same way
+        var anyBlocks = Array.prototype.some.call(r.children, function (td) { return Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); }); });
+        var cells = Array.prototype.map.call(r.children, function (td) {
+          var span = +(td.getAttribute('colspan') || 1), w = widths.slice(col, col + span).reduce(function (a, b) { return a + b; }, 0); col += span;
+          var keep = self.width; self.width = w - 0.15;
+          var hasBlocks = Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); });
+          var inner = hasBlocks ? self.blocks(td).replace(/\\par\s*$/, '') : self.runs(inlines(td, head || /\b(n|l|rv-n)\b/.test(td.className) ? { b: true } : {}));
+          self.width = keep;
+          inner = inner.replace(/\n+$/, '');
+          if (anyBlocks) inner = '\\begin{minipage}[t]{\\linewidth}\\vspace{0pt}' + inner + '\\end{minipage}'; // top-align, even when it starts with a picture
+          return span > 1 ? '\\multicolumn{' + span + '}{|p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}|}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
+        });
+        h += cells.join(' & ') + ' \\\\' + (isKey ? (head ? '\\hline\\endhead' : '') : '\\hline') + '\n';
+      });
+      return h + (isRv || isKey ? '\\end{longtable}\n' : '\\end{tabular}\\par\n');
+    },
+    section: function (s, root, first) {
+      var lesson = s.doc === 'lesson', self = this, course = this.uniText(headerText()), right = this.uniText(rightLabel());
+      this.width = lesson ? 7.5 : 7; this.spacing = !!s.spacing;
+      var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + '\\setcounter{page}{1}\n';
+      if (s.type === 'key') {
+        h += '\\firstpageheader{}{}{}\\runningheader{}{}{}\\firstpageheadrule\\relax\\nofirstpageheadrule\\norunningheadrule\n' +
+          '\\firstpagefooter{\\footnotesize\\color{gray}' + course + ' --- ' + this.uniText(docTitle()) + ' --- ' + this.uniText(s.label) + '}{}{\\footnotesize\\color{gray}Page \\thepage}\\runningfooter{\\footnotesize\\color{gray}' + course + ' --- ' + this.uniText(s.label) + '}{}{\\footnotesize\\color{gray}Page \\thepage}\n';
+      } else {
+        var icons = lesson ? lessonTools().map(function (k) { return self.pic(LESSON_ICONS[k].src, LESSON_ICONS[k].w / 72).replace('width=', 'height=0.45in,keepaspectratio,width='); }).join('\\,') : '';
+        var foot = lesson ? this.uniText([lessonCode(), lessonSource() ? 'Source: ' + lessonSource() : ''].filter(Boolean).join('   ')) : '';
+        h += '\\firstpageheader{' + icons + '}{\\textbf{' + course + '}}{}\\firstpageheadrule\n\\runningheader{}{' + course + '}{' + (s.doc === 'review' ? '\\textit{' + right + '}' : right) + '}\\runningheadrule\n' +
+          '\\firstpagefooter{' + (isExamDoc() ? '\\tiny\\color{gray}v. ' + (s.v + 1) : '') + '}{}{}\\runningfooter{' + (foot ? '\\tiny\\color{gray}' + foot : '') + '}{}{\\thepage}\n';
+      }
+      var size = s.size && s.size !== 12 ? '\\fontsize{' + s.size + '}{' + Math.round(s.size * 1.25) + '}\\selectfont\n' : '';
+      if (s.font && s.font !== appState().settings.font) h += '% ' + s.label + ': ' + s.font + ' font on paper; this file uses the closest LaTeX font.\n';
+      return h + '{' + size + (s.spacing ? '\\linespread{1.5}\\selectfont\n' : '') + body + '}\n';
+    }
+  };
+
   /* ---------- download ---------- */
   function download(format, kind) {
-    if (format !== 'docx') return Promise.reject(new Error('Unknown format ' + format));
-    return docx(kind).then(function (blob) { var name = fileName(kind, 'docx'); saveFile(name, blob); return { name: name, size: blob.size }; });
+    var make = { docx: docx, tex: latex }[format];
+    if (!make) return Promise.reject(new Error('Unknown format ' + format));
+    return make(kind).then(function (blob) { var name = fileName(kind, format === 'tex' ? 'zip' : 'docx'); saveFile(name, blob); return { name: name, size: blob.size }; });
   }
-  return { sections: sections, fileName: fileName, inlines: inlines, zip: zip, crc32: crc32, docx: docx, download: download };
+  return { sections: sections, fileName: fileName, inlines: inlines, zip: zip, crc32: crc32, docx: docx, latex: latex, download: download };
 }
 </script>
 <script>(function(){
@@ -2529,17 +2696,19 @@ function printJobs(kind){
   return jobs;
 }
 /* Output format: PDF (the print window until the built-in PDF arrives), Word, or Print… */
-function outFmt(){return ui.fmt==='docx'||ui.fmt==='print'?ui.fmt:'pdf';}
+function outFmt(){return ui.fmt==='docx'||ui.fmt==='tex'||ui.fmt==='print'?ui.fmt:'pdf';}
 function fmtNote(){var f=outFmt();
   if(f==='docx')return 'Downloads one Word file you can edit. Each version starts on a new page with its own page numbers.';
+  if(f==='tex')return 'Downloads a .zip with the LaTeX file (exam class) and its pictures. Upload the .zip to Overleaf, or compile it with pdfLaTeX.';
   if(f==='pdf')return 'For now, PDF opens your browser’s print window: choose “Save as PDF” as the printer. With several versions, one window opens after another.';
   return 'Opens your browser’s print window. With several versions, one window opens after another.';}
 function printNow(kind){
   if(!state.selected.length){toast('Add some questions to the test first.');return;}
   saveTest({printed:true});drawSaved();
-  if(outFmt()==='docx'){toast('Making the Word file…');
-    return EXP.download('docx',kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
-      .catch(function(e){console.error(e);toast('Couldn’t make the Word file: '+(e&&e.message||e));});}
+  var f=outFmt(),what={docx:'Word file',tex:'LaTeX file'}[f];
+  if(what){toast('Making the '+what+'…');
+    return EXP.download(f,kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
+      .catch(function(e){console.error(e);toast('Couldn’t make the '+what+': '+(e&&e.message||e));});}
   runJobs(printJobs(kind));
 }
 window.__printJobs=printJobs;
@@ -2981,8 +3150,8 @@ function renderBuild(){
     '<div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
-    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
-    '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
+    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
+    '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['tex','LaTeX (.tex)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
     '<p class="note" id="fmtNote" style="margin-bottom:0">'+fmtNote()+'</p></div>'+
     '</div></div>';
   $$('[data-set]',main).forEach(function(el){

@@ -492,17 +492,19 @@ function printJobs(kind){
   return jobs;
 }
 /* Output format: PDF (the print window until the built-in PDF arrives), Word, or Print… */
-function outFmt(){return ui.fmt==='docx'||ui.fmt==='print'?ui.fmt:'pdf';}
+function outFmt(){return ui.fmt==='docx'||ui.fmt==='tex'||ui.fmt==='print'?ui.fmt:'pdf';}
 function fmtNote(){var f=outFmt();
   if(f==='docx')return 'Downloads one Word file you can edit. Each version starts on a new page with its own page numbers.';
+  if(f==='tex')return 'Downloads a .zip with the LaTeX file (exam class) and its pictures. Upload the .zip to Overleaf, or compile it with pdfLaTeX.';
   if(f==='pdf')return 'For now, PDF opens your browser’s print window: choose “Save as PDF” as the printer. With several versions, one window opens after another.';
   return 'Opens your browser’s print window. With several versions, one window opens after another.';}
 function printNow(kind){
   if(!state.selected.length){toast('Add some questions to the test first.');return;}
   saveTest({printed:true});drawSaved();
-  if(outFmt()==='docx'){toast('Making the Word file…');
-    return EXP.download('docx',kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
-      .catch(function(e){console.error(e);toast('Couldn’t make the Word file: '+(e&&e.message||e));});}
+  var f=outFmt(),what={docx:'Word file',tex:'LaTeX file'}[f];
+  if(what){toast('Making the '+what+'…');
+    return EXP.download(f,kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
+      .catch(function(e){console.error(e);toast('Couldn’t make the '+what+': '+(e&&e.message||e));});}
   runJobs(printJobs(kind));
 }
 window.__printJobs=printJobs;
@@ -944,8 +946,8 @@ function renderBuild(){
     '<div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
-    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
-    '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
+    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
+    '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['tex','LaTeX (.tex)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
     '<p class="note" id="fmtNote" style="margin-bottom:0">'+fmtNote()+'</p></div>'+
     '</div></div>';
   $$('[data-set]',main).forEach(function(el){

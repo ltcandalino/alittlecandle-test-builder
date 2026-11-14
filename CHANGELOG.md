@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Download as LaTeX:** Format → LaTeX (.tex) downloads a .zip with the LaTeX file (exam class, pdfLaTeX, ready for Overleaf) and its pictures: same layout as the paper, with real LaTeX math for segment and arc marks, fractions and roots, and the math symbols set up. The accommodated copy keeps its larger size and spacing.
 - **Download as Word (.docx):** a **Format** menu in the print bar (PDF, Word, Print…). With Word, the buttons download one editable file with the tests, answer keys and accommodated copy, each starting on a new page with its own page numbers and headers, laid out like the printed paper, with real Word equations, pictures (shrunk to print size) and tables. A test is typically 10 to 30 KB.
 - A candle icon for the browser tab (favicon) and the top-left corner of the app, in both the single file and the website.
 

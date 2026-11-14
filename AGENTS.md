@@ -47,7 +47,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/bnk.js` | ExamView `.bnk` parser → `BNK.parse(buf, name)` → `{title, questions, warnings, found}`. |
 | `src/pdfimp.js` | PDF import helpers on pdf.js: `PDFIMP.open/cropAll/clip/thumb/imgHtml`. |
 | `src/docx.js` | Word import: `DOCX.parse(buf, name)` → `{questions, header}`. |
-| `src/export.js` | Downloads. `makeExporter(api)` (app.js passes the functions it needs) → `EXP.sections(kind)`, `EXP.docx(kind)`, `EXP.zip` (CompressionStream deflate-raw + CRC32), `EXP.download`. Writers walk the paper HTML by class (`cl-*`, `pt-*`, `rv-*`, `ls-*`); `inlines()` turns text + m-ov/m-acc/m-frac/m-sqrt into runs → OMML. |
+| `src/export.js` | Downloads. `makeExporter(api)` (app.js passes the functions it needs) → `EXP.sections(kind)`, `EXP.docx(kind)`, `EXP.latex(kind)` (zip: .tex + images/), `EXP.zip` (CompressionStream deflate-raw + CRC32), `EXP.download`. Writers walk the paper HTML by class (`cl-*`, `pt-*`, `rv-*`, `ls-*`); `inlines()` turns text + m-ov/m-acc/m-frac/m-sqrt into runs → OMML. |
 | `src/sync.js` | `CLOUD` module: login + sync against a Supabase-style REST API (Supabase or our Docker server). |
 | `src/icon.svg` | App icon (candle): `build.py` adds it as the favicon (`<link rel=icon>`, data URL) and as `BRAND_SVG` for the header mark. |
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
@@ -106,6 +106,10 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   leaders for lines, header parts get their own .rels. Check visually with LibreOffice
   (`soffice --headless --convert-to pdf`), swapping "Century Schoolbook" → "Times New Roman" in a copy first
   (LibreOffice can't draw the Office copy of that font on her Mac). QuickLook/textutil don't draw equations.
+  LaTeX: `TexWriter` (exam class headers per section via `\setcounter{page}{1}` + `\firstpageheader`, tgschola,
+  `\newunicodechar` only for symbols used, `UNI` map, longtable for review/key, cells top-aligned with
+  `minipage[t]` + `\vspace{0pt}` when a row has blocks). TeX Live is on her Mac: export tests compile with
+  pdfLaTeX when it's on PATH (`/Library/TeX/texbin`); CI skips that part.
 - Per-question lesson roles, example concepts and bonus flags live in settings
   (`roles`, `concepts`, `bonus`, keyed by question id).
 - **Print uses `window.print()` with CSS `@page` margin boxes** (Chrome/Edge 131+). Headers are SVG
@@ -220,7 +224,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       (short panel + link to the wiki); (4) "New scramble" asks first (two-step + Undo).
 - [x] PLAN Parts A, B, C all done and released in v0.7.0 (2026-11-13).
 - [ ] PLAN.md **Plan 2** (approved 2026-11-13): Format menu + downloads as Word (.docx), LaTeX (.tex zip), PDF (pdfmake)
-      from one document description. Order: Word (DONE 2026-11-13), LaTeX, PDF. Later: Google Drive/Docs once social sign-in exists.
+      from one document description. Order: Word (DONE 2026-11-13), LaTeX (DONE 2026-11-13), PDF. Later: Google Drive/Docs once social sign-in exists.
 - [ ] `PLAN.md` (approved 2026-11-13), after the review fixes: (A) print accommodations (dyslexia font
       Atkinson Hyperlegible/OpenDyslexic embedded, large print, spacing, questions per page, extra
       accommodated copy of one version); (B) personal Display settings for the app (font, size, contrast,
@@ -273,3 +277,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-13**: favicon (candle, `src/icon.svg`). Plan 2 step 1: Format menu + Word export (`src/export.js`),
   checked with LibreOffice renders and a round trip through our Word importer (which now splits tab-separated
   choices). 190 tests. Her local test edits to docker/docker-compose.yml are uncommitted on purpose.
+- **2026-11-13**: Plan 2 step 2: LaTeX export (exam class zip), compiled and checked page by page; fixes for
+  fraction size and picture/number alignment in table cells. Export tests compile with pdfLaTeX locally.

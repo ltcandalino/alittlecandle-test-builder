@@ -6,6 +6,8 @@ const zlib = require('zlib');
 const path = require('path');
 const fs = require('fs');
 const { launch, openApp, addQuestions, select, settings, gotoTab, OUT } = require('./helpers.cjs');
+const { execFileSync, spawnSync } = require('child_process');
+const os = require('os');
 
 let browser, ctx, page, errors, ids;
 before(async () => { browser = await launch(); });
@@ -37,11 +39,13 @@ function unzip(buf) {
   }
   return out;
 }
-const makeDocx = (kind) => page.evaluate(async (kind) => {
-  const blob = await window.__tb.fn.exp().docx(kind), u8 = new Uint8Array(await blob.arrayBuffer());
+const makeFile = (fmt, kind) => page.evaluate(async ([fmt, kind]) => {
+  const blob = await window.__tb.fn.exp()[fmt](kind), u8 = new Uint8Array(await blob.arrayBuffer());
   let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
   return btoa(s);
-}, kind).then(b64 => Buffer.from(b64, 'base64'));
+}, [fmt, kind]).then(b64 => Buffer.from(b64, 'base64'));
+const makeDocx = (kind) => makeFile('docx', kind);
+const PDFLATEX = spawnSync('pdflatex', ['--version']).status === 0;
 const wellFormed = (xml) => page.evaluate(x => !new DOMParser().parseFromString(x, 'application/xml').querySelector('parsererror'), xml);
 
 describe('Word (.docx)', () => {
@@ -92,5 +96,39 @@ describe('Word (.docx)', () => {
     assert.ok(await page.evaluate(() => !!window.__tb.state.savedTests[0]), 'downloading saves the test too');
     await page.selectOption('#fmtSel', 'print');
     assert.match(await page.textContent('[data-print="both"]'), /^Print /);
+  });
+});
+
+describe('LaTeX (.zip with .tex and pictures)', () => {
+  test('exam class, real LaTeX math and symbols, one section per version and key', async () => {
+    await page.evaluate(id => { window.__tb.state.questions.find(q => q.id === id).html += ' <img src="' + (() => { const c = document.createElement('canvas'); c.width = 40; c.height = 20; return c.toDataURL('image/png'); })() + '" style="width:1in">'; }, ids[4]);
+    const z = unzip(await makeFile('latex', 'both'));
+    const texName = Object.keys(z).find(n => n.endsWith('.tex')), tex = z[texName].toString('utf8');
+    assert.match(texName, /^Geometry-Quarter-1-Unit-3-Exam---tests-and-keys\.tex$/);
+    assert.match(tex, /\\documentclass\[12pt\]\{exam\}/);
+    assert.match(tex, /\\overline\{\\mathrm\{AB\}\}/, 'segment bar');
+    assert.match(tex, /\\dfrac\{/, 'fraction');
+    assert.match(tex, /\\overset\{\\frown\}/, 'arc');
+    assert.match(tex, /\\newunicodechar\{∠\}\{\\ensuremath\{\\angle\}\}/, 'angle symbol set up');
+    assert.match(tex, /\\fillwithlines\{2\\linefillheight\}/, 'answer lines');
+    assert.equal((tex.match(/\\setcounter\{page\}\{1\}/g) || []).length, 4, 'two versions + two keys');
+    const pics = Object.keys(z).filter(n => n.startsWith('images/'));
+    assert.equal(pics.length, 1, 'the picture is in the zip once');
+    assert.ok(tex.includes('{' + pics[0] + '}'), 'and the .tex uses it');
+    if (!PDFLATEX) return; // GitHub's machines have no LaTeX; on the Mac this compiles it for real
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'alctb-tex-'));
+    for (const [n, d] of Object.entries(z)) { fs.mkdirSync(path.dirname(path.join(dir, n)), { recursive: true }); fs.writeFileSync(path.join(dir, n), d); }
+    const run = () => spawnSync('pdflatex', ['-interaction=nonstopmode', '-halt-on-error', texName], { cwd: dir, encoding: 'utf8' });
+    let r = run(); r = run();
+    assert.equal(r.status, 0, 'pdfLaTeX compiles it:\n' + (r.stdout || '').split('\n').filter(l => /^!|^l\.\d/.test(l)).join('\n'));
+    assert.ok(fs.existsSync(path.join(dir, texName.replace(/\.tex$/, '.pdf'))));
+    fs.copyFileSync(path.join(dir, texName.replace(/\.tex$/, '.pdf')), path.join(OUT, 'export-latex.pdf'));
+  });
+  test('Format menu: LaTeX downloads a .zip', async () => {
+    await gotoTab(page, 'build');
+    await page.selectOption('#fmtSel', 'tex');
+    assert.match(await page.textContent('[data-print="both"]'), /^Download /);
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-print="both"]')]);
+    assert.equal(dl.suggestedFilename(), 'Geometry Quarter 1 – Unit 3 Exam - tests and keys.zip');
   });
 });
