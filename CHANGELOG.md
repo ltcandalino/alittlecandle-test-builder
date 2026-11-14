@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-14
+
 ### Added
 - **Share a bank between courses:** on Import & backup, **Courses…** next to a bank puts its questions in other courses too, as one shared copy (an edit shows up everywhere). The question editor has course checkboxes under More details. **Delete** on a shared question, bank or course only takes it out of the current course. CSV keeps several courses separated by semicolons. Older saved data loads unchanged.
 - **Your logo** in the top-left corner of the app.
