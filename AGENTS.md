@@ -289,3 +289,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `A; B`. Released in v0.8.0 (CI, Release, image tags green).
 - **2026-11-14**: question numbers in references up to 50 (was 36); `fillMeta` re-reads refs left blank by the old limit.
 - **2026-11-14**: accent color green → her purple #7851a9 (`--accent`, tints, hc #4e2f78, favicon); paper/key colors unchanged.
+- **2026-11-14**: no green left: `--es` #4e2f78, `--tf` plum #9b3b77, saved dot, key highlight #e9e0f4, keynote, icon tints.

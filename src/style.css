@@ -1,7 +1,7 @@
 :root{
   --bg:#f6f4ef; --panel:#fff; --ink:#1d2125; --ink2:#4a5058; --muted:#5f656c; --line:#e3e0d8; --line2:#d3cfc4;
   --accent:#7851a9; --accent-ink:#fff; --accent-soft:#efe8f6; --danger:#b3261e; --danger-soft:#fbe9e7;
-  --mc:#2f5d9e; --tf:#7a4fa3; --sa:#8a5214; --es:#3d7a3a; --radius:10px;
+  --mc:#2f5d9e; --tf:#9b3b77; --sa:#8a5214; --es:#4e2f78; --radius:10px;
   --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
 }
 *{box-sizing:border-box}
@@ -32,7 +32,7 @@ label{display:block}
 .tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow);font-weight:600}
 .tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:10px;background:#e7e4dc;font-size:11.5px;color:var(--ink2)}
 .savebox{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.savebox .dot{width:8px;height:8px;border-radius:50%;background:#3b7a4a;display:inline-block}
+.savebox .dot{width:8px;height:8px;border-radius:50%;background:#7851a9;display:inline-block}
 .savebox .dot.warn{background:#d39b2a}
 .banner{background:#fff4dc;border-bottom:1px solid #f0d9a6;padding:8px 22px;font-size:13px;color:#6b4e12}
 main{max-width:1200px;margin:0 auto;padding:22px}
@@ -51,7 +51,7 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 .qcard input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
 .qmeta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:6px}
 .badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#eef1f6;color:var(--mc)}
-.badge.tf{background:#f2ecf7;color:var(--tf)} .badge.sa{background:#f8efe3;color:var(--sa)} .badge.es{background:#e9f3e8;color:var(--es)}
+.badge.tf{background:#f7e9f1;color:var(--tf)} .badge.sa{background:#f8efe3;color:var(--sa)} .badge.es{background:#ebe3f5;color:var(--es)}
 .tag{background:#f1efe9;border-radius:5px;padding:1px 7px;color:var(--ink2)}
 .qbody{font-family:"Times New Roman",Times,serif;font-size:16px;line-height:1.5}
 .qbody .q-img{max-width:100%;height:auto;display:inline-block;vertical-align:middle;margin:4px 0}
@@ -193,12 +193,12 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .pt .pt-ch.c4{grid-template-columns:repeat(4,1fr)}
 .pt .pt-ch li{display:flex;gap:6pt;align-items:baseline}
 .pt .pt-ch li b{font-weight:400;min-width:18pt}
-.pt .pt-ch li.ans{background:#dbeee9;outline:2px solid #dbeee9}
+.pt .pt-ch li.ans{background:#e9e0f4;outline:2px solid #e9e0f4}
 .pt .pt-tf{display:flex;gap:30pt;margin:4pt 0 0 4pt;font-weight:700}
-.pt .pt-tf .ans{background:#dbeee9;outline:3px solid #dbeee9}
+.pt .pt-tf .ans{background:#e9e0f4;outline:3px solid #e9e0f4}
 .pt .pt-lines div{border-bottom:1px solid #888;height:24pt}
 .pt .pt-space{border:1px dashed transparent}
-.pt .pt-keynote{color:#1f5f5b;font-family:Arial,sans-serif;font-size:10pt;margin-top:3pt;font-weight:600}
+.pt .pt-keynote{color:#7851a9;font-family:Arial,sans-serif;font-size:10pt;margin-top:3pt;font-weight:600}
 .pt .pt-key{width:100%;border-collapse:collapse;font-size:.92em;margin-top:8pt}
 .pt .pt-key th{text-align:left;font-family:Arial,sans-serif;font-size:9pt;color:#555;border-bottom:1.5px solid #000;padding:3pt 6pt}
 .pt .pt-key td{border-bottom:1px solid #ddd;padding:4pt 6pt;vertical-align:top}
