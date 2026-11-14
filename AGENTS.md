@@ -49,7 +49,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `src/docx.js` | Word import: `DOCX.parse(buf, name)` → `{questions, header}`. |
 | `src/export.js` | Downloads. `makeExporter(api)` (app.js passes the functions it needs) → `EXP.sections(kind)`, `EXP.docx(kind)`, `EXP.latex(kind)` (zip: .tex + images/), `EXP.zip` (CompressionStream deflate-raw + CRC32), `EXP.download`. Writers walk the paper HTML by class (`cl-*`, `pt-*`, `rv-*`, `ls-*`); `inlines()` turns text + m-ov/m-acc/m-frac/m-sqrt into runs → OMML. |
 | `src/sync.js` | `CLOUD` module: login + sync against a Supabase-style REST API (Supabase or our Docker server). |
-| `src/icon.svg` | App icon (candle): `build.py` adds it as the favicon (`<link rel=icon>`, data URL) and as `BRAND_SVG` for the header mark. |
+| `src/icon.svg` | Favicon (candle): `build.py` adds it as `<link rel=icon>` (data URL). |
+| `src/logo.png` | Her logo (112 px copy of her 701 px original), embedded by `build.py` as `BRAND_LOGO` for the header mark. |
 | `src/icons.js` | `LESSON_ICONS` {compass, ruler, trace}: base64 PNGs from the user's Lesson template. |
 | `src/style.css` | App styles + print styles. |
 | `vendor/pdfjs/` | pdf.js 6.5.438 legacy build (inlined as `text/plain` scripts). |
@@ -279,3 +280,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   choices). 190 tests. Her local test edits to docker/docker-compose.yml are uncommitted on purpose.
 - **2026-11-13**: Plan 2 step 2: LaTeX export (exam class zip), compiled and checked page by page; fixes for
   fraction size and picture/number alignment in table cells. Export tests compile with pdfLaTeX locally.
+- **2026-11-14**: her logo in the header (`src/logo.png`, 40 px); bank Sort adds "Newest added first" (reverse bank
+  order: new questions are appended) and "Exam date, newest first". 193 tests.

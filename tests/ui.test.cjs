@@ -22,7 +22,7 @@ describe('tabs', () => {
       return img.naturalWidth > 0;
     });
     assert.equal(ok, true, 'favicon loads as an image');
-    assert.equal(await page.evaluate(() => !!document.querySelector('.brand .mark svg')), true);
+    assert.equal(await page.evaluate(() => (document.querySelector('.brand img.mark')?.naturalWidth || 0) > 0), true);
   });
   test('all three tabs open', async () => {
     await addQuestions(page, [{}, { type: 'es' }]);
@@ -144,6 +144,15 @@ describe('question editor', () => {
     await page.fill('#fq', 'slope'); await page.dispatchEvent('#fq', 'input'); await page.waitForTimeout(400);
     const shown = await page.$$eval('#qlist .qcard', x => x.map(e => e.textContent));
     assert.equal(shown.length, 1); assert.match(shown[0], /Slope/);
+  });
+  test('sort newest added first, or by exam date newest first', async () => {
+    await addQuestions(page, [{ html: 'June 2024 q2', year: 2024, month: '06', qnum: 2 }, { html: 'Aug 2025 q1', year: 2025, month: '08', qnum: 1 }, { html: 'June 2024 q1', year: 2024, month: '06', qnum: 1 }]);
+    await gotoTab(page, 'bank');
+    const order = () => page.$$eval('#qlist .qcard div.qbody', x => x.map(e => e.textContent.trim()));
+    await page.selectOption('#fsort', 'new');
+    assert.deepEqual(await order(), ['June 2024 q1', 'Aug 2025 q1', 'June 2024 q2']);
+    await page.selectOption('#fsort', 'examnew');
+    assert.deepEqual(await order(), ['Aug 2025 q1', 'June 2024 q1', 'June 2024 q2']);
   });
 });
 

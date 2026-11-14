@@ -42,6 +42,7 @@ def font_faces():
 
 css = font_faces() + read('src', 'style.css')
 ICON = read('src', 'icon.svg').strip()
+LOGO_URL = 'data:image/png;base64,' + base64.b64encode(open(os.path.join(ROOT, 'src', 'logo.png'), 'rb').read()).decode()
 ICON_URL = 'data:image/svg+xml,' + urllib.parse.quote(ICON, safe=" =:/'")
 js = {name: read('src', name) for name in SCRIPTS}
 lib = read('vendor', 'pdfjs', 'pdf.min.mjs')
@@ -61,7 +62,7 @@ def page(with_config):
         '<body><div id="root"></div><div id="printRoot"></div>\n'
         '<script type="text/plain" id="pdflib">' + lib + '</script>\n'
         '<script type="text/plain" id="pdfworker">' + worker + '</script>\n'
-        + '<script>var APP_VERSION=' + repr(VERSION) + ';var BRAND_SVG=' + repr(ICON) + ';</script>\n'
+        + '<script>var APP_VERSION=' + repr(VERSION) + ';var BRAND_LOGO=' + repr(LOGO_URL) + ';</script>\n'
         + ('<script src="config.js"></script>\n' if with_config else '')
         + ''.join('<script>' + js[name] + '</script>\n' for name in SCRIPTS)
         + '</body></html>'
