@@ -468,6 +468,19 @@ details.fold[open]>summary{margin-bottom:12px}
 @media (max-width:640px){.svl li{flex-wrap:wrap}.svl .svn{flex-basis:100%}}
 .fmtsel{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink2);margin-left:auto}
 .fmtsel select{padding:5px 8px}
+
+/* shared banks */
+.e-courses{border:0;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 12px}
+.e-courses legend{padding:0;margin-bottom:4px}
+.e-courses label,.usein-pop label{display:flex;gap:6px;align-items:center;font-weight:400}
+.usein{position:relative}
+.usein>summary{list-style:none;cursor:pointer;padding:4px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
+.usein>summary::-webkit-details-marker{display:none}
+.usein>summary:hover{background:var(--accent-soft)}
+.usein>summary small{color:var(--muted)}
+.usein-pop{position:absolute;right:0;top:100%;z-index:20;min-width:240px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;gap:6px}
+.usein-pop .hint{margin:0 0 4px}
+.tag.also{border-style:dashed}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -2242,7 +2255,13 @@ function guessCourse(name){var n=String(name||'');
   if(/pre-?\s*calc/i.test(n))return 'Pre-Calculus';if(/\bcalc/i.test(n))return 'Calculus';if(/geom|\bgeo/i.test(n))return 'Geometry';
   if(/alg(ebra)?\s*(2|ii)\b|\ba2\b|\baii\b/i.test(n))return 'Algebra 2';if(/alg(ebra)?\s*(1|i)\b|\ba1\b|\bai\b|algebra/i.test(n))return 'Algebra 1';
   if(/stat/i.test(n))return 'Statistics';return '';}
-function cq(){return state.questions.filter(function(q){return q.course===state.course;});}
+// a question can be in several courses (one copy, shared): q.courses, with q.course = the first one
+function coursesOf(q){return Array.isArray(q.courses)&&q.courses.length?q.courses:(q.course?[q.course]:[]);}
+function inCourse(q,c){return coursesOf(q).indexOf(c)>=0;}
+function setCourses(q,list){q.courses=list.filter(function(c,i){return c&&list.indexOf(c)===i;});q.course=q.courses[0]||'';}
+// takes course c off q; true when q is left in no course (the caller deletes it)
+function dropCourse(q,c){setCourses(q,coursesOf(q).filter(function(x){return x!==c;}));return !q.courses.length;}
+function cq(){return state.questions.filter(function(q){return inCourse(q,state.course);});}
 function calcLabel(){var s=state.settings;return s.calc==='other'?String(s.calcOther||'').trim():s.calc;}
 function timeLabel(){var s=state.settings;if(s.time==='1.5')return '1.5× extended time';if(s.time==='2')return '2.0× extended time';if(s.time==='min'&&num(s.timeMin,0)>0)return num(s.timeMin,0)+' minutes';return '';}
 var PART_DIRS={
@@ -2346,8 +2365,8 @@ function normalize(s){
   });
   s.courses=Array.isArray(s.courses)&&s.courses.length?s.courses:DEFAULT_COURSES.slice();
   if(!s.course){var cnt={};s.questions.forEach(function(q){var g=q.course||guessCourse(q.bank);if(g)cnt[g]=(cnt[g]||0)+1;});var best=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0];s.course=best||s.courses[0];}
-  s.questions.forEach(function(q){if(!q.course)q.course=guessCourse(q.bank)||s.course;});
-  s.questions.forEach(function(q){if(s.courses.indexOf(q.course)<0)s.courses.push(q.course);});
+  s.questions.forEach(function(q){if(!coursesOf(q).length)q.course=guessCourse(q.bank)||s.course;setCourses(q,coursesOf(q).slice());});
+  s.questions.forEach(function(q){q.courses.forEach(function(c){if(s.courses.indexOf(c)<0)s.courses.push(c);});});
   if(s.courses.indexOf(s.course)<0)s.courses.push(s.course);
   s.courseTests=s.courseTests||{};
   var ids={};s.questions.forEach(function(q){ids[q.id]=1;});
@@ -2729,7 +2748,7 @@ function toCSV(qs){
   qs.forEach(function(q){
     var ans=isMC(q.type)?(q.answer>=0?LETTERS[q.answer]:''):q.type==='tf'?(q.answer==='T'?'True':q.answer==='F'?'False':''):(q.answer||'');
     var ch=isMC(q.type)?q.choices.slice(0,6).map(plain):[];while(ch.length<6)ch.push('');
-    out.push([q.course||''].concat([{mc:'MC',bm:'Bimodal',tf:'TF',sa:'SA',es:'Open'}[q.type],q.bank,q.source||'',q.unit||'',q.section||'',q.topic,q.subtopic||'',q.cluster||'',q.month||'',q.year||'',q.qnum||'',q.ref||'',q.standard,q.points,plain(q.html),ans].concat(ch).concat([q.type==='sa'||q.type==='es'?(q.lines||''):'',q.lockChoices?'Yes':'',q.notes||''])).map(csvCell).join(','));
+    out.push([coursesOf(q).join('; ')].concat([{mc:'MC',bm:'Bimodal',tf:'TF',sa:'SA',es:'Open'}[q.type],q.bank,q.source||'',q.unit||'',q.section||'',q.topic,q.subtopic||'',q.cluster||'',q.month||'',q.year||'',q.qnum||'',q.ref||'',q.standard,q.points,plain(q.html),ans].concat(ch).concat([q.type==='sa'||q.type==='es'?(q.lines||''):'',q.lockChoices?'Yes':'',q.notes||''])).map(csvCell).join(','));
   });
   return '\uFEFF'+out.join('\r\n')+'\r\n';
 }
@@ -2812,7 +2831,7 @@ function shell(){
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;
-  cs.innerHTML=state.courses.map(function(c){var n=state.questions.filter(function(q){return q.course===c;}).length;return '<option value="'+esc(c)+'"'+(c===state.course?' selected':'')+'>'+esc(c)+(n?' ('+n+')':'')+'</option>';}).join('')+'<option value="__manage">Add or rename courses…</option>';
+  cs.innerHTML=state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<option value="'+esc(c)+'"'+(c===state.course?' selected':'')+'>'+esc(c)+(n?' ('+n+')':'')+'</option>';}).join('')+'<option value="__manage">Add or rename courses…</option>';
   cs.onchange=function(){if(this.value==='__manage'){this.value=state.course;ui.tab='io';render();setTimeout(function(){var c=$('#coursesCard');if(c)c.scrollIntoView({behavior:'smooth'});},50);return;}switchCourse(this.value);};
 }
 function switchCourse(name){
@@ -2821,7 +2840,7 @@ function switchCourse(name){
   var t=state.courseTests[name];
   state.course=name;
   state.settings=migrateSettings(Object.assign({},DEFAULT_SETTINGS,{course:name,roles:{},concepts:{},bonus:{},seed:Math.floor(Math.random()*2147483647)},t?t.settings:{}),name);
-  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){var q=selQ(id);return q&&(q.course===name||!byId(id));}):[];
+  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){var q=selQ(id);return q&&(inCourse(q,name)||!byId(id));}):[];
   ['q','bank','topic','type','std','unit','section','source','year','month','cluster','sub','pickBank','pickTopic','pickType','pickUnit','pickSection'].forEach(function(k){ui[k]='';});
   ui.limit=40;saveUi();changed();render();toast('Switched to '+name+'.');
 }
@@ -2890,7 +2909,7 @@ function qCard(q){
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
 }
 function renderBank(){
@@ -2945,6 +2964,8 @@ function drawList(){
   $$('[data-del]',ql).forEach(function(b){b.onclick=function(){
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Confirm';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3000);return;}
     var id=b.dataset.del,q=byId(id),idx=state.questions.indexOf(q),si=state.selected.indexOf(id);
+    if(coursesOf(q).length>1){var was=coursesOf(q).slice();dropCourse(q,state.course);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
+      toast('Removed from '+state.course+'. It’s still in '+q.courses.join(', ')+'.',function(){setCourses(q,was);if(si>=0)state.selected.splice(si,0,id);changed();render();});return;}
     state.questions.splice(idx,1);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
     toast('Question deleted.',function(){state.questions.splice(idx,0,q);if(si>=0)state.selected.splice(si,0,id);changed();render();});
   };});
@@ -3007,7 +3028,7 @@ function openEditor(q){
     '<span class="lbl">Question</span>'+richBox('e-text',ed.html,'Type the question. Use the buttons for symbols, segments and pictures.',true)+
     '<div id="e-spec" style="margin-top:14px"></div>'+
     '<details class="fold ed-more" id="e-moreD"'+(edMoreOpen(ed)?' open':'')+'><summary>More details <span class="hint">course, bank, topic, part, my notes, reference, source…</span></summary>'+
-    '<div class="row4" style="grid-template-columns:1fr 1.2fr 1.2fr .8fr"><label><span class="lbl">Course</span><select id="e-course">'+state.courses.map(function(c){return '<option'+((ed.course||state.course)===c?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'</select></label><label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label></div>'+
+    '<div class="row4" style="grid-template-columns:1fr 1.2fr 1.2fr .8fr"><fieldset class="e-courses" id="e-courses"><legend class="lbl">Courses</legend>'+state.courses.map(function(c){var on=coursesOf(ed).length?inCourse(ed,c):c===state.course;return '<label><input type="checkbox" value="'+esc(c)+'"'+(on?' checked':'')+'> '+esc(c)+'</label>';}).join('')+'</fieldset><label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label></div>'+
     '<div class="row4" style="grid-template-columns:1fr 1fr 2fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">My notes <span class="hint" style="font-weight:400">— never printed on tests</span></span><input type="text" id="e-notes" value="'+esc(ed.notes||'')+'" placeholder="e.g. good warm-up; students mix up arcs"></label></div>'+
     '<div class="row4" style="grid-template-columns:1fr 1.5fr .9fr .7fr .7fr auto"><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="36" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div></details>'+
     '<p class="err" id="e-err"></p><div id="e-confirm" class="confirm-bar" role="alert" hidden></div><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
@@ -3028,7 +3049,7 @@ function openEditor(q){
 }
 function caretToEnd(el){el.focus();var r=document.createRange();r.selectNodeContents(el);r.collapse(false);var sl=window.getSelection();sl.removeAllRanges();sl.addRange(r);}
 /* "More details" starts open when any of its fields has something in it. */
-function edMoreOpen(q){return !!(q.topic||q.part||q.subtopic||q.cluster||q.notes||q.ref||q.source||q.month||q.year||q.qnum||(q.course&&q.course!==state.course)||(q.bank&&q.bank!=='My questions'));}
+function edMoreOpen(q){return !!(q.topic||q.part||q.subtopic||q.cluster||q.notes||q.ref||q.source||q.month||q.year||q.qnum||coursesOf(q).some(function(c){return c!==state.course;})||(q.bank&&q.bank!=='My questions'));}
 /* Closing the editor never throws away typing without asking. */
 var edSnap='',edReturn=null;
 function requestClose(){collect();if(JSON.stringify(ed)===edSnap){closeEditor();return;}
@@ -3037,7 +3058,7 @@ function requestClose(){collect();if(JSON.stringify(ed)===edSnap){closeEditor();
 function hideDiscard(){var c=$('#e-confirm');c.hidden=true;c.innerHTML='';$('#e-text').focus();}
 function collect(){
   if(!ed)return;
-  ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;ed.course=$('#e-course').value;ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
+  ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;setCourses(ed,$$('#e-courses input:checked').map(function(x){return x.value;}));ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
   if(isMC(ed.type))$$('[data-ct]').forEach(function(el){ed.choices[+el.dataset.ct]=el.innerHTML;});
   var a=$('#e-ans');if(a)ed.answer=a.value;
   var l=$('#e-lines');if(l){var lv=parseInt(l.value,10);ed.lines=Math.max(0,Math.min(40,isNaN(lv)?1:lv));}
@@ -3072,7 +3093,7 @@ function commitEditor(another){
   collect();var err=$('#e-err');
   var html=sanitize(ed.html);
   if(isBlank(html)){err.textContent='Type the question first.';$('#e-text').focus();return;}
-  var out={id:ed.id,part:(ed.part||'').trim(),type:ed.type,bank:(ed.bank||'').trim()||'My questions',topic:(ed.topic||'').trim(),standard:(ed.standard||'').trim(),ref:(ed.ref||'').trim(),course:ed.course||state.course,unit:(ed.unit||'').trim(),section:(ed.section||'').trim(),notes:(ed.notes||'').trim(),subtopic:(ed.subtopic||'').trim(),cluster:(ed.cluster||'').trim(),month:ed.month||'',source:(ed.source||'').trim(),searchText:ed.searchText||'',year:ed.year?parseInt(ed.year,10)||'':'',qnum:ed.qnum?parseInt(ed.qnum,10)||'':'',points:num(ed.points,1),html:html};
+  var out={id:ed.id,part:(ed.part||'').trim(),type:ed.type,bank:(ed.bank||'').trim()||'My questions',topic:(ed.topic||'').trim(),standard:(ed.standard||'').trim(),ref:(ed.ref||'').trim(),courses:coursesOf(ed).length?coursesOf(ed).slice():[state.course],unit:(ed.unit||'').trim(),section:(ed.section||'').trim(),notes:(ed.notes||'').trim(),subtopic:(ed.subtopic||'').trim(),cluster:(ed.cluster||'').trim(),month:ed.month||'',source:(ed.source||'').trim(),searchText:ed.searchText||'',year:ed.year?parseInt(ed.year,10)||'':'',qnum:ed.qnum?parseInt(ed.qnum,10)||'':'',points:num(ed.points,1),html:html};
   if(out.qnum&&(out.qnum<1||out.qnum>36)){err.textContent='Question # should be between 1 and 36.';return;}
   if(isMC(ed.type)){
     var ch=[],ans=-1;ed.choices.forEach(function(c,i){var s=sanitize(c||'');if(!isBlank(s)){if(i===ed.answer)ans=ch.length;ch.push(s);}});
@@ -3082,8 +3103,9 @@ function commitEditor(another){
   }else if(ed.type==='tf'){if(ed.answer!=='T'&&ed.answer!=='F'){err.textContent='Choose True or False as the correct answer.';return;}out.answer=ed.answer;}
   else{out.answer=(ed.answer||'').trim();var lv2=parseInt(ed.lines,10);out.lines=Math.max(0,Math.min(40,isNaN(lv2)?(ed.type==='sa'?1:8):lv2));if(ed.type==='es'){out.answerArea=ed.answerArea||'lines';out.space=num(ed.space,3);}}
   var existing=byId(out.id);
-  if(existing)state.questions[state.questions.indexOf(existing)]=out;else{state.questions.push(out);if(out.course===state.course)state.selected.push(out.id);}
-  if(out.course!==state.course){state.selected=state.selected.filter(function(x){return x!==out.id;});toast('Moved to '+out.course+'.');}
+  setCourses(out,out.courses);
+  if(existing)state.questions[state.questions.indexOf(existing)]=out;else{state.questions.push(out);if(inCourse(out,state.course))state.selected.push(out.id);}
+  if(!inCourse(out,state.course)){state.selected=state.selected.filter(function(x){return x!==out.id;});toast('Moved to '+out.courses.join(', ')+'.');}
   lastNew={type:out.type,unit:out.unit,section:out.section,bank:out.bank,topic:out.topic,standard:out.standard,points:out.points};
   changed();
   if(another){closeEditor(true);openEditor(null);toast('Saved. It’s on the test too.');}
@@ -3264,6 +3286,11 @@ function drawPreview(){
 }
 
 /* ================= import / backup tab ================= */
+// courses a bank (as seen from this course) is also in: on = every question, mixed = some
+function bankCoursesHtml(b){if(state.courses.length<2)return '';var qs=cq().filter(function(q){return q.bank===b;}),others=state.courses.filter(function(c){return c!==state.course;});
+  var also=others.filter(function(c){return qs.some(function(q){return inCourse(q,c);});});
+  return '<details class="usein"><summary class="small ghost">Courses…'+(also.length?' <small>also in '+esc(also.join(', '))+'</small>':'')+'</summary><div class="usein-pop"><p class="hint">Use these questions in other courses too. There’s still one copy, so an edit shows up everywhere.</p>'+
+    others.map(function(c){var n=qs.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-usein="'+esc(b)+'" value="'+esc(c)+'"'+(n===qs.length?' checked':'')+(n&&n<qs.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'</div></details>';}
 function bankCounts(){var c={};cq().forEach(function(q){c[q.bank]=(c[q.bank]||0)+1;});return c;}
 function daysAgo(iso){var t=Date.parse(iso);return isNaN(t)?null:Math.floor((Date.now()-t)/864e5);}
 function lastBackupText(){var n=daysAgo(ui.lastBackup);if(n==null)return 'No backup downloaded from this browser yet.';return 'Last backup: '+(n<1?'today':n===1?'yesterday':n+' days ago')+'.';}
@@ -3297,8 +3324,8 @@ function renderIO(){
   main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
   '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
-  '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span><button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
-  '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return q.course===c;}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
+  '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
+  '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: see <b>Courses…</b> under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
   '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
@@ -3306,16 +3333,21 @@ function renderIO(){
   '<div class="card"><h2>Spreadsheet (CSV)</h2><p class="note" style="margin-top:0">Columns: Course, Type (MC, Bimodal, TF, SA, Open), Bank, Source, Unit, Section, Topic, Subtopic, Cluster, Month, Year, Question #, Reference, Standard, Points, Question, Answer (a letter for MC), Choice A–F, Lines, Notes. Math and pictures don’t go into a CSV, so use the backup file to keep everything.</p><div class="actions"><span class="filebtn"><button>Import CSV…</button><input type="file" id="csvFile" accept=".csv,text/csv"></span><button id="csvOut"'+(state.questions.length?'':' disabled')+'>Export CSV</button><button class="ghost" id="csvTpl">Blank template</button></div><div id="csvRes" class="result"></div></div>'+
   '</div></div>';
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};
+  $$('[data-usein]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){
+    var name=cb.dataset.usein,c=cb.value,qs=cq().filter(function(q){return q.bank===name;});
+    qs.forEach(function(q){if(cb.checked)setCourses(q,coursesOf(q).concat([c]));else dropCourse(q,c);});
+    changed();renderIO();var d=$('details.usein [data-usein="'+CSS.escape(name)+'"]');if(d)d.closest('details').open=true;
+    toast(cb.checked?'“'+name+'” is now in '+c+' too.':'“'+name+'” is no longer in '+c+'.');};});
   $$('[data-delbank]').forEach(function(b){b.onclick=function(){
     var name=b.dataset.delbank;if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Delete '+bc[name]+'?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3500);return;}
-    var prevQ=state.questions.slice(),prevS=state.selected.slice();
-    state.questions=state.questions.filter(function(q){return q.bank!==name||q.course!==state.course;});var ids={};state.questions.forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});
+    var prevQ=JSON.parse(JSON.stringify(state.questions)),prevS=state.selected.slice();
+    state.questions=state.questions.filter(function(q){return q.bank!==name||!inCourse(q,state.course)||!dropCourse(q,state.course);});var ids={};cq().forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});
     if(ui.bank===name)ui.bank='';changed();render();toast('Deleted “'+name+'”.',function(){state.questions=prevQ;state.selected=prevS;changed();render();});
   };});
   $$('[data-rename]').forEach(function(b){b.onclick=function(){
     var li=b.closest('li'),name=b.dataset.rename;li.innerHTML='<input type="text" value="'+esc(name)+'" style="flex:1"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
     var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
-    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){state.questions.forEach(function(q){if(q.bank===name&&q.course===state.course)q.bank=nn;});if(ui.bank===name)ui.bank=nn;changed();}renderIO();};
+    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){state.questions.forEach(function(q){if(q.bank===name&&inCourse(q,state.course))q.bank=nn;});if(ui.bank===name)ui.bank=nn;changed();}renderIO();};
     bs[0].onclick=done;bs[1].onclick=renderIO;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')renderIO();};
   };});
   $('#addCourse').onclick=function(){var v=$('#newCourse').value.trim();if(!v)return;if(state.courses.indexOf(v)>=0){toast('You already have '+v+'.');return;}state.courses.push(v);changed();switchCourse(v);};
@@ -3323,15 +3355,15 @@ function renderIO(){
   $$('[data-crename]').forEach(function(b){b.onclick=function(){
     var li=b.closest('li'),name=b.dataset.crename;li.innerHTML='<input type="text" value="'+esc(name)+'" style="flex:1"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
     var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
-    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){if(state.courses.indexOf(nn)>=0){toast('You already have '+nn+'.');return;}state.courses[state.courses.indexOf(name)]=nn;state.questions.forEach(function(q){if(q.course===name)q.course=nn;});state.savedTests.forEach(function(t){if(t.course===name)t.course=nn;});if(state.courseTests[name]){state.courseTests[nn]=state.courseTests[name];delete state.courseTests[name];}if(state.course===name){state.course=nn;if(state.settings.course===name)state.settings.course=nn;}changed();}render();};
+    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){if(state.courses.indexOf(nn)>=0){toast('You already have '+nn+'.');return;}state.courses[state.courses.indexOf(name)]=nn;state.questions.forEach(function(q){if(inCourse(q,name))setCourses(q,coursesOf(q).map(function(c){return c===name?nn:c;}));});state.savedTests.forEach(function(t){if(t.course===name)t.course=nn;});if(state.courseTests[name]){state.courseTests[nn]=state.courseTests[name];delete state.courseTests[name];}if(state.course===name){state.course=nn;if(state.settings.course===name)state.settings.course=nn;}changed();}render();};
     bs[0].onclick=done;bs[1].onclick=renderIO;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')renderIO();};
   };});
   $$('[data-cdel]').forEach(function(b){b.onclick=function(){
-    var name=b.dataset.cdel,n=state.questions.filter(function(q){return q.course===name;}).length;
+    var name=b.dataset.cdel,n=state.questions.filter(function(q){return inCourse(q,name);}).length;
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent=n?'Delete with '+n+' questions?':'Delete?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3500);return;}
     var prev=JSON.parse(JSON.stringify({questions:state.questions,courses:state.courses,courseTests:state.courseTests,savedTests:state.savedTests}));
     if(state.course===name){var other=state.courses.filter(function(c){return c!==name;})[0];switchCourse(other);}
-    state.questions=state.questions.filter(function(q){return q.course!==name;});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];state.savedTests=state.savedTests.filter(function(t){return t.course!==name;});
+    state.questions=state.questions.filter(function(q){return !inCourse(q,name)||!dropCourse(q,name);});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];state.savedTests=state.savedTests.filter(function(t){return t.course!==name;});
     changed();render();toast('Deleted '+name+'.',function(){state.questions=prev.questions;state.courses=prev.courses;state.courseTests=prev.courseTests;state.savedTests=prev.savedTests;changed();render();});
   };});
   $('#bkOut').onclick=function(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');ui.lastBackup=d.toISOString();saveUi();renderIO();};
@@ -3356,7 +3388,7 @@ function renderIO(){
     var rd=new FileReader();rd.onload=function(){
       inp.value='';var r=fromCSV(String(rd.result||''),f.name.replace(/\.csv$/i,'')),res=$('#csvRes');
       if(!r.qs.length){res.className='result bad';res.textContent=r.errors[0]||'No questions found in that file.';return;}
-      r.qs.forEach(function(q){if(!q.course)q.course=state.course;else if(state.courses.indexOf(q.course)<0)state.courses.push(q.course);});state.questions=state.questions.concat(r.qs);changed();renderTabs();
+      r.qs.forEach(function(q){var cs=String(q.course||'').split(/\s*;\s*/).filter(Boolean);if(!cs.length)cs=[state.course];cs.forEach(function(c){if(state.courses.indexOf(c)<0)state.courses.push(c);});setCourses(q,cs);});state.questions=state.questions.concat(r.qs);changed();renderTabs();
       res.className='result ok';res.innerHTML='Imported '+r.qs.length+' question'+(r.qs.length>1?'s':'')+'.'+(r.errors.length?'<div style="color:var(--danger);margin-top:6px">'+r.errors.slice(0,6).map(esc).join(' · ')+'</div>':'');
     };rd.readAsText(f);
   };
@@ -3375,8 +3407,8 @@ function importBnks(files){
     var f=files[i++];
     f.arrayBuffer().then(function(buf){return BNK.parse(buf,f.name);}).then(function(out){
       var g=guessCourse(out.title),course=(g&&state.courses.indexOf(g)>=0)?g:state.course;
-      var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&q.course===course;}).length;
-      if(existing){var k=2;while(state.questions.some(function(q){return q.bank===name+' ('+k+')'&&q.course===course;}))k++;name=name+' ('+k+')';}
+      var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&inCourse(q,course);}).length;
+      if(existing){var k=2;while(state.questions.some(function(q){return q.bank===name+' ('+k+')'&&inCourse(q,course);}))k++;name=name+' ('+k+')';}
       out.questions.forEach(function(q){q.id=uid();q.bank=name;q.course=course;fillMeta(q);});
       state.questions=state.questions.concat(out.questions);total+=out.questions.length;
       var types={};out.questions.forEach(function(q){types[q.type]=(types[q.type]||0)+1;});

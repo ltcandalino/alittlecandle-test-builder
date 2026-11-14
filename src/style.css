@@ -455,3 +455,16 @@ details.fold[open]>summary{margin-bottom:12px}
 @media (max-width:640px){.svl li{flex-wrap:wrap}.svl .svn{flex-basis:100%}}
 .fmtsel{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--ink2);margin-left:auto}
 .fmtsel select{padding:5px 8px}
+
+/* shared banks */
+.e-courses{border:0;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 12px}
+.e-courses legend{padding:0;margin-bottom:4px}
+.e-courses label,.usein-pop label{display:flex;gap:6px;align-items:center;font-weight:400}
+.usein{position:relative}
+.usein>summary{list-style:none;cursor:pointer;padding:4px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
+.usein>summary::-webkit-details-marker{display:none}
+.usein>summary:hover{background:var(--accent-soft)}
+.usein>summary small{color:var(--muted)}
+.usein-pop{position:absolute;right:0;top:100%;z-index:20;min-width:240px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;gap:6px}
+.usein-pop .hint{margin:0 0 4px}
+.tag.also{border-style:dashed}

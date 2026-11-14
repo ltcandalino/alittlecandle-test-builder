@@ -180,6 +180,19 @@ describe('saved settings from older versions', () => {
     assert.ok(Array.isArray(st.courses) && st.courses.length >= 4);
     assert.ok(st.settings && typeof st.settings.roles === 'object');
   });
+  test('old questions with one course get a courses list; shared questions add their courses', async () => {
+    const st = await page.evaluate(() => window.__tb.normalize({ course: 'Geometry', questions: [
+      { id: 'a', html: 'Q', type: 'tf', course: 'Geometry' },
+      { id: 'b', html: 'Q', type: 'tf', courses: ['Algebra 1', 'Math Lab', 'Algebra 1'] }] }));
+    assert.deepEqual(st.questions[0].courses, ['Geometry']);
+    assert.deepEqual(st.questions[1].courses, ['Algebra 1', 'Math Lab'], 'duplicates dropped');
+    assert.equal(st.questions[1].course, 'Algebra 1', 'course mirrors the first one for older copies of the app');
+    assert.ok(st.courses.includes('Math Lab'));
+  });
+  test('CSV keeps several courses, separated by semicolons', async () => {
+    const out = await page.evaluate(() => { const f = window.__tb.fn; return f.toCSV([{ id: 'x', type: 'tf', html: 'Q', courses: ['Algebra 1', 'Algebra 2'], course: 'Algebra 1', bank: 'B', topic: '', standard: '', points: 1, answer: 'T' }]); });
+    assert.match(out, /Algebra 1; Algebra 2/);
+  });
 });
 
 test('no page errors', () => assert.deepEqual(errors, []));

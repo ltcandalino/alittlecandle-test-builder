@@ -79,7 +79,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   Import & backup (`renderIO`).
 - Courses: each course has its own questions and its own `settings` (stored in `state.courseTests`,
   swapped by `switchCourse`).
-- Question fields: course, bank, source, unit, section, part, topic, subtopic, standard, cluster,
+- Question fields: courses[] (shared banks: one copy in several courses; `course` mirrors courses[0] for
+  older copies; use `coursesOf`/`inCourse`/`setCourses`/`dropCourse`, never compare `q.course`), bank, source, unit, section, part, topic, subtopic, standard, cluster,
   ref (MMYYQQ → month/year/qnum via `parseRef`/`fillMeta`; month ∈ 01/06/08), notes, points, type
   (`mc` `bm` `tf` `sa` `es`), html, choices[], answer, inImage, lockChoices, space, lines, answerArea.
   Question HTML is sanitized (`sanitize`) on import/edit.
@@ -282,3 +283,6 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   fraction size and picture/number alignment in table cells. Export tests compile with pdfLaTeX locally.
 - **2026-11-14**: her logo in the header (`src/logo.png`, 40 px); bank Sort adds "Newest added first" (reverse bank
   order: new questions are appended) and "Exam date, newest first". 193 tests.
+- **2026-11-14**: shared banks: `q.courses` (normalize migrates `course`), bank **Courses…** checkboxes on Import &
+  backup, editor course checkboxes, Delete on a shared question/bank/course drops only the current course, CSV
+  `A; B`. Not released yet (she's on 0.7.1; proposed 0.8.0).

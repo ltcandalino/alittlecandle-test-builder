@@ -11,7 +11,7 @@ after(async () => { await browser.close(); });
 beforeEach(async () => { ({ context: ctx, page, errors } = await openApp(browser)); });
 afterEach(async () => { const e = errors.slice(); await ctx.close(); assert.deepEqual(e, [], 'page errors'); });
 
-const count = () => page.evaluate(() => window.__tb.state.questions.filter(q => q.course === window.__tb.state.course).length);
+const count = () => page.evaluate(() => window.__tb.state.questions.filter(q => (q.courses || [q.course]).includes(window.__tb.state.course)).length);
 const tab = async name => { await page.click(`#tabs [data-tab="${name}"]`); await page.waitForTimeout(100); };
 
 describe('tabs', () => {
@@ -364,6 +364,73 @@ describe('courses', () => {
     assert.equal(await count(), 0);
     await page.selectOption('#courseSel', start);
     assert.equal(await count(), 1);
+  });
+});
+
+describe('shared banks (one bank in several courses)', () => {
+  const st = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__tb.state.questions.map(q => ({ html: q.html, courses: q.courses, course: q.course })))));
+  const share = async (bank, course) => {
+    await gotoTab(page, 'io');
+    await page.click('details.usein summary');
+    await page.check(`[data-usein="${bank}"][value="${course}"]`);
+  };
+  test('Courses… on a bank puts its questions in another course too, as one copy', async () => {
+    await page.evaluate(() => { window.__tb.state.course = 'Algebra 1'; window.__tb.render(); });
+    await addQuestions(page, [{ html: 'Shared one' }, { html: 'Shared two' }]);
+    await share('Test bank', 'Algebra 2');
+    assert.equal((await st()).length, 2, 'no copies were made');
+    assert.match(await page.textContent('details.usein summary'), /also in Algebra 2/);
+    await page.selectOption('#courseSel', 'Algebra 2');
+    assert.equal(await count(), 2);
+    await gotoTab(page, 'bank');
+    assert.match(await page.textContent('#qlist'), /Also in Algebra 1/);
+    // an edit in one course shows in the other
+    await page.evaluate(() => { window.__tb.state.questions[0].html = 'Edited once'; });
+    await page.selectOption('#courseSel', 'Algebra 1'); await gotoTab(page, 'bank');
+    assert.match(await page.textContent('#qlist'), /Edited once/);
+  });
+  test('Delete on a shared question takes it out of this course only; Undo puts it back', async () => {
+    await page.evaluate(() => { window.__tb.state.course = 'Algebra 1'; window.__tb.render(); });
+    await addQuestions(page, [{ html: 'Shared one' }, { html: 'Only here' }]);
+    await page.evaluate(() => { window.__tb.state.questions[0].courses = ['Algebra 1', 'Algebra 2']; });
+    await gotoTab(page, 'bank');
+    const del = '#qlist .qcard:has-text("Shared one") [data-del]';
+    await page.click(del); await page.click(del);
+    let q = await st();
+    assert.equal(q.length, 2, 'still in the bank');
+    assert.deepEqual(q[0].courses, ['Algebra 2']); assert.equal(q[0].course, 'Algebra 2');
+    assert.match(await page.textContent('#toast'), /Removed from Algebra 1\. It’s still in Algebra 2/);
+    await page.click('#toast button');
+    assert.deepEqual((await st())[0].courses, ['Algebra 1', 'Algebra 2'], 'Undo');
+    const del2 = '#qlist .qcard:has-text("Only here") [data-del]';
+    await page.click(del2); await page.click(del2);
+    assert.equal((await st()).length, 1, 'a question in one course only is deleted');
+  });
+  test('the editor shows course checkboxes; unticking this course moves it', async () => {
+    await page.evaluate(() => { window.__tb.state.course = 'Algebra 1'; window.__tb.render(); });
+    await addQuestions(page, [{ html: 'Shared one' }]);
+    await page.evaluate(() => { window.__tb.state.questions[0].courses = ['Algebra 1', 'Algebra 2']; });
+    await gotoTab(page, 'bank');
+    await page.click('#qlist [data-edit]');
+    assert.equal(await page.evaluate(() => document.getElementById('e-moreD').open), true, 'More details opens for a shared question');
+    assert.deepEqual(await page.$$eval('#e-courses input:checked', x => x.map(e => e.value)), ['Algebra 1', 'Algebra 2']);
+    await page.uncheck('#e-courses input[value="Algebra 1"]');
+    await page.click('#e-save');
+    assert.deepEqual((await st())[0].courses, ['Algebra 2']);
+    assert.equal(await count(), 0);
+  });
+  test('deleting a bank or a course keeps shared questions in the other courses', async () => {
+    await page.evaluate(() => { window.__tb.state.course = 'Algebra 1'; window.__tb.render(); });
+    await addQuestions(page, [{ html: 'Shared one' }, { html: 'Only here' }]);
+    await page.evaluate(() => { window.__tb.state.questions[0].courses = ['Algebra 1', 'Algebra 2']; });
+    await gotoTab(page, 'io');
+    await page.click('[data-delbank="Test bank"]'); await page.click('[data-delbank="Test bank"]');
+    let q = await st();
+    assert.equal(q.length, 1); assert.deepEqual(q[0].courses, ['Algebra 2']);
+    await page.click('#toast button'); // Undo
+    await page.click('[data-cdel="Algebra 2"]'); await page.click('[data-cdel="Algebra 2"]');
+    q = await st();
+    assert.equal(q.length, 2); assert.ok(q.every(x => x.courses.length === 1 && x.courses[0] === 'Algebra 1'));
   });
 });
 

@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Share a bank between courses:** on Import & backup, **Courses…** next to a bank puts its questions in other courses too, as one shared copy (an edit shows up everywhere). The question editor has course checkboxes under More details. **Delete** on a shared question, bank or course only takes it out of the current course. CSV keeps several courses separated by semicolons. Older saved data loads unchanged.
 - **Your logo** in the top-left corner of the app.
 - **Sort newest first** in the question bank: "Newest added first" and "Exam date, newest first" (the old exam-date choice is now "Exam date, oldest first").
 - **Download as LaTeX:** Format → LaTeX (.tex) downloads a .zip with the LaTeX file (exam class, pdfLaTeX, ready for Overleaf) and its pictures: same layout as the paper, with real LaTeX math for segment and arc marks, fractions and roots, and the math symbols set up. The accommodated copy keeps its larger size and spacing.
