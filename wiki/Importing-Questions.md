@@ -9,7 +9,7 @@ Choose one or more `.bnk` files. The question text, answer choices, correct answ
 If a question has a **reference** in the form `MMYYQQ`, the app fills in:
 - **Month**: `01`, `06` or `08` (January, June, August)
 - **Year**: the last two digits (`24` → 2024)
-- **Question #**: 1–36
+- **Question #**: 1–50
 
 For example, `062412` means June 2024, question 12, shown as "June 2024 #12".
 

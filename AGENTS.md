@@ -81,7 +81,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   swapped by `switchCourse`).
 - Question fields: courses[] (shared banks: one copy in several courses; `course` mirrors courses[0] for
   older copies; use `coursesOf`/`inCourse`/`setCourses`/`dropCourse`, never compare `q.course`), bank, source, unit, section, part, topic, subtopic, standard, cluster,
-  ref (MMYYQQ → month/year/qnum via `parseRef`/`fillMeta`; month ∈ 01/06/08), notes, points, type
+  ref (MMYYQQ → month/year/qnum 1–50 via `parseRef`/`fillMeta`; month ∈ 01/06/08), notes, points, type
   (`mc` `bm` `tf` `sa` `es`), html, choices[], answer, inImage, lockChoices, space, lines, answerArea.
   Question HTML is sanitized (`sanitize`) on import/edit.
 - `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
@@ -287,3 +287,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-14**: shared banks: `q.courses` (normalize migrates `course`), bank **Courses…** checkboxes on Import &
   backup, editor course checkboxes, Delete on a shared question/bank/course drops only the current course, CSV
   `A; B`. Released in v0.8.0 (CI, Release, image tags green).
+- **2026-11-14**: question numbers in references up to 50 (was 36); `fillMeta` re-reads refs left blank by the old limit.

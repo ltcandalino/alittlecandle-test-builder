@@ -14,8 +14,10 @@ describe('references (MMYYQQ)', () => {
   test('January 2026 question 1', async () => {
     assert.deepEqual(await fn(page, 'parseRef', '012601'), { month: '01', year: 2026, qnum: 1 });
   });
-  test('question numbers above 36 and junk are rejected', async () => {
-    assert.equal(await fn(page, 'parseRef', '062437'), null);
+  test('question numbers 37 to 50 are read; above 50 and junk are rejected', async () => {
+    assert.deepEqual(await fn(page, 'parseRef', '062450'), { month: '06', year: 2024, qnum: 50 });
+    assert.deepEqual(await fn(page, 'parseRef', '082537'), { month: '08', year: 2025, qnum: 37 });
+    assert.equal(await fn(page, 'parseRef', '062451'), null);
     assert.equal(await fn(page, 'parseRef', 'abc'), null);
     assert.equal(await fn(page, 'parseRef', ''), null);
   });
@@ -23,6 +25,10 @@ describe('references (MMYYQQ)', () => {
     assert.equal(await fn(page, 'examLabel', { month: '06', year: 2024, qnum: 12 }), 'June 2024 #12');
     assert.equal(await fn(page, 'examLabel', { month: '08', year: 2025 }), 'August 2025');
     assert.equal(await fn(page, 'examLabel', {}), '');
+  });
+  test('a reference the old 1–36 limit left blank is read on load', async () => {
+    const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'x', type: 'tf', html: 'Q', ref: '062445', month: '', year: '', qnum: '' }] }).questions[0]);
+    assert.deepEqual([q.month, q.year, q.qnum], ['06', 2024, 45]);
   });
   test('fillMeta fills month, year and question # from the reference', async () => {
     const q = await page.evaluate(() => { const q = { ref: '082503', standard: 'G.CO.A.1' }; window.__tb.fn.fillMeta(q); return q; });
