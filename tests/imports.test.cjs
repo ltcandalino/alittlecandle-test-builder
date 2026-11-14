@@ -86,13 +86,29 @@ describe('ExamView (.bnk)', () => {
         assert.equal(bad.length, 0, bad.slice(0, 3).map(q => q.html).join(' | '));
       });
       test('every multiple-choice answer points at a real choice', () => {
-        const bad = r.questions.filter(q => q.type === 'mc' && !(q.answer >= 0 && q.answer < q.choices.length));
+        // a few bank questions have no answer marked (the reader reports "no answer"); those are allowed
+        const noAnswer = new Set(r.warnings.filter(w => /: no answer$/.test(w)).map(w => w.split(':')[0]));
+        const bad = r.questions.filter(q => q.type === 'mc' && !noAnswer.has(q.ref) && !(q.answer >= 0 && q.answer < q.choices.length));
         assert.equal(bad.length, 0);
       });
       test('pictures and math come through', () => {
         const all = r.questions.map(q => q.html + (q.choices || []).join('')).join('');
         assert.match(all, /<img /, 'no pictures found');
         assert.match(all, /class="m-|<sup>|<sub>|√|△/, 'no math found');
+      });
+      test('no unknown parts inside equations', () => {
+        const odd = r.warnings.filter(w => /: (tag\d+|template)/.test(w));
+        assert.deepEqual(odd, [], 'equation parts the reader skipped');
+      });
+      test('equations with more than one line keep their line breaks', () => {
+        // ExamView marks "next line" with code 13 (systems of equations, stacked lines)
+        // A choice that is only math with two equals signs is two equations: they must be on separate lines.
+        const bad = [];
+        for (const q of r.questions) for (const c of q.choices || []) {
+          const t = c.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
+          if (/^<span class="m">/.test(c) && !/\b(and|or)\b|[a-z]{4,}/i.test(t) && t.split('\n').some(line => (line.match(/=/g) || []).length >= 2)) bad.push(q.ref + ': ' + t);
+        }
+        assert.deepEqual(bad.slice(0, 5), []);
       });
       test('references parse into exam labels', async () => {
         const refs = r.questions.map(q => q.ref).filter(Boolean);

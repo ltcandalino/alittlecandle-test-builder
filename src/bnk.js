@@ -44,6 +44,7 @@ var BNK=(function(){
         }
         if(t===0x0b){i++;out.push({t:'E',v:i32()});continue;}
         if(t===6){i++;out.push({t:'c',c:' '});continue;}
+        if(t===13){i++;out.push({t:'br'});continue;} // next line (systems of equations, stacked lines)
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
@@ -58,6 +59,7 @@ var BNK=(function(){
     var h='';
     var prev='';
     tree.forEach(function(x){
+      if(x.t==='br'){h+='<br>';prev='';return;}
       if(x.t==='c'){
         var c=x.c==='-'?'−':x.c;
         if(/^[=≅∼<>≤≥≠≈⊥∥]$/.test(c)||(/^[+−±×÷]$/.test(c)&&prev&&!/[(\[=,:≅∼<>≤≥≠\u2009 ]$/.test(prev))){h+='<span class="m-op">'+esc(c)+'</span>';}

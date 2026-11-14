@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+- ExamView banks: equations written on more than one line (systems of equations, recursive formulas) ran together, like "3.50H+2.50P=43H+P=14". Each line now starts on its own line. Found in the Algebra I 2018–2019 bank (35 questions). Already-imported banks need to be imported again to pick this up.
+
 ## [0.8.3] - 2026-11-14
 
 ### Changed
