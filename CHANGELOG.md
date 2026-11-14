@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-11-14
+
 ### Changed
 - The last greens are purple too: the "Open response" label (True/False labels are now plum so the two still look different), the "saved" dot, the answer highlight on answer keys, and the tab icon's tints.
 
