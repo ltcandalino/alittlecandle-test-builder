@@ -184,7 +184,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
+- **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
+  **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
   zip; images `:0.7.0`, `:0.7`, `:latest` on GHCR. CI green.
 - Remote: `git@github.com:ltcandalino/alittlecandle-test-builder.git` (branch `master`), public, first
@@ -285,4 +286,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   order: new questions are appended) and "Exam date, newest first". 193 tests.
 - **2026-11-14**: shared banks: `q.courses` (normalize migrates `course`), bank **Courses…** checkboxes on Import &
   backup, editor course checkboxes, Delete on a shared question/bank/course drops only the current course, CSV
-  `A; B`. Not released yet (she's on 0.7.1; proposed 0.8.0).
+  `A; B`. Released in v0.8.0 (CI, Release, image tags green).
