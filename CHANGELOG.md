@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-14
+
 ### Changed
 - Reference numbers (MMYYQQ) and the Question # box accept question numbers up to 50 (was 36). References that were too high before are read the next time the app opens.
 
