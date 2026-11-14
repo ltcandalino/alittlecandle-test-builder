@@ -215,7 +215,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       Restore offers Replace vs Add missing (`restoreChoice`), Backup card first with `ui.lastBackup` line; (3) DONE preview
       before Print (`.printbar` sticky in the Preview card, `printSummary`); (4) DONE `--muted` #5f656c, symbol bar toolbar
       (`wireToolbar`), `:focus-visible`, `aria-current`, editor focus trap, + PLAN Part B Display (`applyDisplay`); (5) DONE `MORE_F` + chips (`chipsHtml`), "Unit 3 · Sec 2",
-      `details#pageStyle` (`ui.pageStyle`), teal for all selected states. Next: `/impeccable polish`, re-run critique.
+      `details#pageStyle` (`ui.pageStyle`), one accent color for all selected states (purple #7851a9 since 2026-11-14, was teal). Next: `/impeccable polish`, re-run critique.
 - [x] Second-review items done 2026-11-13 (print bar, editor, in-app Help, New scramble confirm).
 - [ ] Docker Scout still reports musl CVE-2026-107891 (HIGH): no fixed package in Alpine 3.24 yet; the weekly
       CI rebuild picks it up once published. Trivy doesn't flag it.
@@ -288,3 +288,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   backup, editor course checkboxes, Delete on a shared question/bank/course drops only the current course, CSV
   `A; B`. Released in v0.8.0 (CI, Release, image tags green).
 - **2026-11-14**: question numbers in references up to 50 (was 36); `fillMeta` re-reads refs left blank by the old limit.
+- **2026-11-14**: accent color green → her purple #7851a9 (`--accent`, tints, hc #4e2f78, favicon); paper/key colors unchanged.

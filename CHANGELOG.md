@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- The app's accent color is purple (#7851a9) instead of green: buttons, selected questions, tags, focus outlines and the browser-tab icon. Printed papers and answer keys are unchanged.
+
 ## [0.8.1] - 2026-11-14
 
 ### Changed
