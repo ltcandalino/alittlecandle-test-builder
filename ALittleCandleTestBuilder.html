@@ -3401,43 +3401,11 @@ function saveBankFiles(names,res){
   return Promise.resolve();
 }
 
-/* ---- shared library on this website (Docker server) ---- */
-function libOn(){return !!(CLOUDON&&CLOUD.selfHosted&&CLOUD.user());}
-var libCache=null;
-function libBankPath(file){return '/library/v1/banks/'+encodeURIComponent(file);}
-function drawLibrary(){
-  var box=$('#libList');if(!box)return;
-  if(!libCache){box.innerHTML='<p class="note">Loading the library…</p>';return;}
-  if(libCache.error){box.innerHTML='<p class="note" style="color:var(--danger)">'+esc(libCache.error)+'</p>';return;}
-  var list=libCache.banks;
-  box.innerHTML=list.length?'<ul class="banks">'+list.map(function(b){var d=b.shared&&!isNaN(Date.parse(b.shared))?new Date(b.shared).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
-    return '<li><span>'+esc(b.bank)+' <small>· '+plural(b.count,'question')+(b.courses&&b.courses.length?' · '+esc(b.courses.join(', ')):'')+' · '+(b.mine?'shared by you':'shared by '+esc(b.sharedBy||'someone'))+(d?', '+esc(d):'')+'</small></span><button class="small" data-libadd="'+esc(b.file)+'">Add to my questions</button>'+(b.canChange?'<button class="small ghost" data-libdel="'+esc(b.file)+'">Remove</button>':'')+'</li>';}).join('')+'</ul>':'<p class="note">Nothing shared yet. Choose one of your banks below and click <b>Share</b>.</p>';
-  $$('[data-libadd]',box).forEach(function(b){b.onclick=function(){var res=$('#libRes');res.className='result';res.textContent='Getting the bank…';
-    CLOUD.request('GET',libBankPath(b.dataset.libadd)).then(function(d){var r=importBankData([{name:b.dataset.libadd,data:d}]);if(ui.tab==='io')renderIO();var rr=$('#libRes');if(rr){rr.className='result '+(r.bad.length?'bad':'ok');rr.innerHTML=bankImportMsg(r)||'Nothing to add.';}if(r.added||r.updated)toast(bankImportMsg(r).replace(/<[^>]+>/g,''),r.undo);},function(e){res.className='result bad';res.textContent=e.message;});};});
-  $$('[data-libdel]',box).forEach(function(b){b.onclick=function(){
-    if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Remove from the library?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Remove';}},3500);return;}
-    CLOUD.request('DELETE',libBankPath(b.dataset.libdel)).then(function(){loadLibrary();toast('Removed from the shared library. Your own copy is unchanged.');},function(e){var res=$('#libRes');res.className='result bad';res.textContent=e.message;});};});
-}
-function loadLibrary(){
-  if(!libOn())return Promise.resolve();
-  libCache=null;drawLibrary();
-  return CLOUD.request('GET','/library/v1/banks').then(function(r){libCache={banks:(r&&r.banks)||[]};drawLibrary();},function(e){libCache={error:e.status===404?'This website’s server doesn’t have the shared library yet. Update the server to the newest version.':'Couldn’t load the library: '+e.message};drawLibrary();});
-}
-function shareBank(name){
-  var res=$('#libRes');res.className='result';res.textContent='Sharing “'+name+'”…';
-  return CLOUD.request('PUT',libBankPath(bankFileName(name)),bankFileData(name)).then(function(){res.className='result ok';res.textContent='Shared “'+name+'”. Everyone with an account on this website can add it now.';return loadLibrary();},function(e){res.className='result bad';res.textContent=e.message;});
-}
-
-/* ---- Import & backup cards: bank files, shared library, her own fields ---- */
+/* ---- Import & backup cards: bank files, her own fields ---- */
 function bankFilesCard(bnames,bc){
   return '<div class="card" id="bankFilesCard"><h2>Bank files</h2><p class="note" style="margin-top:0">Save banks as files (<b>.json</b>, one per bank) to keep in a folder on your NAS, or to give to another teacher. They keep everything: math, pictures, answers and all the details, including your own fields. Opening a bank file adds its questions, and updates the ones you already have from that file.</p>'+
     (bnames.length?'<fieldset class="bf-banks"><legend class="lbl">Banks to save</legend>'+bnames.map(function(b){return '<label><input type="checkbox" data-bf value="'+esc(b)+'" checked><span>'+esc(b)+' <small>('+bc[b]+')</small></span></label>';}).join('')+'</fieldset>':'')+
     '<div class="actions"><button class="primary" id="bfSave"'+(bnames.length?'':' disabled')+'>Save to a folder…</button><span class="filebtn"><button>Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div><div id="bfRes" class="result"></div></div>';
-}
-function libraryCard(bnames){
-  if(!libOn())return '';
-  return '<div class="card" id="libCard"><h2>Shared library</h2><p class="note" style="margin-top:0">Banks shared on this website. Anyone with an account here can add a copy to their own questions. The library is a folder on the server, so it can live on your NAS.</p><div id="libList"></div>'+
-    (bnames.length?'<div class="pickrow"><select id="libBank" aria-label="Bank to share">'+bnames.map(function(b){return '<option value="'+esc(b)+'">'+esc(b)+'</option>';}).join('')+'</select><button id="libShare">Share</button></div>':'')+'<div id="libRes" class="result"></div></div>';
 }
 function fieldsCard(){
   var fs=myFields();
@@ -3454,8 +3422,6 @@ function wireToolCards(){
       if(r.added||r.updated)toast(bankImportMsg(r).replace(/<[^>]+>/g,''),r.undo);
     });
   };
-  if($('#libCard')){if(libCache)drawLibrary();else loadLibrary();}
-  var ls=$('#libShare');if(ls)ls.onclick=function(){shareBank($('#libBank').value);};
   var af=$('#addField'),nf=$('#newField');
   if(af){af.onclick=function(){var v=nf.value.trim();if(!v){nf.focus();return;}var had=myFields().length,f=addField(v);if(myFields().length===had){toast('You already have a field called “'+f.label+'”.');return;}changed();renderIO();toast('Added the field “'+f.label+'”.');var n=$('#newField');if(n)n.focus();};
     nf.onkeydown=function(e){if(e.key==='Enter')af.click();};}
@@ -3841,7 +3807,7 @@ function renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
   main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
-  bankFilesCard(bnames,bc)+libraryCard(bnames)+
+  bankFilesCard(bnames,bc)+
   '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
   '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+bankPubHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
   fieldsCard()+

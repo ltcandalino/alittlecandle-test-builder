@@ -100,7 +100,6 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   (**Check & clean up**, `NEEDS`/`needs`, `unitGuesses`), `ui.need` + `data-xff` selects in More filters, `fLabels()`
   for chips. Bank files: `{app,kind:'bank',version:1,bank,courses,fields,questions}`, `bankFileData`/`importBankData`
   (same id → update, fields matched by label, html sanitized), `saveBankFiles` (showDirectoryPicker, else downloads).
-  Shared library: `CLOUD.request` to `/library/v1/banks[/<file>]`, cards only when self-hosted and signed in.
 - `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
 - `sanitize` parses into an inert `<template>` (so `onerror` never runs), drops script/style/svg/etc.,
   and allows images that are `data:`, `https:`, or this server's own picture URLs on `http:`.
@@ -187,9 +186,8 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
   via `DATABASE_URL`; first start on an empty one copies from `DATA_DIR/alctb.db`) + picture files in `DATA_DIR`, scrypt
   passwords, bearer tokens, admin endpoints `/admin/api/users…`, `/healthz`, and generates `config.js`
   with `selfHosted:true` (shows "Manage accounts" for admins). Env: `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`, `DATABASE_URL`, `LIBRARY_DIR` (shared library folder, default
-  `DATA_DIR/library`; one bank per `.json`; `sharedBy`/`sharedById` written into the file; only the sharer or an admin may
-  replace/remove; file names checked by `libName`, list cached by mtime/size).
+  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`, `DATABASE_URL`. (The file-based shared
+  library and `LIBRARY_DIR` were removed in Plan 3 step 2: team banks replace it.)
 
 ## Testing
 
@@ -205,7 +203,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup/CSV downloads, print
   with `window.print` stubbed); `server` API incl. isolation, lockout, admin, restart, ADMIN_RESET;
   `sync` app served by the server, two browser contexts; `print` PDFs in `tests/out/`; `tools` Change these…, clean-up,
-  her own fields, bank files (library API in `server`, library + field sync end to end in `sync`).
+  her own fields, bank files (field sync end to end in `sync`; public/team banks in `server` and `sync`).
 - Fixtures: `tests/fixtures/sample-exam.docx`, `sample-questions.pdf` (regenerate with
   `make-fixtures.py`, needs python-docx + reportlab). Her real files go in `tests/fixtures/private/`
   (gitignored; on her Mac it has `GEO2024-2026EXAMs.bnk` and `Geometry_Unit_3_Exam_v1.docx`), and are
@@ -248,9 +246,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [x] Release v0.6.0 (2026-11-13).
 - [ ] Collect her feedback from trying the single-file version.
-- [ ] Bank tools (2026-11-14): she wants to try Change these…, Check & clean up, her own fields, bank files and the shared
-      library on her real banks; library on her NAS needs `LIBRARY_DIR` + a volume in her compose file (not edited: her local
-      compose changes are uncommitted on purpose). Ideas: auto unit/section from a standard→unit map she provides.
+- [ ] Bank tools (2026-11-14): she wants to try Change these…, Check & clean up, her own fields and bank files on her
+      real banks (her local compose changes are uncommitted on purpose). Ideas: auto unit/section from a standard→unit map she provides.
 - [ ] ExamView equation codes not understood yet (shown as test diagnostics, the math around them still reads): 3 (251×),
       16 (148×), 17 (65×), 23 (24×), 24 (14×), 2 (3×), mostly in older banks (GE 2008–2016, Sequential III, Math A/B,
       Ch 9 Test Bank). Probably matrices/piles/limits; look at those questions next to ExamView output.
@@ -369,4 +366,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `:latest` = 0.10.0 checked).
 - **2026-11-15**: Plan 3 step 2: groups (admin), team banks with editors, Share dialog, editors' edits synced to owners,
   full pull when sharing changes. Kept personal banks as they are (team banks are the lists). 1484 checks + test:db green.
-  Library → team banks still to do.
+  The file-based shared library (empty on her site, NAS never set up) is removed: team banks replace it.

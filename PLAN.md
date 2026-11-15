@@ -257,7 +257,8 @@ Each question belongs to the person who added it; banks group questions; sharing
    private; old apps never receive colleagues' questions). Banks-as-lists moved to step 2, where Share needs it.
 2. Groups on Manage accounts, team banks shared with groups, editors, Share on a question. **Done 2026-11-15.**
    Simpler than "every bank is a list": your own banks stay as they are (one home bank per question, nothing to
-   migrate), and **team banks** are the lists (a question can be in many). Still to do: library → team banks.
+   migrate), and **team banks** are the lists (a question can be in many). The file-based shared library is removed
+   (it was empty); team banks replace it, and bank files still save banks to a NAS.
 3. One copy of each Regents question on upload.
 4. Personal copies that notice when the original changes, and the history.
 5. Comments and review status.

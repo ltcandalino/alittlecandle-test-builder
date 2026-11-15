@@ -30,8 +30,7 @@ to keep a copy or move to another computer.
   plus fields you add yourself (like DOK).
 - **Cleans up banks:** change a detail on many questions at once, and **Check & clean up** finds missing
   answers, standards, units and sections and fixes what it can.
-- **Bank files and a shared library:** save banks as `.json` files (one per bank) to a folder or NAS, and
-  share banks with the other teachers on your website.
+- **Bank files:** save banks as `.json` files (one per bank) to a folder or NAS, or give them to another teacher.
 - **Sharing with colleagues (website):** every question is private until you make its bank public (Regents yes,
   purchased textbook banks no). Colleagues pick public banks for their courses, use them read-only and can copy a
   question to make their own version. **Team banks** share questions (even private ones) with a group the admin sets

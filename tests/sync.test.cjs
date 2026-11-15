@@ -141,11 +141,10 @@ describe('website version', () => {
   });
 });
 
-describe('shared library and her own fields (website version)', () => {
-  test('her fields sync; a shared bank can be added by another teacher', async () => {
+describe('her own fields (website version)', () => {
+  test('her fields sync to her other computer', async () => {
     const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
     await A.call('POST', '/admin/api/users', { token: t, body: { email: 'sharer@example.com', password: 'sharer-pass-1' } });
-    await A.call('POST', '/admin/api/users', { token: t, body: { email: 'taker@example.com', password: 'taker-pass-1' } });
     const a = await signIn('sharer@example.com', 'sharer-pass-1');
     await a.page.evaluate(() => {
       const T = window.__tb, st = T.state, f = T.fn.addField('DOK');
@@ -158,25 +157,7 @@ describe('shared library and her own fields (website version)', () => {
     const a2 = await signIn('sharer@example.com', 'sharer-pass-1');
     await a2.page.waitForFunction(() => (window.__tb.state.fields || []).some(f => f.label === 'DOK'), null, { timeout: 15000 });
     await a2.context.close();
-    // share it from Import & backup
-    await a.page.waitForSelector('#libShare');
-    await a.page.selectOption('#libBank', 'Shared bank');
-    await a.page.click('#libShare');
-    await a.page.waitForSelector('#libRes.ok');
-    await a.page.waitForSelector('[data-libadd="Shared bank.json"]');
     await a.context.close();
-    // another teacher adds it
-    const b = await signIn('taker@example.com', 'taker-pass-1');
-    await b.page.waitForFunction(() => Array.isArray(window.__tb.state.courses));
-    await b.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
-    await b.page.waitForSelector('[data-libadd="Shared bank.json"]');
-    assert.match(await b.page.textContent('#libList'), /shared by sharer@example.com/);
-    assert.equal(await b.page.$('[data-libdel="Shared bank.json"]'), null, 'cannot remove someone else’s bank');
-    await b.page.click('[data-libadd="Shared bank.json"]');
-    await b.page.waitForSelector('#libRes.ok');
-    const r = await b.page.evaluate(() => { const T = window.__tb.state; return { q: T.questions.find(q => q.id === 'lib-1'), f: T.fields }; });
-    assert.equal(r.q.html, 'Shared one'); assert.equal(r.f[0].label, 'DOK'); assert.equal(r.q.extra[r.f[0].id], '2');
-    await b.context.close();
   });
 });
 

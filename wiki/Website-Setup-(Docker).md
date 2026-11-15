@@ -53,10 +53,6 @@ run the update again.
 
 Accounts, banks and pictures live in the `alctb-data` Docker volume, so updating the container keeps them. Back up that volume (see `docker/README.md`).
 
-## Shared library on a NAS
-
-Banks teachers share (**Import & backup → Shared library**) are `.json` files in the library folder, `/data/library` by default. To keep them on a NAS, mount the NAS folder into the container and set `LIBRARY_DIR` to it, for example `LIBRARY_DIR: /library` with the volume `/volume1/question-banks:/library`. Bank files you copy into that folder by hand show up in the library too. Details in `docker/README.md`.
-
 ## Groups for team banks
 
 Teachers share private banks with a **group** (see [[Sharing with Colleagues]]). As the admin, make the groups: click your

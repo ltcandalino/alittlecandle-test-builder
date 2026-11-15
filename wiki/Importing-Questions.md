@@ -59,16 +59,6 @@ Use **Blank template** to get the column headings, fill them in, then **Import C
 
 A full backup is a different file (everything at once): open it with **Restore a backup…**.
 
-## Shared library (website version)
-
-On the website, **Import & backup → Shared library** lists banks the teachers on your site have shared.
-
-- **Share**: pick one of your banks and click **Share**. Everyone with an account on the site can see it. Share it again after you fix something to replace the library copy.
-- **Add to my questions**: adds a copy to your own questions (or updates the copy you added before). Changing your copy doesn't change the library.
-- Only the teacher who shared a bank, or the site admin, can replace or **Remove** it.
-
-The library is a folder on the server. Your site admin can put it on a NAS (see [[Website Setup (Docker)]]).
-
 ## Keeping the original files
 
 The app saves the questions it pulls out of a file, not the file itself. Keep your `.bnk`, `.pdf` and `.docx` files somewhere safe, such as a NAS, and choose them from there when importing.
