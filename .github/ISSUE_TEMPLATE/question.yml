@@ -1,0 +1,19 @@
+name: Question / help
+description: Not sure how to do something? Ask here.
+labels: [question]
+body:
+  - type: textarea
+    id: q
+    attributes:
+      label: Your question
+      placeholder: "How do I share my Geometry bank with the other Geometry teachers?"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Which version of the app?
+      options:
+        - The website (signed in)
+        - The single file
+        - Not sure

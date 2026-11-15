@@ -7,6 +7,13 @@ from your own question banks.
 
 The full guide is in the [GitHub wiki](../../wiki) (source in `wiki/`).
 
+## Problems and ideas
+
+Found a bug, a bank that won't import right, or have an idea? Click **New issue** on the
+[Issues](../../issues) tab and pick a form. Please don't attach student information or banks you aren't
+allowed to share. Security problems go through [Report a vulnerability](../../security/advisories/new)
+instead (see `SECURITY.md`).
+
 ## Try it
 
 Open **`ALittleCandleTestBuilder.html`** in Chrome or Edge. No setup needed.

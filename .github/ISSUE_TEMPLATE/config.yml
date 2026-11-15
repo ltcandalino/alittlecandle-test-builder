@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: User guide (wiki)
+    url: https://github.com/ltcandalino/alittlecandle-test-builder/wiki
+    about: How to import, build, print and share tests. Many answers are here.
+  - name: Report a security problem privately
+    url: https://github.com/ltcandalino/alittlecandle-test-builder/security/advisories/new
+    about: Please don't post security problems in a public issue.

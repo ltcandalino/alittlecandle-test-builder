@@ -20,3 +20,13 @@ Open the question and fix it in the editor. The bank's original file isn't chang
 
 **The page says it's slowing down Firefox.**
 Big PDF imports are faster in Chrome or Edge. Import large PDFs a section at a time.
+
+## Reporting a problem or suggesting an idea
+
+On GitHub, open the [Issues](https://github.com/ltcandalino/alittlecandle-test-builder/issues) tab, click **New issue**
+and pick a form: **Bug report**, **Import problem**, **Feature request** or **Question / help**. A screenshot helps a lot.
+
+Please don't attach student information, passwords, or banks you aren't allowed to share (purchased textbook banks).
+Regents banks are fine. Security problems: use
+[Report a vulnerability](https://github.com/ltcandalino/alittlecandle-test-builder/security/advisories/new) instead, so
+it stays private.

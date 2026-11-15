@@ -1,0 +1,63 @@
+name: Bug report
+description: Something doesn't work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please **don't attach student information, passwords, or question banks you aren't allowed to share** (for example purchased textbook banks). Regents questions are fine.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+      placeholder: "I clicked Print tests + answer keys and the answer key was missing Part II."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen again
+      placeholder: |
+        1. Open Build & print
+        2. Choose Review
+        3. Click …
+  - type: dropdown
+    id: where
+    attributes:
+      label: Which version of the app?
+      options:
+        - The website (signed in)
+        - The single file (ALittleCandleTestBuilder.html)
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version number
+      description: Shown at the bottom of Import & backup (for example 0.9.0).
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Chrome, Edge, Safari, Firefox, Other]
+  - type: dropdown
+    id: area
+    attributes:
+      label: Part of the app
+      options:
+        - Question bank
+        - Editing a question
+        - Build & print / downloads
+        - Import (ExamView, Word, PDF, CSV)
+        - Backups and sync
+        - Sharing with colleagues
+        - Accounts / signing in
+        - Website setup (Docker)
+        - Something else
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Drag pictures here. A screenshot of the page or the printout helps a lot.

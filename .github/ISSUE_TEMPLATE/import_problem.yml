@@ -1,0 +1,38 @@
+name: Import problem
+description: A bank or file didn't come in right (missing questions, wrong answers, broken math or pictures).
+labels: [import]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Only attach files you're allowed to share.** Regents banks are fine. Purchased textbook banks are not: describe the problem and send a screenshot instead.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of file?
+      options:
+        - ExamView bank (.bnk)
+        - Word (.docx)
+        - PDF
+        - Spreadsheet (CSV)
+        - Bank file / backup (.json)
+    validations:
+      required: true
+  - type: input
+    id: file
+    attributes:
+      label: File name
+      placeholder: GEO2024-2026EXAMs.bnk
+  - type: textarea
+    id: what
+    attributes:
+      label: What's wrong?
+      description: Which questions (reference number like 061915ge, or question number) and what they look like.
+      placeholder: "Question 061915ge: the overline over AB is missing; choice 3 shows [picture]."
+    validations:
+      required: true
+  - type: textarea
+    id: shots
+    attributes:
+      label: Screenshots
+      description: One of the question in this app, and if you can, one of the same question in the original (ExamView, Word, PDF).

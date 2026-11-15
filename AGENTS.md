@@ -38,6 +38,12 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 9. Releases follow semantic versioning (MAJOR breaks saved data/backups/server setup, MINOR adds
    features, PATCH fixes). Use `python3 scripts/release.py major|minor|patch`; every release needs
    notes under [Unreleased] first. The tag drives the Docker image tags and the GitHub Release.
+10. **The Docker image never contains user data** (questions, banks, accounts, pictures): only `server.js`, `db.js`,
+   `index.html`, drivers. `docker/.dockerignore` is an allow-list and CI checks `/app` and `/data` in every build.
+   Never bake sample banks or her private fixtures into images or the app HTML.
+11. Keep README, `wiki/`, `docker/README.md` and this file current with every significant change (her request 2026-11-14).
+   Issue forms live in `.github/ISSUE_TEMPLATE/` (bug, import problem, feature, question); keep their options in step
+   with the app's tabs.
 
 ## Repo map
 

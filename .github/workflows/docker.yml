@@ -135,6 +135,9 @@ jobs:
       - name: Smoke test the image
         run: |
           docker build --pull --no-cache --build-arg APP_VERSION="$APP_VERSION" -t alctb-test docker
+          # the image is the app only: no questions, banks, accounts or pictures (those live in /data or the database)
+          test "$(docker run --rm --entrypoint sh alctb-test -c 'ls -A /app | sort | tr "\n" " "')" = "db.js index.html node_modules server.js "
+          test -z "$(docker run --rm --entrypoint sh alctb-test -c 'ls -A /data')"
           docker run -d --name alctb -p 8080:8080 \
             -e ADMIN_EMAIL=ci@example.com -e ADMIN_PASSWORD=ci-test-password alctb-test
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/healthz && break; sleep 1; done

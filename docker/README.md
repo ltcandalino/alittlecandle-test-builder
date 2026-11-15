@@ -296,6 +296,9 @@ docker scout cves ghcr.io/ltcandalino/alittlecandle-test-builder:latest
 
 ## Details
 
+- **The image is the app only.** It never contains questions, banks, accounts or pictures: those live in `/data`
+  (or your database), which you keep and back up. Updating the image never touches them, and CI checks every build
+  for this.
 - One container, Node 26 (current LTS). Data: SQLite in `/data` by default, or PostgreSQL / MySQL / MariaDB through `DATABASE_URL`; pictures are files in `/data/images`; shared banks are `.json` files in `/data/library` (or `LIBRARY_DIR`). The only packages are the database drivers (`pg`, `mysql2`), loaded only when used.
 - Passwords are stored scrambled (scrypt), never as plain text. Sign-ins expire after 60 days of not using the site.
 - Too many wrong passwords in a row pause sign-in for that email for 15 minutes.

@@ -1,0 +1,34 @@
+name: Feature request
+description: An idea that would make building, printing or sharing tests easier.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the task, not the button. Why is it hard today?
+      placeholder: "Before each unit I make three versions of a quiz and it takes me 20 minutes to …"
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+      description: Your idea, if you have one. A sketch or an example from another program is welcome.
+  - type: dropdown
+    id: who
+    attributes:
+      label: Who would use it?
+      options:
+        - Just me
+        - My department / colleagues
+        - Students (on the printed test)
+        - Whoever runs the website
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: How much would it help?
+      options:
+        - Nice to have
+        - It would save me real time
+        - I can't do my work without it

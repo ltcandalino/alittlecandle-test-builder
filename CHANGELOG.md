@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Issue forms on GitHub (**New issue**): Bug report, Import problem, Feature request, Question / help, plus `SECURITY.md` for reporting security problems privately.
+
+### Changed
+- CI checks every Docker image holds only the app (no questions, banks, accounts or pictures); the guides say so.
+
 ## [0.9.0] - 2026-11-14
 
 ### Added
