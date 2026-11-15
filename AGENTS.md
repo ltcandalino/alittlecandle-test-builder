@@ -165,6 +165,14 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
   `/rest/v1/app_state`, `/storage/v1/object/images/<sha256>`. Change detection by signature (fnv of
   canonical JSON without data URLs); soft deletes; `lastPull` from server `updated_at` minus 2 min, so
   it doesn't depend on client clocks. Images are uploaded and referenced by SHA-256 name.
+- **Public questions (Plan 3 step 1):** `questions.pub` column (0 never, 1 public, 2 was public), set by the server from
+  `data.visibility==='public'`. `GET /rest/v1/questions?shared=1` (sent by `sync.js` only when `selfHosted`) adds colleagues'
+  pub>0 rows with `owner`/`owner_email`; pub 2 or deleted come back as `deleted` with empty data. Old apps don't send
+  `shared=1`, so they never push someone else's question as their own. In the app a colleague's question has `q.owner` +
+  `q.ownerName` (never on your own): `own(q)`; push skips them; pull replaces them; their courses are a per-person overlay
+  synced as `app_state.use {id:[courses]}` (`useOf` in statePart). `dropCourse` never deletes them; Change these…,
+  clean-up, bank rename/delete and Your banks skip them. **Copy to mine** = `data-dup` with `origin {id,owner,ownerName}`.
+  Same id as one of yours → yours wins. Admin deleting an account moves its public questions to the admin.
 - `docker/server.js` implements that subset with `docker/db.js` (SQLite by default, or Postgres/MySQL/MariaDB
   via `DATABASE_URL`; first start on an empty one copies from `DATA_DIR/alctb.db`) + picture files in `DATA_DIR`, scrypt
   passwords, bearer tokens, admin endpoints `/admin/api/users…`, `/healthz`, and generates `config.js`
@@ -202,7 +210,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.9.0 released 2026-11-14** (bank tools, shared library, 9 dropped ExamView questions fixed). Next: PLAN.md Plan 3 step 1.
+- **v0.9.0 released 2026-11-14** (bank tools, shared library, 9 dropped ExamView questions fixed). Plan 3 step 1 (public/private)
+  done, not released yet (MINOR 0.10.0). Next: step 2.
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
@@ -340,3 +349,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   matched question text as a table entry (offset out of the file), dropping 9 questions in 5 old banks; entries are now validated.
   Line-break test no longer flags m∠A=m∠B=m∠C chains or worked fractions; bank-files test waited on the earlier "Saved" message.
   Export tests pass on the Mac. Released v0.9.0 (CI, Release, image tags green). Plan 3 approved. Library in her compose file still needs her NAS path.
+- **2026-11-14**: released v0.9.0. Her requests: GitHub issue forms (bug, import problem, feature, question) + SECURITY.md;
+  the image must never hold user data (CI now checks `/app` and `/data`); docs/wiki always current (rules 10–11).
+  Private vulnerability reporting is off on the repo (she decides). Plan 3 step 1: public/private questions, Shared with
+  you card, Copy to mine, admin keeps public questions of removed accounts. New wiki page Sharing-with-Colleagues.
+  1475 checks + test:db (Postgres, MariaDB, MySQL) green.

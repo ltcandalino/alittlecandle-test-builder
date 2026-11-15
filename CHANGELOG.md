@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- **Public and private banks** on the website: every question is private until you make it public. **Make public** next to a bank on Import & backup (or **Who can see it** in the editor) shares it with everyone who has an account on your site. Colleagues find it under **Shared with you**, tick the courses to use it in, and see its questions with a **Shared by …** tag. Only the owner can change them; **Copy to mine** makes your own private copy. Making a bank private again removes it for colleagues. When the admin removes an account, its public questions stay.
 - Issue forms on GitHub (**New issue**): Bug report, Import problem, Feature request, Question / help, plus `SECURITY.md` for reporting security problems privately.
 
 ### Changed

@@ -179,3 +179,63 @@ describe('shared library and her own fields (website version)', () => {
     await b.context.close();
   });
 });
+
+describe('public banks shared with colleagues (website version)', () => {
+  test('make a bank public; a colleague uses it read-only, copies a question, and loses it when it goes private', async () => {
+    const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
+    await A.call('POST', '/admin/api/users', { token: t, body: { email: 'regents@example.com', password: 'regents-pass-1' } });
+    await A.call('POST', '/admin/api/users', { token: t, body: { email: 'colleague@example.com', password: 'colleague-pass-1' } });
+    const a = await signIn('regents@example.com', 'regents-pass-1');
+    await a.page.evaluate(() => {
+      const T = window.__tb, st = T.state;
+      st.questions.push({ id: 'pub-1', course: st.course, type: 'tf', html: 'A Regents question', answer: 'T', bank: 'Regents bank', ref: '061901ge', points: 2 });
+      st.questions.push({ id: 'priv-1', course: st.course, type: 'tf', html: 'A textbook question', answer: 'F', bank: 'Textbook bank', points: 1 });
+      T.state = T.normalize(st); T.ui().tab = 'io'; T.render();
+    });
+    // Make public asks for a second click
+    await a.page.click('[data-pub="Regents bank"]');
+    assert.match(await a.page.textContent('[data-pub="Regents bank"]'), /Confirm/);
+    await a.page.click('[data-pub="Regents bank"]');
+    await a.page.waitForSelector('[data-pub="Regents bank"][data-to="private"]');
+    assert.equal(await a.page.getAttribute('[data-pub="Textbook bank"]', 'data-to'), 'public', 'other banks stay private');
+    await a.page.evaluate(() => window.__tb.fn.persist());
+    await syncNow(a.page);
+
+    const b = await signIn('colleague@example.com', 'colleague-pass-1');
+    await syncNow(b.page);
+    await b.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await b.page.waitForSelector('#sharedCard [data-shuse]');
+    const card = await b.page.textContent('#sharedCard');
+    assert.match(card, /Regents bank/); assert.match(card, /shared by regents@example.com/); assert.doesNotMatch(card, /Textbook/);
+    const course = await b.page.evaluate(() => window.__tb.state.course);
+    assert.equal(await b.page.evaluate(() => window.__tb.fn.cq().length), 0, 'not in any course until she picks one');
+    await b.page.check('#sharedCard [data-shuse="0"][value="' + course + '"]');
+    await b.page.evaluate(() => { window.__tb.ui().tab = 'bank'; window.__tb.render(); });
+    await b.page.waitForSelector('#qlist .qcard');
+    assert.match(await b.page.textContent('#qlist'), /Shared by regents@example.com/);
+    assert.equal(await b.page.$('#qlist [data-edit="pub-1"]'), null, 'no Edit on someone else’s question');
+    // Copy to mine: her own private copy that remembers where it came from
+    await b.page.click('#qlist [data-dup="pub-1"]');
+    const copy = await b.page.evaluate(() => window.__tb.state.questions.find(q => q.origin && q.origin.id === 'pub-1'));
+    assert.ok(copy && !copy.owner && !copy.visibility && copy.html === 'A Regents question');
+    await b.page.evaluate(() => window.__tb.fn.persist());
+    await syncNow(b.page);
+    // the server has her copy and her course choice, never the original as hers
+    const bt = (await A.login('colleague@example.com', 'colleague-pass-1')).json.access_token;
+    await serverHas(bt, (st, qs) => qs.some(q => q.id === copy.id) && st && st.use && st.use['pub-1']);
+    assert.ok(!(await A.call('GET', '/rest/v1/questions', { token: bt })).json.some(q => q.id === 'pub-1'));
+    // her other computer gets the shared bank in the same course
+    const b2 = await signIn('colleague@example.com', 'colleague-pass-1');
+    await b2.page.waitForFunction(c => { const q = window.__tb.state.questions.find(x => x.id === 'pub-1'); return q && q.courses.includes(c); }, course, { timeout: 15000 });
+    await b2.context.close();
+    // the owner makes it private again: it disappears for the colleague (her copy stays)
+    await a.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await a.page.click('[data-pub="Regents bank"][data-to="private"]');
+    await a.page.evaluate(() => window.__tb.fn.persist());
+    await syncNow(a.page);
+    await syncNow(b.page);
+    const left = await b.page.evaluate(() => window.__tb.state.questions.map(q => q.id));
+    assert.ok(!left.includes('pub-1')); assert.ok(left.includes(copy.id));
+    await a.context.close(); await b.context.close();
+  });
+});

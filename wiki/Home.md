@@ -10,9 +10,10 @@ Build printed **tests, quizzes, reviews and lessons** for high school math from 
 4. [[Building Documents]]: Test, Quiz, Review and Lesson
 5. [[Printing and Answer Keys]]: versions, scrambling, PDFs
 6. [[Courses]]: Geometry, Algebra 1, Algebra 2, Pre-Calculus and more
-7. [[Backups and Sync]]: keeping your work safe and moving it between computers
-8. [[Website Setup (Docker)]]: running it as a website with logins for colleagues
-9. [[Troubleshooting]]
+7. [[Sharing with Colleagues]]: public and private banks on the website
+8. [[Backups and Sync]]: keeping your work safe and moving it between computers
+9. [[Website Setup (Docker)]]: running it as a website with logins for colleagues
+10. [[Troubleshooting]]
 
 ## Two ways to use it
 

@@ -47,6 +47,23 @@ const SCHEMA = {
   ],
 };
 
+// Columns added after the first release. Adding one that is already there fails; that's fine.
+const ADD_COLUMNS = {
+  sqlite: [`ALTER TABLE questions ADD COLUMN pub INTEGER NOT NULL DEFAULT 0`],
+  postgres: [`ALTER TABLE questions ADD COLUMN IF NOT EXISTS pub SMALLINT NOT NULL DEFAULT 0`],
+  mysql: [`ALTER TABLE questions ADD COLUMN pub TINYINT NOT NULL DEFAULT 0`],
+};
+const INDEXES = {
+  sqlite: [`CREATE INDEX IF NOT EXISTS questions_pub ON questions(pub, updated_at)`],
+  postgres: [`CREATE INDEX IF NOT EXISTS questions_pub ON questions(pub, updated_at)`],
+  mysql: [`CREATE INDEX questions_pub ON questions(pub, updated_at)`],
+};
+async function addColumns(kind, exec) {
+  for (const s of ADD_COLUMNS[kind].concat(INDEXES[kind])) {
+    try { await exec(s); } catch (e) { if (!/duplicate|already exists/i.test(e.message)) throw e; }
+  }
+}
+
 // Insert-or-update, which is spelled differently in MySQL.
 function upsertSql(kind, table, keys, cols) {
   const all = keys.concat(cols);
@@ -59,7 +76,7 @@ function upsertSql(kind, table, keys, cols) {
 const pgSql = (sql) => { let i = 0; return sql.replace(/\?/g, () => '$' + (++i)); };
 
 // Counts and BIGINTs come back as strings from Postgres/MySQL; make them numbers.
-const NUMERIC = new Set(['n', 'expires', 'admin', 'deleted', 'questions']);
+const NUMERIC = new Set(['n', 'expires', 'admin', 'deleted', 'questions', 'pub']);
 const fixRow = (r) => { if (r) for (const k of Object.keys(r)) if (NUMERIC.has(k) && r[k] != null) r[k] = Number(r[k]); return r; };
 
 function kindOf(url) {
@@ -89,6 +106,7 @@ function openSqlite(file) {
     close: async () => db.close(),
   };
   for (const s of SCHEMA.sqlite) db.exec(s);
+  for (const s of ADD_COLUMNS.sqlite.concat(INDEXES.sqlite)) { try { db.exec(s); } catch (e) { if (!/duplicate|already exists/i.test(e.message)) throw e; } }
   return api;
 }
 
@@ -112,6 +130,7 @@ async function openPostgres(url) {
     close: () => pool.end(),
   });
   for (const s of SCHEMA.postgres) await pool.query(s);
+  await addColumns('postgres', (s) => pool.query(s));
   return api;
 }
 
@@ -135,6 +154,7 @@ async function openMysql(url) {
     close: () => pool.end(),
   });
   for (const s of SCHEMA.mysql) await pool.query(s);
+  await addColumns('mysql', (s) => pool.query(s));
   return api;
 }
 
@@ -155,7 +175,7 @@ async function open(url, dataDir) {
   const file = path.join(dataDir, 'alctb.db');
   const db = kind === 'sqlite' ? openSqlite(file) : await retry(() => (kind === 'postgres' ? openPostgres(url) : openMysql(url)));
   db.label = describe(kind, url, file);
-  db.upsertQuestion = upsertSql(kind, 'questions', ['user_id', 'id'], ['data', 'deleted', 'updated_at']);
+  db.upsertQuestion = upsertSql(kind, 'questions', ['user_id', 'id'], ['data', 'deleted', 'updated_at', 'pub']);
   db.upsertState = upsertSql(kind, 'app_state', ['user_id'], ['data', 'updated_at']);
   db.sqliteFile = file;
   return db;
@@ -174,7 +194,7 @@ async function copyFromSqlite(db, file, fs) {
   await db.tx(async (t) => {
     for (const u of users) await t.run('INSERT INTO users (id, email, pw, admin, created_at) VALUES (?,?,?,?,?)', [u.id, u.email, u.pw, u.admin, u.created_at]);
     for (const k of tokens) await t.run('INSERT INTO tokens (token, user_id, kind, expires) VALUES (?,?,?,?)', [k.token, k.user_id, k.kind, k.expires]);
-    for (const q of questions) await t.run('INSERT INTO questions (user_id, id, data, deleted, updated_at) VALUES (?,?,?,?,?)', [q.user_id, q.id, q.data, q.deleted, q.updated_at]);
+    for (const q of questions) await t.run('INSERT INTO questions (user_id, id, data, deleted, updated_at, pub) VALUES (?,?,?,?,?,?)', [q.user_id, q.id, q.data, q.deleted, q.updated_at, q.pub || 0]);
     for (const s of states) await t.run('INSERT INTO app_state (user_id, data, updated_at) VALUES (?,?,?)', [s.user_id, s.data, s.updated_at]);
   });
   await old.close();

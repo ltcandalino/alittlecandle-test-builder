@@ -49,7 +49,10 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
-  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[],fields:st.fields||[]};}
+  // colleagues' questions (q.owner set) aren't ours to push; the courses we put them in travel in app_state as "use"
+function foreign(q){return !!(q&&q.owner);}
+  function useOf(st){if(!st.questions)return st.use||{};var u={};st.questions.forEach(function(q){if(foreign(q)&&q.courses&&q.courses.length)u[q.id]=q.courses.slice();});return u;}
+  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[],fields:st.fields||[],use:useOf(st)};}
   function sigState(st){return fnv(canon(statePart(st)));}
 
   /* ---------- pictures ---------- */
@@ -83,7 +86,7 @@ var CLOUD=(function(){
   function pullAll(since){
     var rows=[],page=0,size=200;
     function next(){
-      var q='/rest/v1/questions?select=id,data,deleted,updated_at&order=updated_at.asc,id.asc&limit='+size+'&offset='+(page*size)+(since?'&updated_at=gt.'+encodeURIComponent(since):'');
+      var q='/rest/v1/questions?select=id,data,deleted,updated_at&order=updated_at.asc,id.asc&shared='+(cfg.selfHosted?1:0)+'&limit='+size+'&offset='+(page*size)+(since?'&updated_at=gt.'+encodeURIComponent(since):'');
       return call('GET',q).then(function(r){rows=rows.concat(r||[]);if(r&&r.length===size){page++;return next();}return rows;});
     }
     return next();
@@ -95,6 +98,16 @@ var CLOUD=(function(){
       rows.forEach(function(r){
         if(!maxSeen||r.updated_at>maxSeen)maxSeen=r.updated_at;
         var i=byId[r.id],local=i!=null?st.questions[i]:null,localSig=local?sigQ(local):null,synced=meta.synced[r.id];
+        if(r.owner&&r.owner!==session.user.id){
+          // ponytail: same id as one of ours (e.g. from a shared bank file) -> ours wins; Plan 3 step 3 links duplicates
+          if(local&&!foreign(local))return;
+          if(r.deleted){if(local){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}return;}
+          var fq=r.data;if(!fq||!fq.id)return;
+          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
+          if(local)st.questions[i]=fq;else{st.questions.push(fq);byId[fq.id]=st.questions.length-1;}
+          changed=true;return;
+        }
+        if(local&&foreign(local)){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});local=null;localSig=null;i=null;} // now ours (e.g. the admin took over a removed account's questions)
         if(r.deleted){
           if(local&&localSig===synced){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}
           delete meta.synced[r.id];return;
@@ -110,7 +123,9 @@ var CLOUD=(function(){
       if(row&&row.data&&row.data.courses){
         var remoteSig=sigState(row.data);
         var localUnchanged=meta.stateSig===null||sigState(st)===meta.stateSig;
-        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests','fields'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
+        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests','fields'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});
+          var use=d.use||{};meta.use=use;st.questions.forEach(function(q){if(foreign(q)){q.courses=(use[q.id]||[]).slice();q.course=q.courses[0]||'';}});
+          meta.stateSig=sigState(st);changed=true;}
       }
       // look back two minutes so nothing saved at the same moment is missed
       if(maxSeen){var t=Date.parse(maxSeen);meta.lastPull=isNaN(t)?maxSeen:new Date(t-120000).toISOString();}
@@ -119,7 +134,7 @@ var CLOUD=(function(){
   }
   function push(){
     var st=hooks.getState(),ups=[],dels=[],have={},uid=session.user.id;
-    st.questions.forEach(function(q){have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
+    st.questions.forEach(function(q){if(foreign(q))return;have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
     Object.keys(meta.synced).forEach(function(id){if(!have[id])dels.push(id);});
     var stateDirty=sigState(st)!==meta.stateSig;
     if(!ups.length&&!dels.length&&!stateDirty)return Promise.resolve(false);

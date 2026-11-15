@@ -236,6 +236,19 @@ async function handle(req, res) {
       const limit = Math.min(1000, Math.max(1, +u.searchParams.get('limit') || 200));
       const offset = Math.max(0, +u.searchParams.get('offset') || 0);
       const since = (u.searchParams.get('updated_at') || '').replace(/^gt\./, '');
+      // shared=1 (this version of the app and newer): also colleagues' public questions, read-only, with their owner.
+      // A question that stopped being public, or was deleted, comes back as "deleted" so copies disappear.
+      // Older apps don't ask, so they never mistake someone else's question for their own.
+      if (u.searchParams.get('shared') === '1') {
+        const rows = await db.all(`SELECT q.user_id, q.id, q.data, q.deleted, q.pub, q.updated_at, u.email FROM questions q JOIN users u ON u.id = q.user_id
+          WHERE (q.user_id = ? OR q.pub > 0)${since ? ' AND q.updated_at > ?' : ''} ORDER BY q.updated_at, q.user_id, q.id LIMIT ? OFFSET ?`,
+          since ? [me.id, since, limit, offset] : [me.id, limit, offset]);
+        return send(res, 200, rows.map((r) => {
+          if (r.user_id === me.id) return { id: r.id, data: JSON.parse(r.data), deleted: !!r.deleted, updated_at: r.updated_at };
+          const gone = r.deleted || r.pub !== 1;
+          return { id: r.id, owner: r.user_id, owner_email: r.email, data: gone ? {} : JSON.parse(r.data), deleted: !!gone, updated_at: r.updated_at };
+        }));
+      }
       const rows = since
         ? await db.all('SELECT id, data, deleted, updated_at FROM questions WHERE user_id = ? AND updated_at > ? ORDER BY updated_at, id LIMIT ? OFFSET ?', [me.id, since, limit, offset])
         : await db.all('SELECT id, data, deleted, updated_at FROM questions WHERE user_id = ? ORDER BY updated_at, id LIMIT ? OFFSET ?', [me.id, limit, offset]);
@@ -250,7 +263,9 @@ async function handle(req, res) {
           if (r.user_id && r.user_id !== me.id) throw Object.assign(new Error('Not allowed'), { code: 403 });
           if (table === 'questions') {
             if (typeof r.id !== 'string' || !r.id || r.id.length > 100) throw Object.assign(new Error('Bad id'), { code: 400 });
-            await t2.run(db.upsertQuestion, [me.id, r.id, JSON.stringify(r.data || {}), r.deleted ? 1 : 0, t]);
+            const was = await t2.get('SELECT pub FROM questions WHERE user_id = ? AND id = ?', [me.id, r.id]);
+            const pub = !r.deleted && r.data && r.data.visibility === 'public' ? 1 : (was && was.pub ? 2 : 0);
+            await t2.run(db.upsertQuestion, [me.id, r.id, JSON.stringify(r.data || {}), r.deleted ? 1 : 0, t, pub]);
           } else {
             await t2.run(db.upsertState, [me.id, JSON.stringify(r.data || {}), t]);
           }
@@ -308,8 +323,14 @@ async function handle(req, res) {
     }
     if (req.method === 'DELETE' && !action) {
       if (id === me.id) return err(res, 422, 'You can’t delete your own account.');
-      await db.run('DELETE FROM users WHERE id = ?', [id]);
-      fs.rmSync(path.join(IMG_DIR, id), { recursive: true, force: true });
+      // public questions stay for everyone: the admin who deletes the account takes them over (private ones go)
+      const mine = new Set((await db.all('SELECT id FROM questions WHERE user_id = ?', [me.id])).map((r) => r.id));
+      const pubs = (await db.all('SELECT id FROM questions WHERE user_id = ? AND pub = 1 AND deleted = 0', [id])).filter((r) => !mine.has(r.id));
+      await db.tx(async (t2) => {
+        for (const r of pubs) await t2.run('UPDATE questions SET user_id = ?, updated_at = ? WHERE user_id = ? AND id = ?', [me.id, now(), id, r.id]);
+        await t2.run('DELETE FROM users WHERE id = ?', [id]);
+      });
+      if (!pubs.length) fs.rmSync(path.join(IMG_DIR, id), { recursive: true, force: true }); // pictures of public questions stay
       return send(res, 200, { ok: true });
     }
   }

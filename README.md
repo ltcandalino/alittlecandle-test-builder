@@ -32,6 +32,9 @@ to keep a copy or move to another computer.
   answers, standards, units and sections and fixes what it can.
 - **Bank files and a shared library:** save banks as `.json` files (one per bank) to a folder or NAS, and
   share banks with the other teachers on your website.
+- **Sharing with colleagues (website):** every question is private until you make its bank public (Regents yes,
+  purchased textbook banks no). Colleagues pick public banks for their courses, use them read-only and can copy a
+  question to make their own version.
 - **Question types:** multiple choice, bimodal (print with or without choices), true/false,
   short answer, extended response.
 - **Document types**, each with the course name and a bar at the top of every page:

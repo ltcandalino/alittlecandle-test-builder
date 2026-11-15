@@ -487,3 +487,10 @@ details.fold[open]>summary{margin-bottom:12px}
 .bf-banks legend{padding:0;margin-bottom:4px}
 .bf-banks label{display:flex;gap:6px;align-items:center}
 .tag.mine{background:var(--accent-soft);color:var(--accent)}
+
+/* sharing with colleagues */
+.tag.shared{background:#f3eefa;border-color:#d5c6e8;color:var(--ink)}
+.tag.pub{background:var(--accent-soft);color:var(--accent)}
+.sh-courses{display:flex;flex-wrap:wrap;gap:2px 12px;margin-left:auto}
+.sh-courses label{display:flex;gap:6px;align-items:center;font-weight:400;font-size:13px}
+.e-vis{display:inline-flex;flex-direction:column;margin-bottom:10px}

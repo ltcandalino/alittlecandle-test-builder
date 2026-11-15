@@ -22,6 +22,7 @@ When you're signed in, your work is saved on the server and follows you to any c
 - **Signing out** removes the copy kept in that browser, which is good for shared school computers.
 - Your own fields sync too.
 - **Shared library** (Import & backup) lets you share banks with the other teachers on the site. See [[Importing Questions]].
+- **Public banks** are shared with every colleague on the site and stay up to date. See [[Sharing with Colleagues]].
 
 ### Moving from the single file to the website
 

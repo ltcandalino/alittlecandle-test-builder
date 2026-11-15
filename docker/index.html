@@ -500,6 +500,13 @@ details.fold[open]>summary{margin-bottom:12px}
 .bf-banks legend{padding:0;margin-bottom:4px}
 .bf-banks label{display:flex;gap:6px;align-items:center}
 .tag.mine{background:var(--accent-soft);color:var(--accent)}
+
+/* sharing with colleagues */
+.tag.shared{background:#f3eefa;border-color:#d5c6e8;color:var(--ink)}
+.tag.pub{background:var(--accent-soft);color:var(--accent)}
+.sh-courses{display:flex;flex-wrap:wrap;gap:2px 12px;margin-left:auto}
+.sh-courses label{display:flex;gap:6px;align-items:center;font-weight:400;font-size:13px}
+.e-vis{display:inline-flex;flex-direction:column;margin-bottom:10px}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -1585,7 +1592,10 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
-  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[],fields:st.fields||[]};}
+  // colleagues' questions (q.owner set) aren't ours to push; the courses we put them in travel in app_state as "use"
+function foreign(q){return !!(q&&q.owner);}
+  function useOf(st){if(!st.questions)return st.use||{};var u={};st.questions.forEach(function(q){if(foreign(q)&&q.courses&&q.courses.length)u[q.id]=q.courses.slice();});return u;}
+  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[],fields:st.fields||[],use:useOf(st)};}
   function sigState(st){return fnv(canon(statePart(st)));}
 
   /* ---------- pictures ---------- */
@@ -1619,7 +1629,7 @@ var CLOUD=(function(){
   function pullAll(since){
     var rows=[],page=0,size=200;
     function next(){
-      var q='/rest/v1/questions?select=id,data,deleted,updated_at&order=updated_at.asc,id.asc&limit='+size+'&offset='+(page*size)+(since?'&updated_at=gt.'+encodeURIComponent(since):'');
+      var q='/rest/v1/questions?select=id,data,deleted,updated_at&order=updated_at.asc,id.asc&shared='+(cfg.selfHosted?1:0)+'&limit='+size+'&offset='+(page*size)+(since?'&updated_at=gt.'+encodeURIComponent(since):'');
       return call('GET',q).then(function(r){rows=rows.concat(r||[]);if(r&&r.length===size){page++;return next();}return rows;});
     }
     return next();
@@ -1631,6 +1641,16 @@ var CLOUD=(function(){
       rows.forEach(function(r){
         if(!maxSeen||r.updated_at>maxSeen)maxSeen=r.updated_at;
         var i=byId[r.id],local=i!=null?st.questions[i]:null,localSig=local?sigQ(local):null,synced=meta.synced[r.id];
+        if(r.owner&&r.owner!==session.user.id){
+          // ponytail: same id as one of ours (e.g. from a shared bank file) -> ours wins; Plan 3 step 3 links duplicates
+          if(local&&!foreign(local))return;
+          if(r.deleted){if(local){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}return;}
+          var fq=r.data;if(!fq||!fq.id)return;
+          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
+          if(local)st.questions[i]=fq;else{st.questions.push(fq);byId[fq.id]=st.questions.length-1;}
+          changed=true;return;
+        }
+        if(local&&foreign(local)){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});local=null;localSig=null;i=null;} // now ours (e.g. the admin took over a removed account's questions)
         if(r.deleted){
           if(local&&localSig===synced){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}
           delete meta.synced[r.id];return;
@@ -1646,7 +1666,9 @@ var CLOUD=(function(){
       if(row&&row.data&&row.data.courses){
         var remoteSig=sigState(row.data);
         var localUnchanged=meta.stateSig===null||sigState(st)===meta.stateSig;
-        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests','fields'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
+        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests','fields'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});
+          var use=d.use||{};meta.use=use;st.questions.forEach(function(q){if(foreign(q)){q.courses=(use[q.id]||[]).slice();q.course=q.courses[0]||'';}});
+          meta.stateSig=sigState(st);changed=true;}
       }
       // look back two minutes so nothing saved at the same moment is missed
       if(maxSeen){var t=Date.parse(maxSeen);meta.lastPull=isNaN(t)?maxSeen:new Date(t-120000).toISOString();}
@@ -1655,7 +1677,7 @@ var CLOUD=(function(){
   }
   function push(){
     var st=hooks.getState(),ups=[],dels=[],have={},uid=session.user.id;
-    st.questions.forEach(function(q){have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
+    st.questions.forEach(function(q){if(foreign(q))return;have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
     Object.keys(meta.synced).forEach(function(id){if(!have[id])dels.push(id);});
     var stateDirty=sigState(st)!==meta.stateSig;
     if(!ups.length&&!dels.length&&!stateDirty)return Promise.resolve(false);
@@ -2316,7 +2338,11 @@ function coursesOf(q){return Array.isArray(q.courses)&&q.courses.length?q.course
 function inCourse(q,c){return coursesOf(q).indexOf(c)>=0;}
 function setCourses(q,list){q.courses=list.filter(function(c,i){return c&&list.indexOf(c)===i;});q.course=q.courses[0]||'';}
 // takes course c off q; true when q is left in no course (the caller deletes it)
-function dropCourse(q,c){setCourses(q,coursesOf(q).filter(function(x){return x!==c;}));return !q.courses.length;}
+function dropCourse(q,c){setCourses(q,coursesOf(q).filter(function(x){return x!==c;}));return !q.courses.length&&!q.owner;}
+// a colleague's public question (from the website): read-only here, q.owner = their account, q.ownerName = their email.
+// Taking it out of every course keeps it (dropCourse is false), so it can be added back from "Shared with you".
+function own(q){return !q.owner;}
+function sharing(){return !!(CLOUD.selfHosted&&CLOUD.user());}
 function cq(){return state.questions.filter(function(q){return inCourse(q,state.course);});}
 function calcLabel(){var s=state.settings;return s.calc==='other'?String(s.calcOther||'').trim():s.calc;}
 function timeLabel(){var s=state.settings;if(s.time==='1.5')return '1.5× extended time';if(s.time==='2')return '2.0× extended time';if(s.time==='min'&&num(s.timeMin,0)>0)return num(s.timeMin,0)+' minutes';return '';}
@@ -2414,7 +2440,7 @@ function normalize(s){
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
     if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
-    if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.nyStd=q.nyStd||'';if(q.extra!==undefined&&(!q.extra||typeof q.extra!=='object'||Array.isArray(q.extra)||!Object.keys(q.extra).length))delete q.extra;q.html=q.html||textToHtml(q.text||'');fillMeta(q);
+    if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.nyStd=q.nyStd||'';if(q.visibility!=='public')delete q.visibility;if(!q.owner){delete q.owner;delete q.ownerName;}if(q.extra!==undefined&&(!q.extra||typeof q.extra!=='object'||Array.isArray(q.extra)||!Object.keys(q.extra).length))delete q.extra;q.html=q.html||textToHtml(q.text||'');fillMeta(q);
     if(q.type==='bm'){q.space=q.space||2;}
     if(isMC(q.type)){q.choices=(Array.isArray(q.choices)?q.choices:[]).map(function(c){return c;});if(typeof q.answer!=='number')q.answer=-1;}
     if(q.type==='es'){q.answerArea=q.answerArea||'lines';if(q.lines==null)q.lines=8;if(q.space==null)q.space=3;}
@@ -2422,7 +2448,7 @@ function normalize(s){
   });
   s.courses=Array.isArray(s.courses)&&s.courses.length?s.courses:DEFAULT_COURSES.slice();
   if(!s.course){var cnt={};s.questions.forEach(function(q){var g=q.course||guessCourse(q.bank);if(g)cnt[g]=(cnt[g]||0)+1;});var best=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];})[0];s.course=best||s.courses[0];}
-  s.questions.forEach(function(q){if(!coursesOf(q).length)q.course=guessCourse(q.bank)||s.course;setCourses(q,coursesOf(q).slice());});
+  s.questions.forEach(function(q){if(!coursesOf(q).length&&!q.owner)q.course=guessCourse(q.bank)||s.course;setCourses(q,coursesOf(q).slice());});
   s.questions.forEach(function(q){q.courses.forEach(function(c){if(s.courses.indexOf(c)<0)s.courses.push(c);});});
   if(s.courses.indexOf(s.course)<0)s.courses.push(s.course);
   s.courseTests=s.courseTests||{};
@@ -2788,7 +2814,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -2974,8 +3000,8 @@ function qCard(q){
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
-  return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(q.owner?'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
 function renderBank(){
   var main=$('#main');
@@ -3020,12 +3046,14 @@ function drawList(){
   if($('#moreBtn'))$('#moreBtn').onclick=function(){ui.limit+=60;drawList();};
   $$('[data-pick]',ql).forEach(function(cb){cb.onchange=function(){var id=cb.dataset.pick;if(cb.checked){if(!isSel(id))state.selected.push(id);}else state.selected=state.selected.filter(function(x){return x!==id;});cb.closest('.qcard').classList.toggle('on',cb.checked);changed();renderTabs();$('#onCount').textContent=state.selected.length+' on the test';};});
   $$('[data-edit]',ql).forEach(function(b){b.onclick=function(){openEditor(byId(b.dataset.edit));};});
-  $$('[data-dup]',ql).forEach(function(b){b.onclick=function(){var q=byId(b.dataset.dup);var c=JSON.parse(JSON.stringify(q));c.id=uid();state.questions.splice(state.questions.indexOf(q)+1,0,c);changed();renderTabs();drawList();toast('Copied. Edit the copy to make a variation.');};});
+  $$('[data-dup]',ql).forEach(function(b){b.onclick=function(){var q=byId(b.dataset.dup);var c=JSON.parse(JSON.stringify(q));c.id=uid();
+    if(q.owner){c.origin={id:q.id,owner:q.owner,ownerName:q.ownerName||''};delete c.owner;delete c.ownerName;setCourses(c,[state.course]);} // copies of shared questions are yours and private
+    delete c.visibility;state.questions.splice(state.questions.indexOf(q)+1,0,c);changed();renderTabs();drawList();toast(q.owner?'Copied to your questions. Edit your copy as you like.':'Copied. Edit the copy to make a variation.');};});
   $$('[data-del]',ql).forEach(function(b){b.onclick=function(){
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Confirm';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3000);return;}
     var id=b.dataset.del,q=byId(id),idx=state.questions.indexOf(q),si=state.selected.indexOf(id);
-    if(coursesOf(q).length>1){var was=coursesOf(q).slice();dropCourse(q,state.course);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
-      toast('Removed from '+state.course+'. It’s still in '+q.courses.join(', ')+'.',function(){setCourses(q,was);if(si>=0)state.selected.splice(si,0,id);changed();render();});return;}
+    if(coursesOf(q).length>1||q.owner){var was=coursesOf(q).slice();dropCourse(q,state.course);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
+      toast('Removed from '+state.course+'.'+(q.courses.length?' It’s still in '+q.courses.join(', ')+'.':q.owner?' Add it back under Shared with you on Import & backup.':''),function(){setCourses(q,was);if(si>=0)state.selected.splice(si,0,id);changed();render();});return;}
     state.questions.splice(idx,1);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
     toast('Question deleted.',function(){state.questions.splice(idx,0,q);if(si>=0)state.selected.splice(si,0,id);changed();render();});
   };});
@@ -3111,6 +3139,7 @@ function bulkBox(list){
   $('#bkF').onchange=sync;$('#bkA').onchange=sync;sync();$('#bkV').focus();
   function go(){
     var k=$('#bkF').value,how=$('#bkA').value,v=$('#bkV').value.trim(),fd=$('#bkFind').value,targets=$('#bkW')&&$('#bkW').value==='ticked'?ticked:list;
+    var skip=targets.filter(function(q){return q.owner;}).length;targets=targets.filter(own);
     if(how==='set'&&!v){toast('Type the new value, or choose “clear it”.');$('#bkV').focus();return;}
     if(how==='add'&&!v){toast('Type what to add.');$('#bkV').focus();return;}
     if(how==='replace'&&!fd){toast('Type the text to find.');$('#bkFind').focus();return;}
@@ -3121,9 +3150,9 @@ function bulkBox(list){
       else{var sep=LIST_F[k];if(sep){var p=cur.split(sep.trim()).map(function(x){return x.trim();}).filter(Boolean);if(p.indexOf(v)<0)p.push(v);nv=p.join(sep);}else nv=cur?cur+' '+v:v;}
       if(k==='points'&&String(num(nv,q.points))===String(q.points))return;
       if(nv!==cur){setF(q,k,nv);n++;}});
-    if(!n){toast('Nothing changed: those questions already have that.');return;}
+    if(!n){toast(skip&&!targets.length?'Those are colleagues’ shared questions: only they can change them.':'Nothing changed: those questions already have that.');return;}
     changed();renderBank();
-    toast('Changed '+bulkLabel(k).toLowerCase().replace(/^my /,'')+' on '+plural(n,'question')+'.',function(){restoreF(snap,keys);changed();renderBank();});
+    toast('Changed '+bulkLabel(k).toLowerCase().replace(/^my /,'')+' on '+plural(n,'question')+'.'+(skip?' Left '+plural(skip,'shared question')+' alone (only their owners can change them).':''),function(){restoreF(snap,keys);changed();renderBank();});
   }
   $('#bkGo').onclick=go;$('#bkX').onclick=drawList;
   $$('input',box).forEach(function(inp){inp.onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape')drawList();};});
@@ -3135,7 +3164,7 @@ function openCleanup(){
   function close(){$('#modal').innerHTML='';renderBank();var b=$('#cleanBtn');if(b)b.focus();else if(back&&document.body.contains(back))back.focus();}
   function show(k){activeFilters().forEach(function(f){ui[f]='';});ui.need=k;ui.moreF=true;ui.limit=40;saveUi();$('#modal').innerHTML='';ui.tab='bank';render();}
   function fix(kind){
-    var qs=cq(),keys,snap,n=0,msg;
+    var qs=cq().filter(own),keys,snap,n=0,msg;
     if(kind==='mixed'){var t=qs.filter(isMixed);keys=['standard','nyStd','cluster'];snap=snapF(t,keys);t.forEach(function(q){if(splitNY(q))n++;});msg='Moved the old NY codes to “Old NY standard” on '+plural(n,'question')+'.';}
     else if(kind==='nocl'){var t2=qs.filter(function(q){return needs(q,'nocl');});keys=['cluster'];snap=snapF(t2,keys);t2.forEach(function(q){q.cluster=clusterOf(q.standard);n++;});msg='Filled in the cluster on '+plural(n,'question')+'.';}
     else if(kind==='units'){var g=unitGuesses(qs.filter(function(q){return !q.unit||!q.section;}));keys=['unit','section'];snap=snapF(g.map(function(x){return x.q;}),keys);g.forEach(function(x){if(x.unit)x.q.unit=x.unit;if(x.section)x.q.section=x.section;n++;});msg='Copied the unit and section to '+plural(n,'question')+'.';}
@@ -3147,7 +3176,7 @@ function openCleanup(){
     return '<li><div><p>'+text+'</p>'+(hint?'<p class="hint">'+hint+'</p>':'')+'</div><div class="cu-acts">'+(fixKind?'<button class="small primary" data-fix="'+fixKind+'">'+esc(fixLabel)+'</button>':'')+(showKey?'<button class="small" data-show="'+showKey+'">Show them</button>':'')+'</div></li>';
   }
   function draw(){
-    var qs=cq(),c={};NEEDS.forEach(function(n){c[n[0]]=qs.filter(function(q){return needs(q,n[0]);}).length;});
+    var qs=cq().filter(own),c={};NEEDS.forEach(function(n){c[n[0]]=qs.filter(function(q){return needs(q,n[0]);}).length;});
     var g=unitGuesses(qs.filter(function(q){return !q.unit||!q.section;})),rows=[];
     if(c.mixed)rows.push(row('<b>'+plural(c.mixed,'question')+'</b> '+(c.mixed===1?'has':'have')+' an old NY code (like “NY: A.N.1”) mixed in with the Common Core standard.','mixed','Move them to “Old NY standard”','mixed','The Common Core code stays in Standard. The old code is kept in its own field, so you can still search for it.'));
     if(c.nocl)rows.push(row('<b>'+plural(c.nocl,'question')+'</b> '+(c.nocl===1?'has':'have')+' a standard but no cluster.','nocl','Fill in the clusters','nocl','For example, A.REI.B.4 is in cluster A.REI.B.'));
@@ -3367,6 +3396,7 @@ function openEditor(q){
     '<span class="lbl">Question</span>'+richBox('e-text',ed.html,'Type the question. Use the buttons for symbols, segments and pictures.',true)+
     '<div id="e-spec" style="margin-top:14px"></div>'+
     '<details class="fold ed-more" id="e-moreD"'+(edMoreOpen(ed)?' open':'')+'><summary>More details <span class="hint">course, bank, topic, part, my notes, reference, source…</span></summary>'+
+    (sharing()?'<label class="e-vis"><span class="lbl">Who can see it</span><select id="e-vis"><option value="private">Only me (private)</option><option value="public"'+(ed.visibility==='public'?' selected':'')+'>Everyone on this site (public)</option></select></label>':'')+
     '<div class="row4" style="grid-template-columns:1fr 1.2fr 1.2fr .8fr"><fieldset class="e-courses" id="e-courses"><legend class="lbl">Courses</legend>'+state.courses.map(function(c){var on=coursesOf(ed).length?inCourse(ed,c):c===state.course;return '<label><input type="checkbox" value="'+esc(c)+'"'+(on?' checked':'')+'> '+esc(c)+'</label>';}).join('')+'</fieldset><label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label></div>'+
     '<div class="row4" style="grid-template-columns:1fr 1fr 2fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">My notes <span class="hint" style="font-weight:400">— never printed on tests</span></span><input type="text" id="e-notes" value="'+esc(ed.notes||'')+'" placeholder="e.g. good warm-up; students mix up arcs"></label></div>'+
     '<div class="row4" style="grid-template-columns:1fr 1.5fr .9fr .7fr .7fr auto"><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="50" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div>'+
@@ -3399,7 +3429,7 @@ function hideDiscard(){var c=$('#e-confirm');c.hidden=true;c.innerHTML='';$('#e-
 function collect(){
   if(!ed)return;
   ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;setCourses(ed,$$('#e-courses input:checked').map(function(x){return x.value;}));ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
-  var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var x={};Object.keys(ed.extra||{}).forEach(function(k){if(!fieldById(k))x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
+  var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var vs=$('#e-vis');if(vs){if(vs.value==='public')ed.visibility='public';else delete ed.visibility;}var x={};Object.keys(ed.extra||{}).forEach(function(k){if(!fieldById(k))x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
   if(isMC(ed.type))$$('[data-ct]').forEach(function(el){ed.choices[+el.dataset.ct]=el.innerHTML;});
   var a=$('#e-ans');if(a)ed.answer=a.value;
   var l=$('#e-lines');if(l){var lv=parseInt(l.value,10);ed.lines=Math.max(0,Math.min(40,isNaN(lv)?1:lv));}
@@ -3444,6 +3474,7 @@ function commitEditor(another){
   }else if(ed.type==='tf'){if(ed.answer!=='T'&&ed.answer!=='F'){err.textContent='Choose True or False as the correct answer.';return;}out.answer=ed.answer;}
   else{out.answer=(ed.answer||'').trim();var lv2=parseInt(ed.lines,10);out.lines=Math.max(0,Math.min(40,isNaN(lv2)?(ed.type==='sa'?1:8):lv2));if(ed.type==='es'){out.answerArea=ed.answerArea||'lines';out.space=num(ed.space,3);}}
   if(ed.extra&&Object.keys(ed.extra).length)out.extra=JSON.parse(JSON.stringify(ed.extra));
+  if(ed.visibility==='public')out.visibility='public';if(ed.origin)out.origin=ed.origin;
   var existing=byId(out.id);
   setCourses(out,out.courses);
   if(existing)state.questions[state.questions.indexOf(existing)]=out;else{state.questions.push(out);if(inCourse(out,state.course))state.selected.push(out.id);}
@@ -3629,11 +3660,22 @@ function drawPreview(){
 
 /* ================= import / backup tab ================= */
 // courses a bank (as seen from this course) is also in: on = every question, mixed = some
-function bankCoursesHtml(b){if(state.courses.length<2)return '';var qs=cq().filter(function(q){return q.bank===b;}),others=state.courses.filter(function(c){return c!==state.course;});
+function bankCoursesHtml(b){if(state.courses.length<2)return '';var qs=cq().filter(function(q){return q.bank===b&&own(q);}),others=state.courses.filter(function(c){return c!==state.course;});
   var also=others.filter(function(c){return qs.some(function(q){return inCourse(q,c);});});
   return '<details class="usein"><summary class="small ghost">Courses…'+(also.length?' <small>also in '+esc(also.join(', '))+'</small>':'')+'</summary><div class="usein-pop"><p class="hint">Use these questions in other courses too. There’s still one copy, so an edit shows up everywhere.</p>'+
     others.map(function(c){var n=qs.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-usein="'+esc(b)+'" value="'+esc(c)+'"'+(n===qs.length?' checked':'')+(n&&n<qs.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'</div></details>';}
-function bankCounts(){var c={};cq().forEach(function(q){c[q.bank]=(c[q.bank]||0)+1;});return c;}
+// Public / Private for a whole bank of your own (website only)
+function bankPubHtml(b){if(!sharing())return '';var qs=cq().filter(function(q){return q.bank===b&&own(q);}),np=qs.filter(function(q){return q.visibility==='public';}).length;
+  var regents=qs.filter(function(q){return q.ref;}).length>=qs.length*0.8;
+  return np===qs.length?'<button class="small ghost" data-pub="'+esc(b)+'" data-to="private" title="Only you will see these questions again">Public · make private</button>':
+    '<button class="small ghost" data-pub="'+esc(b)+'" data-to="public" title="'+(regents?'These look like Regents questions, which are fine to share. ':'')+'Everyone with an account on this site will see and use them. Don’t make purchased textbook banks public.">'+(np?'Partly public · make all public':'Make public')+'</button>';}
+// colleagues' public banks, grouped by owner and bank name, with the courses you use them in
+function sharedBanks(){var g={},out=[];state.questions.forEach(function(q){if(!q.owner)return;var k=q.owner+'\u0001'+q.bank;if(!g[k]){g[k]={owner:q.ownerName||'a colleague',bank:q.bank,qs:[]};out.push(g[k]);}g[k].qs.push(q);});
+  return out.sort(function(a,b){return a.bank.localeCompare(b.bank)||a.owner.localeCompare(b.owner);});}
+function sharedCardHtml(){if(!sharing())return '';var sb=sharedBanks();
+  return '<div class="card" id="sharedCard"><h2>Shared with you</h2><p class="note" style="margin-top:0">Banks your colleagues made public. Tick the courses where you want to use them. Only the person who shared a bank can change its questions; <b>Copy to mine</b> on a question makes your own version.</p>'+
+    (sb.length?'<ul class="banks">'+sb.map(function(x,i){return '<li><span>'+esc(x.bank)+' <small>· '+plural(x.qs.length,'question')+' · shared by '+esc(x.owner)+'</small></span><span class="sh-courses">'+state.courses.map(function(c){var n=x.qs.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-shuse="'+i+'" value="'+esc(c)+'"'+(n===x.qs.length?' checked':'')+(n&&n<x.qs.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'</span></li>';}).join('')+'</ul>':'<p class="hint">Nothing shared yet. When a colleague makes a bank public, it shows up here.</p>')+'</div>';}
+function bankCounts(){var c={};cq().filter(own).forEach(function(q){c[q.bank]=(c[q.bank]||0)+1;});return c;}
 function daysAgo(iso){var t=Date.parse(iso);return isNaN(t)?null:Math.floor((Date.now()-t)/864e5);}
 function lastBackupText(){var n=daysAgo(ui.lastBackup);if(n==null)return 'No backup downloaded from this browser yet.';return 'Last backup: '+(n<1?'today':n===1?'yesterday':n+' days ago')+'.';}
 function backupStale(){var n=daysAgo(ui.lastBackup);return n==null||n>=14;}
@@ -3667,8 +3709,9 @@ function renderIO(){
   '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
   bankFilesCard(bnames,bc)+libraryCard(bnames)+
   '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
-  '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
+  '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+bankPubHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
   fieldsCard()+
+  sharedCardHtml()+
   '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: see <b>Courses…</b> under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
@@ -3679,20 +3722,31 @@ function renderIO(){
   wireToolCards();
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};
   $$('[data-usein]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){
-    var name=cb.dataset.usein,c=cb.value,qs=cq().filter(function(q){return q.bank===name;});
+    var name=cb.dataset.usein,c=cb.value,qs=cq().filter(function(q){return q.bank===name&&own(q);});
     qs.forEach(function(q){if(cb.checked)setCourses(q,coursesOf(q).concat([c]));else dropCourse(q,c);});
     changed();renderIO();var d=$('details.usein [data-usein="'+CSS.escape(name)+'"]');if(d)d.closest('details').open=true;
     toast(cb.checked?'“'+name+'” is now in '+c+' too.':'“'+name+'” is no longer in '+c+'.');};});
+  $$('[data-pub]').forEach(function(b){b.onclick=function(){
+    var name=b.dataset.pub,to=b.dataset.to,qs=cq().filter(function(q){return q.bank===name&&own(q);});
+    if(to==='public'&&!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Confirm: everyone on this site sees it';setTimeout(function(){if(document.body.contains(b))renderIO();},4000);return;}
+    var was=qs.map(function(q){return q.visibility;});qs.forEach(function(q){if(to==='public')q.visibility='public';else delete q.visibility;});changed();renderIO();
+    toast(to==='public'?'“'+name+'” is public: colleagues on this site can use it.':'“'+name+'” is private again.',function(){qs.forEach(function(q,i){if(was[i])q.visibility=was[i];else delete q.visibility;});changed();renderIO();});
+  };});
+  var sbs=sharedBanks();
+  $$('[data-shuse]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){var x=sbs[+cb.dataset.shuse],c=cb.value;
+    x.qs.forEach(function(q){if(cb.checked)setCourses(q,coursesOf(q).concat([c]));else dropCourse(q,c);});
+    if(!cb.checked){var ids={};cq().forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});}
+    changed();renderIO();toast(cb.checked?'“'+x.bank+'” is now in '+c+'.':'“'+x.bank+'” is no longer in '+c+'.');};});
   $$('[data-delbank]').forEach(function(b){b.onclick=function(){
     var name=b.dataset.delbank;if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Delete '+bc[name]+'?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3500);return;}
     var prevQ=JSON.parse(JSON.stringify(state.questions)),prevS=state.selected.slice();
-    state.questions=state.questions.filter(function(q){return q.bank!==name||!inCourse(q,state.course)||!dropCourse(q,state.course);});var ids={};cq().forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});
+    state.questions=state.questions.filter(function(q){return q.bank!==name||q.owner||!inCourse(q,state.course)||!dropCourse(q,state.course);});var ids={};cq().forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});
     if(ui.bank===name)ui.bank='';changed();render();toast('Deleted “'+name+'”.',function(){state.questions=prevQ;state.selected=prevS;changed();render();});
   };});
   $$('[data-rename]').forEach(function(b){b.onclick=function(){
     var li=b.closest('li'),name=b.dataset.rename;li.innerHTML='<input type="text" value="'+esc(name)+'" style="flex:1"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
     var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
-    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){state.questions.forEach(function(q){if(q.bank===name&&inCourse(q,state.course))q.bank=nn;});if(ui.bank===name)ui.bank=nn;changed();}renderIO();};
+    var done=function(){var nn=inp.value.trim();if(nn&&nn!==name){state.questions.forEach(function(q){if(q.bank===name&&own(q)&&inCourse(q,state.course))q.bank=nn;});if(ui.bank===name)ui.bank=nn;changed();}renderIO();};
     bs[0].onclick=done;bs[1].onclick=renderIO;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')renderIO();};
   };});
   $('#addCourse').onclick=function(){var v=$('#newCourse').value.trim();if(!v)return;if(state.courses.indexOf(v)>=0){toast('You already have '+v+'.');return;}state.courses.push(v);changed();switchCourse(v);};

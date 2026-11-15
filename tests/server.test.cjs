@@ -172,6 +172,46 @@ describe('pictures', () => {
   });
 });
 
+describe('public questions (shared with colleagues)', () => {
+  const shared = (t, since) => A.call('GET', '/rest/v1/questions?shared=1' + (since ? '&updated_at=gt.' + encodeURIComponent(since) : ''), { token: t });
+  test('public questions reach colleagues with their owner; private ones never do', async () => {
+    const a = await newUser('pub-a@example.com'), b = await newUser('pub-b@example.com');
+    await A.call('POST', '/rest/v1/questions', { token: a.access_token, body: [{ id: 'reg1', data: { html: 'Regents', visibility: 'public' } }, { id: 'book1', data: { html: 'Textbook' } }] });
+    const seen = (await shared(b.access_token)).json.filter(x => x.owner === a.user.id);
+    assert.deepEqual(seen.map(x => [x.id, x.data.html, x.owner_email, x.deleted]), [['reg1', 'Regents', 'pub-a@example.com', false]]);
+    assert.ok(!JSON.stringify((await shared(b.access_token)).json).includes('Textbook'), 'private text never leaves the server');
+    // older apps (no shared=1) only ever get their own questions
+    assert.ok((await A.call('GET', '/rest/v1/questions', { token: b.access_token })).json.every(x => !x.owner && x.id !== 'reg1'));
+    // the owner sees their own as usual, without an owner field
+    assert.deepEqual((await shared(a.access_token)).json.filter(x => x.id === 'reg1' || x.id === 'book1').map(x => [x.id, !!x.owner]).sort(), [['book1', false], ['reg1', false]]);
+  });
+  test('making it private again (or deleting it) takes it away from colleagues', async () => {
+    const a = await newUser('pub-c@example.com'), b = await newUser('pub-d@example.com');
+    await A.call('POST', '/rest/v1/questions', { token: a.access_token, body: [{ id: 'r1', data: { html: 'One', visibility: 'public' } }, { id: 'r2', data: { html: 'Two', visibility: 'public' } }] });
+    const since = (await shared(b.access_token)).json.filter(x => x.owner === a.user.id).map(x => x.updated_at).sort().pop();
+    await new Promise(res => setTimeout(res, 20));
+    await A.call('POST', '/rest/v1/questions', { token: a.access_token, body: [{ id: 'r1', data: { html: 'One' } }, { id: 'r2', data: {}, deleted: true }] });
+    const rows = (await shared(b.access_token, since)).json.filter(x => x.owner === a.user.id);
+    assert.deepEqual(rows.map(x => [x.id, x.deleted, JSON.stringify(x.data)]).sort(), [['r1', true, '{}'], ['r2', true, '{}']]);
+  });
+  test('a colleague cannot change someone else’s public question', async () => {
+    const a = await newUser('pub-e@example.com'), b = await newUser('pub-f@example.com');
+    await A.call('POST', '/rest/v1/questions', { token: a.access_token, body: [{ id: 'mine', data: { html: 'Right', visibility: 'public' } }] });
+    assert.equal((await A.call('POST', '/rest/v1/questions', { token: b.access_token, body: [{ id: 'mine', user_id: a.user.id, data: { html: 'Wrong' } }] })).status, 403);
+    await A.call('POST', '/rest/v1/questions', { token: b.access_token, body: [{ id: 'mine', data: { html: 'B’s own' } }] }); // same id: B's own row, A's untouched
+    const fromA = (await shared(b.access_token)).json.find(x => x.id === 'mine' && x.owner === a.user.id);
+    assert.equal(fromA.data.html, 'Right');
+  });
+  test('removing an account keeps its public questions (the admin takes them over), private ones go', async () => {
+    const a = await newUser('pub-leaving@example.com'), b = await newUser('pub-stays@example.com');
+    await A.call('POST', '/rest/v1/questions', { token: a.access_token, body: [{ id: 'keep1', data: { html: 'Keep', visibility: 'public' } }, { id: 'gone1', data: { html: 'Gone' } }] });
+    assert.equal((await A.call('DELETE', '/admin/api/users/' + a.user.id, { token: admin.access_token })).status, 200);
+    const row = (await shared(b.access_token)).json.find(x => x.id === 'keep1');
+    assert.equal(row.owner, admin.user.id); assert.equal(row.data.html, 'Keep');
+    assert.ok(!(await shared(admin.access_token)).json.some(x => x.id === 'gone1'));
+  });
+});
+
 describe('Manage accounts (admin)', () => {
   test('only admins can manage accounts', async () => {
     const u = await newUser('notadmin@example.com');

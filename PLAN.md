@@ -249,12 +249,13 @@ Each question belongs to the person who added it; banks group questions; sharing
   same signatures and soft deletes as now. Settings, courses and saved tests stay personal in `app_state`.
 - **Moving old data:** everyone's existing questions become Private questions they own, and each bank becomes a bank of
   theirs. Nothing is shared until they choose. A one-time **Make public…** helper lists Regents-looking banks.
-- **Version:** 1.0.0 (MAJOR: the server's data changes; old backups still restore).
+- **Version:** step 1 is a MINOR release (old data, backups and setups keep working). 1.0.0 when banks become lists (step 2).
 
 ## Order of work (each step released and tried before the next)
 
-1. Ownership, Public/Private, banks as lists, the new sync and moving old data. *(the biggest step)*
-2. Groups on Manage accounts, sharing banks with groups, editors, Share on a question, library → team banks.
+1. Ownership, Public/Private, the new sync and moving old data. **Done 2026-11-14** (nothing to move: everything starts
+   private; old apps never receive colleagues' questions). Banks-as-lists moved to step 2, where Share needs it.
+2. Banks as lists, groups on Manage accounts, sharing banks with groups, editors, Share on a question, library → team banks.
 3. One copy of each Regents question on upload.
 4. Personal copies that notice when the original changes, and the history.
 5. Comments and review status.
