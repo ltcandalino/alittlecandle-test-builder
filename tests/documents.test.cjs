@@ -209,8 +209,17 @@ describe('Lesson', () => {
     assert.deepEqual(await fn(page, 'lessonTools'), ['compass', 'trace']);
     await settings(page, { toolCompass: false, toolTrace: false }); assert.equal(await count(), 0);
   });
-  test('lesson pages use narrower margins', async () => {
-    assert.deepEqual(await fn(page, 'pageGeom'), { m: '.8in .5in', w: 540 });
+  test('every document type prints with 0.5in margins; Review tables have no borders', async () => {
+    for (const doc of ['test', 'quiz', 'review', 'lesson']) {
+      await settings(page, { docType: doc });
+      assert.deepEqual(await fn(page, 'pageGeom'), { m: '.5in', w: 540, hd: 18 }, doc);
+      const css = await page.evaluate(() => window.__tb.printJobs('all')[0].css);
+      assert.match(css, /margin:\.5in;margin-top:\d+(\.\d+)?pt/, doc);
+    }
+    await settings(page, { docType: 'review' });
+    const b = await page.evaluate(() => { const r = document.createElement('div'); r.innerHTML = '<table class="rv"><tr><td>x</td></tr></table>'; document.body.appendChild(r); const s = getComputedStyle(r.querySelector('td')).borderTopStyle; r.remove(); return s; });
+    assert.equal(b, 'none');
+    await settings(page, { docType: 'lesson' });
   });
 });
 

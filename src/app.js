@@ -340,7 +340,10 @@ function lessonFootSvg(){
   return {w:340,h:code&&src?28:12,svg:'<svg xmlns="http://www.w3.org/2000/svg" width="340pt" height="'+(code&&src?28:12)+'pt" viewBox="0 0 340 '+(code&&src?28:12)+'">'+b+'</svg>'};
 }
 function svgUrl(x){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x.svg);}
-function pageGeom(){var t=docType();return t==='lesson'?{m:'.8in .5in',w:540}:{m:'1in .75in',w:504};}
+// every document type: 0.5in margins all round (her choice 2026-11-15). The header sits 0.25in from the top edge and the
+// questions start just under it, like Word does when a header is taller than the top margin.
+function pageGeom(){return {m:'.5in',w:540,hd:18};}
+function topFor(h){return Math.max(36,pageGeom().hd+h.h+6)+'pt';}
 function headers(){var t=docType(),w=pageGeom().w,r=rightLabel();
   return {first:headerSvg({w:w,title:headerText(),bold:true,icons:t==='lesson'?lessonTools():null}),
           rest:headerSvg({w:w,title:headerText(),right:t==='review'||t==='lesson'?r:'',italic:t==='review'})};}
@@ -492,13 +495,13 @@ function printJobs(kind){
   var n=nVersions(),s=state.settings,dt=docType(),font=svgFont();
   var versions=[];for(var v=0;v<n;v++)versions.push(buildVersion(v));
   var jobs=[],cur={css:'',html:''},g=pageGeom(),hd=headers();
-  var stdFooter=function(name,label){return '@page '+name+'{size:letter;margin:.6in .65in .7in;@bottom-left{content:'+cssStr(label)+';font:9pt Arial,sans-serif;color:#666}@bottom-right{content:"Page " counter(page);font:9pt Arial,sans-serif;color:#666}}';};
+  var stdFooter=function(name,label){return '@page '+name+'{size:letter;margin:'+g.m+';@bottom-left{content:'+cssStr(label)+';font:9pt Arial,sans-serif;color:#666}@bottom-right{content:"Page " counter(page);font:9pt Arial,sans-serif;color:#666}}';};
   var top=function(x){return '@top-center{content:url("'+svgUrl(x)+'");vertical-align:bottom;padding-bottom:6pt}';};
   var docPage=function(name,v){
     var pn='@bottom-right{content:counter(page);font:11pt '+font+'}',lf=dt==='lesson'?lessonFootSvg():null;
     var first=isExamDoc()?'@bottom-left{content:'+cssStr('v. '+(v+1))+';font:8pt '+font+';color:#777}':'';
-    return '@page '+name+'{size:letter;margin:'+g.m+';'+top(hd.rest)+pn+(lf?'@bottom-left{content:url("'+svgUrl(lf)+'");vertical-align:middle}':'')+'}'+
-      '@page '+name+':first{'+top(hd.first)+'@bottom-right{content:none}'+(lf?'@bottom-left{content:none}':'')+first+'}';};
+    return '@page '+name+'{size:letter;margin:'+g.m+';margin-top:'+topFor(hd.rest)+';'+top(hd.rest)+pn+(lf?'@bottom-left{content:url("'+svgUrl(lf)+'");vertical-align:middle}':'')+'}'+
+      '@page '+name+':first{margin-top:'+topFor(hd.first)+';'+top(hd.first)+'@bottom-right{content:none}'+(lf?'@bottom-left{content:none}':'')+first+'}';};
   if(kind!=='keys'&&kind!=='acc')versions.forEach(function(items,v){
     var nm='v'+v,sec='<section class="pt pt-version pt-classic pt-'+dt+'" style="page:'+nm+';'+ptStyle()+'">'+testHtml(items,v)+'</section>';
     var css=docPage(nm,v),lf=dt==='lesson'?lessonFootSvg():null,imgs=[svgUrl(hd.first),svgUrl(hd.rest)].concat(lf?[svgUrl(lf)]:[]);

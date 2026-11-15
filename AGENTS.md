@@ -136,7 +136,9 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   first page, so with "Print each version separately" each version is its own print job, chained on
   `afterprint` (`printJobs` → `runJobs`). Header SVGs are preloaded as `<img class="pre-img">` and
   decoded before printing, or nested images (lesson icons) can be missing.
-- Page geometry: exam/review margins `1in .75in` (504 pt content width); lesson `.8in .5in` (540 pt).
+- Page geometry (her choice 2026-11-15): every type `.5in` all round, 540 pt content width (`pageGeom`); header 0.25in from the
+  top edge, body starts below it (`topFor` sets the @page margin-top per header; Word header=0.25in, LaTeX `includehead`).
+  Review tables have no borders (CSS, Word `nil`, LaTeX no rules); answer keys keep their light lines.
 - Layouts were matched to the user's Word templates: Geometry Unit Exam, Geometry Unit Review, Lesson.
   Lesson heading fonts are Mac fonts (Papyrus, Noteworthy, Chalkduster, Baskerville, Bradley Hand)
   with fallbacks; purple `#8064A2`; review MC header shading `#E5DFEC`.
@@ -369,3 +371,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   The file-based shared library (empty on her site, NAS never set up) is removed: team banks replace it.
 - **2026-11-15**: her request: a team bank takes several of her banks. **Your banks in it…** fold with a checkbox per bank
   (all courses; partly-in shows mixed; untick takes it out) replaces the one-at-a-time menu; `ui.tbBanks` keeps it open. 1479 checks.
+- **2026-11-15**: her request: ½-inch margins on every document type (print, Word, LaTeX; preview sheet too) and no borders
+  on Review tables. Checked the print PDFs and the compiled LaTeX page by page. 1479 checks.

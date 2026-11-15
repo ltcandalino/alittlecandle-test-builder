@@ -286,7 +286,7 @@ function makeExporter(A) {
       if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
       var grid = '<w:tblGrid>' + widths.map(function (w) { return '<w:gridCol w:w="' + Math.round(w) + '"/>'; }).join('') + '</w:tblGrid>';
       var borders = isKey ? '<w:tblBorders><w:insideH w:val="single" w:sz="4" w:color="DDDDDD"/><w:bottom w:val="single" w:sz="4" w:color="DDDDDD"/></w:tblBorders>' :
-        '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
+        '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return isRv ? '<w:' + s + ' w:val="nil"/>' : '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
       var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className) ? 'E5DFEC' : null, col = 0;
@@ -315,7 +315,7 @@ function makeExporter(A) {
     },
     page: function () { return '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>'; },
     section: function (s, root, last) {
-      var lesson = s.doc === 'lesson', W = (lesson ? 7.5 : 7) * TW, self = this;
+      var lesson = s.doc === 'lesson', W = 7.5 * TW, self = this;
       this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing };
       var body = this.blocks(root), course = headerText(), right = rightLabel(), hdr = {};
       var bar = this.bdr(['bottom'], 10), small = { size: 9, color: '666666' };
@@ -330,10 +330,9 @@ function makeExporter(A) {
         hdr.footer = this.hf('footer', this.p((foot ? this.t(foot, small) : '') + this.tab() + this.page(), { tabs: [['right', W]] }));
         hdr.firstFooter = this.hf('footer', isExamDoc() ? this.p(this.t('v. ' + (s.v + 1), { size: 8, color: '777777' })) : this.p(''));
       }
-      var m = lesson ? { t: 0.8, s: 0.5 } : { t: 1, s: 0.75 };
       var sect = '<w:sectPr>' + (hdr.first ? '<w:headerReference w:type="first" r:id="' + hdr.first + '"/>' : '') + (hdr.header ? '<w:headerReference w:type="default" r:id="' + hdr.header + '"/>' : '') +
         (hdr.firstFooter ? '<w:footerReference w:type="first" r:id="' + hdr.firstFooter + '"/>' : '') + '<w:footerReference w:type="default" r:id="' + hdr.footer + '"/>' +
-        '<w:type w:val="nextPage"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="' + m.t * TW + '" w:right="' + m.s * TW + '" w:bottom="' + m.t * TW + '" w:left="' + m.s * TW + '" w:header="' + 0.45 * TW + '" w:footer="' + 0.4 * TW + '" w:gutter="0"/>' +
+        '<w:type w:val="nextPage"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="' + 0.5 * TW + '" w:right="' + 0.5 * TW + '" w:bottom="' + 0.5 * TW + '" w:left="' + 0.5 * TW + '" w:header="' + 0.25 * TW + '" w:footer="' + 0.25 * TW + '" w:gutter="0"/>' +
         '<w:pgNumType w:start="1"/>' + (hdr.first ? '<w:titlePg/>' : '') + '</w:sectPr>';
       // the section's font and size go on every run through a paragraph-level default (rPr in pPr doesn't inherit), so use a style per section
       var sid = 'Sec' + (this.parts.length + this.media.length + Math.random().toString(36).slice(2, 6));
@@ -396,10 +395,10 @@ function makeExporter(A) {
   function TexWriter(imgs) { this.imgs = imgs; this.files = []; this.names = {}; this.used = {}; }
   TexWriter.prototype = {
     preamble: function () {
-      var s = appState().settings, lesson = docType() === 'lesson', m = lesson ? 'top=0.8in,bottom=0.8in,left=0.5in,right=0.5in' : 'top=1in,bottom=1in,left=0.75in,right=0.75in';
+      var s = appState().settings, lesson = docType() === 'lesson', m = 'top=0.25in,bottom=0.5in,left=0.5in,right=0.5in,includehead,headheight=' + (lesson ? 40 : 16) + 'pt,footskip=0.25in';
       var uni = Object.keys(this.used).map(function (c) { return '\\newunicodechar{' + c + '}{\\ensuremath{' + UNI[c] + '}}'; }).join('\n');
       return '% Made by ALittleCandleTestBuilder. Compile with pdfLaTeX (Overleaf\'s default).\n' +
-        '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ',headsep=0.25in]{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
+        '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ',headsep=6pt]{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
         (FONT_PKG[s.font] || FONT_PKG['Century Schoolbook']) + '\n' +
         '\\usepackage{amsmath,amssymb,graphicx,array,tabularx,longtable,enumitem,needspace,newunicodechar}\n\\usepackage[table]{xcolor}\n' +
         '\\definecolor{lessonpurple}{HTML}{8064A2}\\definecolor{mcshade}{HTML}{E5DFEC}\n' +
@@ -494,8 +493,9 @@ function makeExporter(A) {
       var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
       var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), W = this.width;
       var widths = isRv ? [0.35, W - 0.35] : null; if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
-      var colspec = (isKey ? '' : '|') + widths.map(function (w) { return 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(isKey ? '' : '|') + (isKey ? '' : '|');
-      var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (isKey ? '\n' : '\\hline\n');
+      var ruled = !isKey && !isRv, bar = ruled ? '|' : ''; // Review: no borders
+      var colspec = bar + widths.map(function (w) { return 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
+      var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (ruled ? '\\hline\n' : '\n');
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
         // when one cell needs a block (pictures, lists…), every cell in the row is top-aligned the same way
@@ -508,15 +508,15 @@ function makeExporter(A) {
           self.width = keep;
           inner = inner.replace(/\n+$/, '');
           if (anyBlocks) inner = '\\begin{minipage}[t]{\\linewidth}\\vspace{0pt}' + inner + '\\end{minipage}'; // top-align, even when it starts with a picture
-          return span > 1 ? '\\multicolumn{' + span + '}{|p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}|}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
+          return span > 1 ? '\\multicolumn{' + span + '}{' + bar + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}' + bar + '}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
         });
-        h += cells.join(' & ') + ' \\\\' + (isKey ? (head ? '\\hline\\endhead' : '') : '\\hline') + '\n';
+        h += cells.join(' & ') + ' \\\\' + (isKey ? (head ? '\\hline\\endhead' : '') : ruled ? '\\hline' : '') + '\n';
       });
       return h + (isRv || isKey ? '\\end{longtable}\n' : '\\end{tabular}\\par\n');
     },
     section: function (s, root, first) {
       var lesson = s.doc === 'lesson', self = this, course = this.uniText(headerText()), right = this.uniText(rightLabel());
-      this.width = lesson ? 7.5 : 7; this.spacing = !!s.spacing;
+      this.width = 7.5; this.spacing = !!s.spacing;
       var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + '\\setcounter{page}{1}\n';
       if (s.type === 'key') {
         h += '\\firstpageheader{}{}{}\\runningheader{}{}{}\\firstpageheadrule\\relax\\nofirstpageheadrule\\norunningheadrule\n' +

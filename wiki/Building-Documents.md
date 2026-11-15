@@ -2,6 +2,9 @@
 
 On **Build & print**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold on the first page.
 
+Every document type (and its answer key) has **½-inch margins** on all four sides, when printed and in Word and LaTeX
+downloads. The header sits about ¼ inch from the top edge and the questions start just under it.
+
 The **Course name** box sets that header. Leave it empty to use the course from the top menu.
 
 ## Test and Quiz
@@ -26,7 +29,7 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 **Fill in:** Unit #. The title is automatic (**Geometry Unit 3 Review**), or type your own.
 
-- Questions are in a bordered table: **Short/Extended Response Questions** first, then **Multiple Choice Questions** (with a shaded purple heading row).
+- Questions are in a table with no borders: **Short/Extended Response Questions** first, then **Multiple Choice Questions** (with a shaded purple heading row).
 - Each question's source and exam (like "Regents June 2024 #12") prints in small gray type. Turn this off with **Show the reference under each question**.
 - **Work space** sets how much blank room goes under each short/extended response question: each question's own setting, none, or ½ inch up to 4 inches.
 - Pages 2 and on show *Unit 3 Review* under the bar.

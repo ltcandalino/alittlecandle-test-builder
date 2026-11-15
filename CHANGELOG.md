@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Groups** in Manage accounts (admin): name a group and tick who is in it.
 - **Share** on each of your questions: add it to team banks, or make it public.
 
+### Changed
+- **Margins** are ½ inch on all four sides for every document type and answer key, when printing and in Word and LaTeX downloads (were 1 in × ¾ in, lessons 0.8 in × ½ in). The header sits ¼ inch from the top edge.
+- **Review** tables print with **no borders** (the purple Multiple Choice heading stays shaded).
+
 ### Removed
 - The **Shared library** card and its server folder (`LIBRARY_DIR`): team banks replace it, and stay up to date when someone fixes a question. Bank files you saved still open with **Open bank files…**; any `.json` files left in the old library folder can be opened the same way.
 
