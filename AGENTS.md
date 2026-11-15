@@ -196,7 +196,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.8.3 released 2026-11-14** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
+- **v0.9.0 released 2026-11-14** (bank tools, shared library, 9 dropped ExamView questions fixed). Next: PLAN.md Plan 3 step 1.
+  Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
   zip; images `:0.7.0`, `:0.7`, `:latest` on GHCR. CI green.
@@ -328,8 +329,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   import splits automatically), **her own fields** (`state.fields`, `q.extra`; editor, filters, bulk, CSV, sync, backups),
   **bank files** (.json per bank; save to a chosen folder / open), **shared library** on the server (`LIBRARY_DIR`, NAS
   mount documented in docker/README). New `tests/tools.test.cjs`, library tests in server/sync tests. 228 tests; the 3
-  export tests fail in the cloud sandbox only (same on the commit before). Not released yet (MINOR: 0.9.0).
+  export tests fail in the cloud sandbox only (same on the commit before). Released in v0.9.0.
 - **2026-11-14 (her Mac)**: ran the full suite with her whole private collection (1470 checks). Fixed: `bnk.js` object-table search
   matched question text as a table entry (offset out of the file), dropping 9 questions in 5 old banks; entries are now validated.
   Line-break test no longer flags m∠A=m∠B=m∠C chains or worked fractions; bank-files test waited on the earlier "Saved" message.
-  Export tests pass on the Mac. Pushed for CI. Still to do: library in her compose file (needs her NAS path), try tools, release 0.9.0.
+  Export tests pass on the Mac. Released v0.9.0 (CI, Release, image tags green). Plan 3 approved. Library in her compose file still needs her NAS path.
