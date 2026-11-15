@@ -226,7 +226,7 @@ describe('bank files', () => {
     saved.questions.push(Object.assign({}, saved.questions[0], { id: 'brandnew', html: 'Four <img src=x onerror=alert(1)>' }));
     fs.writeFileSync(file, JSON.stringify(saved));
     await page.setInputFiles('#bfIn', file);
-    await page.waitForSelector('#bfRes.ok');
+    await page.waitForFunction(() => /Added/.test(document.querySelector('#bfRes')?.textContent || '')); // not the "Saved…" message from before
     assert.match(await page.textContent('#bfRes'), /Added 1 question, updated 1 question, 1 question already up to date/);
     const list = await qs();
     assert.equal(list.length, 4);

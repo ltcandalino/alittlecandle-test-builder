@@ -325,3 +325,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   **bank files** (.json per bank; save to a chosen folder / open), **shared library** on the server (`LIBRARY_DIR`, NAS
   mount documented in docker/README). New `tests/tools.test.cjs`, library tests in server/sync tests. 228 tests; the 3
   export tests fail in the cloud sandbox only (same on the commit before). Not released yet (MINOR: 0.9.0).
+- **2026-11-14 (her Mac)**: ran the full suite with her whole private collection (1470 checks). Fixed: `bnk.js` object-table search
+  matched question text as a table entry (offset out of the file), dropping 9 questions in 5 old banks; entries are now validated.
+  Line-break test no longer flags m∠A=m∠B=m∠C chains or worked fractions; bank-files test waited on the earlier "Saved" message.
+  Export tests pass on the Mac. Pushed for CI. Still to do: library in her compose file (needs her NAS path), try tools, release 0.9.0.

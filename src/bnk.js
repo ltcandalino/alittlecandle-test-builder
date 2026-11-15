@@ -209,7 +209,8 @@ var BNK=(function(){
         if(cps.length){
           var pat=int3(cps[0],0,0),tp=tend,found=-1;
           while((tp=find(d,pat,tp,S+T+8))>=0){
-            var ok=true;for(var jj=0;jj<cps.length;jj++){if(R.i32(tp+72*jj)!==cps[jj]){ok=false;break;}}
+            // a real table's entries point at objects inside the file (text can look like a table entry too)
+            var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<0||S+eo+8>d.length||S+eo+4+R.i32(S+eo)>d.length)ok=false;}
             if(ok){found=tp;break;}tp++;
           }
           if(found<0)throw new Error('no object table');

@@ -107,10 +107,11 @@ describe('ExamView (.bnk)', () => {
         // ExamView marks "next line" with code 13 (systems of equations, stacked lines)
         // A choice that is only math with two equals signs and nothing between them (no comma, semicolon
         // or space) is two equations run together; they must be on separate lines.
+        // Chains like m∠A=m∠B=m∠C (no numbers) and worked fractions (t=(0.015−0)/0.008=1.875) are fine.
         const bad = [];
         for (const q of r.questions) for (const c of q.choices || []) {
           const t = c.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
-          if (/^<span class="m">/.test(c) && !/\b(and|or)\b|[a-z]{4,}/i.test(t) && t.split('\n').some(line => (line.match(/=/g) || []).length >= 2 && !/[,;]|\s{2,}/.test(line))) bad.push(q.ref + ': ' + t);
+          if (/^<span class="m">/.test(c) && !/m-frac/.test(c) && /\d/.test(t) && !/\b(and|or)\b|[a-z]{4,}/i.test(t) && t.split('\n').some(line => (line.match(/=/g) || []).length >= 2 && !/[,;]|\s{2,}/.test(line))) bad.push(q.ref + ': ' + t);
         }
         assert.deepEqual(bad.slice(0, 5), []);
       });
