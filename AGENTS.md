@@ -26,6 +26,8 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 7. **Keep everything on the newest versions (security).** The image must scan clean: CI runs Trivy (fails on
    fixable HIGH/CRITICAL, SARIF to the Security tab) and rebuilds weekly; locally `docker scout cves <image>`.
    The Dockerfile is two-stage so npm/yarn/corepack aren't in the final image, and runs `apk upgrade`.
+   `:latest` = newest release only (tags; the weekly cron checks out the newest `v*` tag and republishes it); master
+   pushes publish `:edge`. Her local site uses `:latest`, so unreleased work doesn't reach it (or her public site) until a release.
    Also watch CI after every push (`gh run list`): a red run went unnoticed for hours on 2026-11-13. Node = current LTS (Docker `FROM`, CI
    `node-version`, README). GitHub Actions = newest major. Dependabot opens weekly PRs for Actions,
    Docker and npm; review and merge them after CI passes. pdf.js isn't covered: at the start of a

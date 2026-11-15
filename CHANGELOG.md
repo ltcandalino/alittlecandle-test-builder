@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Issue forms on GitHub (**New issue**): Bug report, Import problem, Feature request, Question / help, plus `SECURITY.md` for reporting security problems privately.
 
 ### Changed
+- The `:latest` Docker image now only changes when a version is released (before, it also picked up unreleased work). Unreleased work is published as `:edge` for trying out. The weekly security rebuild refreshes the newest release.
 - CI checks every Docker image holds only the app (no questions, banks, accounts or pictures); the guides say so.
 
 ## [0.9.0] - 2026-11-14
