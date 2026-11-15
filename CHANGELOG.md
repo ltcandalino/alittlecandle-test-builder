@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-14
+
 ### Added
 - **Change these…** on the Question bank tab (replaces "Set unit / section"): change one detail on every question shown, or only on the ticked ones. Set it, add to it, find and replace, or clear it. Works for unit, section, topic, subtopic, standard, old NY standard, cluster, bank, source, part, points, notes and your own fields. Undo right after.
 - **Check & clean up** on the Question bank tab: finds questions with old NY codes mixed into the standard, no cluster, no correct answer, no standard, no unit or no section. One click moves the old NY codes to their own field, fills in clusters from the standards, or copies a unit and section from other questions with the same standard. **Show them** lists the questions that need you. Every fix can be undone.
