@@ -34,7 +34,9 @@ To update the server:
 docker compose pull && docker compose up -d
 ```
 
-To stay on one version, change `:latest` to a version like `:0.7.0`. Check the version number next to the
+`:latest` is always the newest **release**: it only changes when a new version comes out. To stay on one
+version, change `:latest` to a version like `:0.7.0`. To try new work before it's released (on a test computer,
+not the real site), use `:edge`. Check the version number next to the
 app's name after updating.
 
 **Still seeing an old version after updating?** If `docker-compose.yml` has a `build: .` line, Docker

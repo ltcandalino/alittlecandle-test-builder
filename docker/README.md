@@ -92,7 +92,10 @@ number next to the app's name shows which version is running.
 
 `docker-compose.yml` uses `ghcr.io/ltcandalino/alittlecandle-test-builder:latest`, the newest release. Each
 release is also published as `:0.7.0` (exactly that version) and `:0.7` (that version plus later fixes), so
-you can pin the server to a version by changing the tag.
+you can pin the server to a version by changing the tag. `:latest` only changes when a new version is released.
+
+To **try new work before it's released**, use `:edge` instead of `:latest` (for example on a test computer). It's
+rebuilt every time something changes and may not be finished. Switch back to `:latest` for the real site.
 
 ### Building the image yourself
 

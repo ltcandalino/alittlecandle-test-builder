@@ -121,7 +121,9 @@ git push && git push origin v0.6.0
 
 `release.py` dates the **Unreleased** notes in `CHANGELOG.md`, updates `VERSION`, rebuilds, commits and
 tags. Pushing the tag makes GitHub:
-- run all tests, then publish the Docker image as `:0.6.0`, `:0.6`, `:latest` (and `:1` from 1.0.0 on)
+- run all tests, then publish the Docker image as `:0.6.0`, `:0.6`, `:latest` (and `:1` from 1.0.0 on).
+  `:latest` changes only here; every push to `master` publishes `:edge` (unreleased work), and the weekly run
+  rebuilds the newest release with fresh base-image fixes
 - create a GitHub Release with the changelog notes, the single-file app and the Docker setup files
 
 ## GitHub setup (once the repo is pushed)

@@ -1,7 +1,8 @@
 # CI: runs the full test suite, then builds the Docker image and publishes it to GitHub Container Registry.
-#   ghcr.io/<owner>/<repo>:latest            newest version on the main branch
-#   ghcr.io/<owner>/<repo>:edge              same as latest (main branch builds)
+#   ghcr.io/<owner>/<repo>:latest            the newest release (only changes when you release)
+#   ghcr.io/<owner>/<repo>:edge              newest work on the main branch, not released yet (for trying things)
 #   ghcr.io/<owner>/<repo>:1.2.3, :1.2, :1   when you push a tag like v1.2.3 (":1" only from 1.0.0 on)
+# The weekly run rebuilds the newest release (not the main branch) so :latest and its version tags get base-image fixes.
 #   ghcr.io/<owner>/<repo>:sha-abc1234       every published build
 # Pull requests are tested and built but not published.
 # Every image is scanned for known vulnerabilities (Trivy) before it is published; results go to the
@@ -122,6 +123,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # tags, for the weekly rebuild of the newest release
+
+      - name: Which release this is (tag push, or the weekly rebuild of the newest release)
+        run: |
+          if [ "${{ github.event_name }}" = schedule ]; then
+            rel=$(git tag -l 'v*.*.*' --sort=-v:refname | grep -v -- - | head -1)
+            git checkout -q "$rel"
+          elif [ "${{ github.ref_type }}" = tag ]; then
+            rel="${{ github.ref_name }}"
+          fi
+          echo "REL=$rel" >> "$GITHUB_ENV"
+          echo "Release: ${rel:-none (main branch build, published as :edge)}"
 
       - uses: actions/setup-python@v7
         with:
@@ -186,12 +200,13 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ github.repository }}
+          flavor: latest=false   # :latest is set below, for releases only
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=edge,enable={{is_default_branch}}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ env.REL != '' }}
+            type=raw,value=edge,enable=${{ env.REL == '' && github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
+            type=semver,pattern={{version}},value=${{ env.REL }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.REL }}
+            type=semver,pattern={{major}},value=${{ env.REL }}
             type=sha
           labels: |
             org.opencontainers.image.title=ALittleCandleTestBuilder
