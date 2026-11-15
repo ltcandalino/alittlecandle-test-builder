@@ -212,8 +212,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.9.0 released 2026-11-14** (bank tools, shared library, 9 dropped ExamView questions fixed). Plan 3 step 1 (public/private)
-  done, not released yet (MINOR 0.10.0). Next: step 2.
+- **v0.10.0 released 2026-11-15** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only).
+  Next: Plan 3 step 2. Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
@@ -356,3 +356,6 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   Private vulnerability reporting is off on the repo (she decides). Plan 3 step 1: public/private questions, Shared with
   you card, Copy to mine, admin keeps public questions of removed accounts. New wiki page Sharing-with-Colleagues.
   1475 checks + test:db (Postgres, MariaDB, MySQL) green.
+- **2026-11-15**: `:latest` only for releases (`:edge` for master; weekly cron rebuilds newest tag); re-ran v0.9.0 to reset
+  `:latest`. Her sign-in trouble was test@example.com (her local admin is test@test.com). Released v0.10.0 (CI, Release,
+  `:latest` = 0.10.0 checked).
