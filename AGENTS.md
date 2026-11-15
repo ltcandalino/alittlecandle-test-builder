@@ -367,3 +367,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-15**: Plan 3 step 2: groups (admin), team banks with editors, Share dialog, editors' edits synced to owners,
   full pull when sharing changes. Kept personal banks as they are (team banks are the lists). 1484 checks + test:db green.
   The file-based shared library (empty on her site, NAS never set up) is removed: team banks replace it.
+- **2026-11-15**: her request: a team bank takes several of her banks. **Your banks in it…** fold with a checkbox per bank
+  (all courses; partly-in shows mixed; untick takes it out) replaces the one-at-a-time menu; `ui.tbBanks` keeps it open. 1479 checks.
