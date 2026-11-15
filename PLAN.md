@@ -192,3 +192,76 @@ at page by page, guide and changelog updates.
   instantly from disk. Downloaded files stay small.
 - Lessons and Reviews get the same three formats. Their special headings (Papyrus, Chalkduster…) are Mac
   fonts that can't be built in, so PDF and Word use the closest free look-alikes.
+
+---
+
+# Plan 3: a shared question database for colleagues
+
+Status: **draft 2026-11-14, waiting for Leigh's approval.** Decisions below are her answers from 2026-11-14.
+
+**Goal:** one place on your website where you and your colleagues write, upload, file and share test questions.
+Each question belongs to the person who added it; banks group questions; sharing works for one question or a whole bank.
+
+## What you'll see
+
+- **Every question has an owner and is Public or Private.**
+  - **Public:** for example Regents questions. Every colleague on the site can find and use them.
+  - **Private:** for example a textbook bank you bought. Only you see it, unless you share it with a group (never public).
+  - Uploading a `.bnk`, Word or PDF file asks once: "Public (like Regents questions) or Private (like a textbook bank)?"
+    Files named like Regents banks (`…EXAMs.bnk`, questions with references like 061915ge) suggest Public.
+- **Banks are lists of questions, like playlists.** A question can be in several banks and is still one copy.
+  Your own banks, your groups' banks, and public banks all show in the Question bank, each marked with its owner or group.
+  Your courses stay yours: you pick which banks appear in which of your courses (the **Courses…** choice you have now).
+- **Groups** (Math Department, Geometry Team…): **you, as admin, create them and add people** on Manage accounts.
+- **Sharing a bank:** the owner shares it with a group or makes it public, and picks **editors**. Everyone else can use
+  the questions, comment on them and make a personal copy.
+- **Sharing one question:** a **Share** button on the question card: add it to a bank you can edit (yours or a team
+  bank), or make it public.
+- **Personal copies:** **Copy to my questions** makes your own version that you can change freely. It remembers the
+  original; when the original is fixed you see "The original was updated: look at the changes" and choose to take
+  the fix or keep yours.
+- **One copy of each Regents question:** a second upload of the same Regents bank links to the questions already there
+  (matched by reference number and course) instead of adding duplicates. Differences are listed so nothing is lost.
+- **Who can change a question:** its owner, and the editors the owner (or you as admin) chose on the owner's banks.
+  Editors of someone else's bank that just *includes* a public question can't change it; they can comment or copy it.
+  If two people save the same question at once, the later save wins and the other person is told who changed it.
+- **Comments** on a question ("answer should be C", "too hard for Unit 2"), visible to everyone who can see the question;
+  the author can mark one resolved.
+- **Review status:** Draft → Checked → **Ready to use**. The author can mark "Checked by me"; only **another editor** can
+  mark it Ready. A **Status** filter in More filters.
+- **History:** every change is kept (who, when, what), so a mistake can be undone and copies can show what changed.
+- **Works offline like now:** your questions and the shared ones you use are kept on your computer and sync when
+  you're back online. The single file keeps working as a personal tool for anyone without an account.
+- **The shared library becomes team banks:** banks already in it become banks shared with a "Math Department" group.
+
+## How it's built
+
+- **Server tables** (`docker/db.js`, all four databases):
+  - `questions`: id, owner, visibility (public/private), data (JSON as now), `regents_key` (ref + course, public only,
+    unique), status, checked_by, version, created/updated by and at, deleted.
+  - `banks`: id, owner, name, visibility, group ids it's shared with, editor ids, ordered question ids.
+  - `groups` + `group_members` (admin-managed).
+  - `question_history` (version, data, who, when), `comments`.
+  - Personal copies keep `origin_id` + `origin_version` in their data.
+- **One permission check on the server** decides what each account may see and change; the browser never decides.
+  A private question is visible only to its owner and to groups its owner's banks are shared with.
+- **Sync** pulls every question the account may see (own, public, shared to its groups) changed since last time, with the
+  same signatures and soft deletes as now. Settings, courses and saved tests stay personal in `app_state`.
+- **Moving old data:** everyone's existing questions become Private questions they own, and each bank becomes a bank of
+  theirs. Nothing is shared until they choose. A one-time **Make public…** helper lists Regents-looking banks.
+- **Version:** 1.0.0 (MAJOR: the server's data changes; old backups still restore).
+
+## Order of work (each step released and tried before the next)
+
+1. Ownership, Public/Private, banks as lists, the new sync and moving old data. *(the biggest step)*
+2. Groups on Manage accounts, sharing banks with groups, editors, Share on a question, library → team banks.
+3. One copy of each Regents question on upload.
+4. Personal copies that notice when the original changes, and the history.
+5. Comments and review status.
+
+## Open decisions (defaults unless you say otherwise)
+
+- Release **0.9.0** (bank tools) first, so colleagues can tidy their banks before uploading them to the shared database.
+- Students never get accounts; every account is a teacher.
+- When an account is removed, its public questions stay (owned by the admin); its private ones are deleted.
+- A Regents question uploaded as Private by mistake can be switched to Public later (and then joins the single copy).
