@@ -48,8 +48,8 @@ name, click **Add group**, and tick who is in it.
 **Make a team bank** (Import & backup → **Team banks**):
 
 1. Type a name and click **Make team bank**.
-2. Choose one of your banks in **Add one of your banks…** to put all of its questions in. To add one question, click
-   **Share** on it in the question bank and tick the team bank.
+2. Open **Your banks in it…** and tick every bank of yours to put in (from any course). Untick a bank to take it out
+   again. To add one question, click **Share** on it in the question bank and tick the team bank.
 3. Open **Groups & editors…**, tick the group to share it with, and tick the **editors**: the people who may fix its
    questions. Everyone else in the group can use the questions but not change them.
 

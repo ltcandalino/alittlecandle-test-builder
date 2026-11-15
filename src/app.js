@@ -806,7 +806,9 @@ function shareDialog(q,back){
 /* ---- Team banks card (Import & backup, website) ---- */
 function teamCardHtml(){
   if(!sharing())return '';
-  var ppl=(state.people&&state.people.people)||[],grps=(state.people&&state.people.groups)||[],bnames=Object.keys(bankCounts()).sort();
+  var ppl=(state.people&&state.people.people)||[],grps=(state.people&&state.people.groups)||[],mineBy={};
+  state.questions.forEach(function(q){if(own(q))(mineBy[q.bank]=mineBy[q.bank]||[]).push(q.id);}); // all your banks, every course
+  var bnames=Object.keys(mineBy).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});
   function email(id){var p=ppl.filter(function(x){return x.id===id;})[0];return p?p.email:'someone';}
   var list=teams().slice().sort(function(a,b){return a.name.localeCompare(b.name);});
   return '<div class="card" id="teamCard"><h2>Team banks</h2><p class="note" style="margin-top:0">A team bank is a list of questions shared with a group (like your Geometry team), even private ones such as a textbook bank your department bought. Its <b>editors</b> can fix the questions; everyone in the group can use them. Your own banks stay as they are.</p>'+
@@ -815,7 +817,10 @@ function teamCardHtml(){
       var who=(b.groups||[]).map(function(g){var x=grps.filter(function(y){return y.id===g;})[0];return x?x.name:'';}).filter(Boolean);
       var h='<li data-tb="'+esc(b.id)+'"><div class="tb-head"><span><b>'+esc(b.name)+'</b> <small>· '+plural((b.items||[]).length,'question')+' · '+esc(role)+(b.owner!==myId()?' · made by '+esc(b.owner_email||email(b.owner)):'')+(who.length?' · shared with '+esc(who.join(', ')):' · not shared with a group yet')+'</small></span></div>';
       if(fq.length)h+='<div class="sh-courses"><span class="hint">Use in:</span>'+state.courses.map(function(c){var n=fq.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-tbuse="'+esc(b.id)+'" value="'+esc(c)+'"'+(n===fq.length?' checked':'')+(n&&n<fq.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'</div>';
-      if(canAddTo(b))h+='<div class="tb-add"><select data-tbfrom="'+esc(b.id)+'" aria-label="Add one of your banks to '+esc(b.name)+'"><option value="">Add one of your banks…</option>'+bnames.map(function(n){return '<option>'+esc(n)+'</option>';}).join('')+'</select></div>';
+      if(canAddTo(b)&&bnames.length){var have={};(b.items||[]).forEach(function(it){if(it.o===myId())have[it.id]=1;});var nIn=0;
+        var rows=bnames.map(function(n){var ids=mineBy[n],k=ids.filter(function(id){return have[id];}).length;if(k)nIn++;
+          return '<label><input type="checkbox" data-tbfrom="'+esc(b.id)+'" value="'+esc(n)+'"'+(k===ids.length?' checked':'')+(k&&k<ids.length?' data-mixed':'')+'> '+esc(n)+' <small class="hint">'+plural(ids.length,'question')+'</small></label>';}).join('');
+        h+='<details class="tb-add" data-tbbanks="'+esc(b.id)+'"'+(ui.tbBanks===b.id?' open':'')+'><summary class="small ghost">Your banks in it… <small class="hint">'+nIn+' of '+bnames.length+'</small></summary><div class="tb-pop"><fieldset><legend class="lbl">Tick every bank to share in “'+esc(b.name)+'”</legend>'+rows+'</fieldset></div></details>';}
       if(b.manage)h+='<details class="tb-set" data-tbset="'+esc(b.id)+'"'+(ui.tbOpen===b.id?' open':'')+'><summary class="small ghost">Groups &amp; editors…</summary><div class="tb-pop">'+
         '<fieldset><legend class="lbl">Shared with</legend>'+(grps.length?grps.map(function(g){return '<label><input type="checkbox" data-tbg="'+esc(b.id)+'" value="'+esc(g.id)+'"'+((b.groups||[]).indexOf(g.id)>=0?' checked':'')+'> '+esc(g.name)+' <small class="hint">'+plural(g.members.length,'person','people')+'</small></label>';}).join(''):'<p class="hint">No groups yet. The site admin makes them under Manage accounts.</p>')+'</fieldset>'+
         '<fieldset><legend class="lbl">Editors (can change its questions)</legend>'+(function(){var ids={};grps.forEach(function(g){if((b.groups||[]).indexOf(g.id)>=0)g.members.forEach(function(m){ids[m]=1;});});(b.editors||[]).forEach(function(e){ids[e]=1;});delete ids[b.owner];var ks=Object.keys(ids);return ks.length?ks.map(function(id){return '<label><input type="checkbox" data-tbe="'+esc(b.id)+'" value="'+esc(id)+'"'+((b.editors||[]).indexOf(id)>=0?' checked':'')+'> '+esc(email(id))+'</label>';}).join(''):'<p class="hint">Share it with a group first, then pick editors from its members.</p>';})()+'</fieldset>'+
@@ -833,9 +838,11 @@ function wireTeamCard(){
     teamQs(b).filter(function(q){return q.owner;}).forEach(function(q){if(cb.checked)setCourses(q,coursesOf(q).concat([c]));else dropCourse(q,c);});
     if(!cb.checked){var ids={};cq().forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return ids[id];});}
     changed();renderIO();toast(cb.checked?'“'+b.name+'” is now in '+c+'.':'“'+b.name+'” is no longer in '+c+'.');};});
-  $$('[data-tbfrom]').forEach(function(sel){sel.onchange=function(){var name=sel.value;if(!name)return;
-    var add=state.questions.filter(function(q){return own(q)&&q.bank===name;});
-    upd(sel.dataset.tbfrom,function(b){var have={};(b.items||[]).forEach(function(it){have[it.o+'|'+it.id]=1;});add.forEach(function(q){var k=myId()+'|'+q.id;if(!have[k]){b.items.push({o:myId(),id:q.id});have[k]=1;}});},'Added '+plural(add.length,'question')+' from “'+name+'”.');};});
+  $$('[data-tbbanks]').forEach(function(d){d.ontoggle=function(){if(d.open)ui.tbBanks=d.dataset.tbbanks;else if(ui.tbBanks===d.dataset.tbbanks)ui.tbBanks='';};}); // stays open while ticking
+  $$('[data-tbfrom]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){var name=cb.value,me=myId();
+    var ids={};state.questions.forEach(function(q){if(own(q)&&q.bank===name)ids[q.id]=1;});var n=Object.keys(ids).length;
+    upd(cb.dataset.tbfrom,function(b){b.items=(b.items||[]).filter(function(it){return !(it.o===me&&ids[it.id]);});if(cb.checked)Object.keys(ids).forEach(function(id){b.items.push({o:me,id:id});});},
+      cb.checked?'Added '+plural(n,'question')+' from “'+name+'”.':'Took “'+name+'” out ('+plural(n,'question')+').');};});
   $$('[data-tbg]').forEach(function(cb){cb.onchange=function(){upd(cb.dataset.tbg,function(b){b.groups=(b.groups||[]).filter(function(g){return g!==cb.value;});if(cb.checked)b.groups.push(cb.value);},cb.checked?'Shared with the group.':'No longer shared with that group.');};});
   $$('[data-tbe]').forEach(function(cb){cb.onchange=function(){upd(cb.dataset.tbe,function(b){b.editors=(b.editors||[]).filter(function(e){return e!==cb.value;});if(cb.checked)b.editors.push(cb.value);},cb.checked?'They can now change its questions.':'They can no longer change its questions.');};});
   $$('[data-tbren]').forEach(function(btn){btn.onclick=function(){var b=teamById(btn.dataset.tbren);if(!b)return;var li=btn.closest('li'),head=$('.tb-head',li);

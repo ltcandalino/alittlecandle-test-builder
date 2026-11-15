@@ -234,6 +234,7 @@ describe('team banks (website version)', () => {
       const T = window.__tb, st = T.state;
       st.questions.push({ id: 'book-1', course: st.course, type: 'tf', html: 'Textbook question', answer: 'T', bank: 'Bought textbook', points: 1 });
       st.questions.push({ id: 'book-2', course: st.course, type: 'tf', html: 'Second textbook question', answer: 'F', bank: 'Bought textbook', points: 1 });
+      st.questions.push({ id: 'work-1', course: st.course, type: 'tf', html: 'Workbook question', answer: 'T', bank: 'Workbook', points: 1 });
       T.state = T.normalize(st);
     });
     await o.page.evaluate(() => window.__tb.fn.persist());
@@ -241,9 +242,17 @@ describe('team banks (website version)', () => {
     await o.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
     await o.page.fill('#tbNew', 'Geometry textbook');
     await o.page.click('#tbAdd');
-    await o.page.waitForSelector('#teamCard [data-tbfrom]');
-    await o.page.selectOption('#teamCard [data-tbfrom]', 'Bought textbook');
-    await o.page.waitForFunction(() => /2 questions/.test(document.querySelector('#teamCard').textContent));
+    await o.page.waitForSelector('#teamCard [data-tbbanks]');
+    await o.page.click('#teamCard [data-tbbanks] summary');
+    await o.page.check('#teamCard [data-tbfrom][value="Bought textbook"]');
+    await o.page.waitForFunction(() => window.__tb.state.teamBanks[0] && window.__tb.state.teamBanks[0].items.length === 2);
+    // more than one bank: add a second, then take it out again (the fold stays open)
+    await o.page.check('#teamCard [data-tbfrom][value="Workbook"]');
+    await o.page.waitForFunction(() => window.__tb.state.teamBanks[0].items.length === 3);
+    assert.match(await o.page.textContent('#teamCard [data-tbbanks] summary'), /2 of 2/);
+    await o.page.uncheck('#teamCard [data-tbfrom][value="Workbook"]');
+    await o.page.waitForFunction(() => window.__tb.state.teamBanks[0].items.length === 2);
+    assert.ok(await o.page.isChecked('#teamCard [data-tbfrom][value="Bought textbook"]'));
     await o.page.click('#teamCard .tb-set summary');
     await o.page.check('#teamCard [data-tbg]');
     await o.page.waitForSelector('#teamCard [data-tbe]', { state: 'attached' });

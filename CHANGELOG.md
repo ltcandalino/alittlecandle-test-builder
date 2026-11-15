@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-- **Team banks** on the website (Import & backup → **Team banks**): a list of questions shared with a group, even private ones like a textbook bank your department bought. The owner picks the groups and the **editors**, who can fix the questions (the owner's copy shows who changed it); everyone else in the group can use them on tests. Add a whole bank of yours with **Add one of your banks…**, or one question with the new **Share** button. Team banks show as purple tags and in the Bank filter.
+- **Team banks** on the website (Import & backup → **Team banks**): a list of questions shared with a group, even private ones like a textbook bank your department bought. The owner picks the groups and the **editors**, who can fix the questions (the owner's copy shows who changed it); everyone else in the group can use them on tests. Tick as many of your banks as you like under **Your banks in it…** (from any course; untick to take one out), or one question with the new **Share** button. Team banks show as purple tags and in the Bank filter.
 - **Groups** in Manage accounts (admin): name a group and tick who is in it.
 - **Share** on each of your questions: add it to team banks, or make it public.
 
