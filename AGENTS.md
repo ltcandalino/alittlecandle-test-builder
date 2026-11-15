@@ -252,7 +252,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       motion) with review fix 4; (C) saved tests (auto-save on print, frozen copies, ask when questions
       changed, synced and in backups).
 
-- [ ] PLAN.md **Plan 3** (draft 2026-11-14, not approved yet): shared question database: owner + Public/Private per
+- [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
 

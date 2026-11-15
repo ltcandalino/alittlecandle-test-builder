@@ -197,7 +197,7 @@ at page by page, guide and changelog updates.
 
 # Plan 3: a shared question database for colleagues
 
-Status: **draft 2026-11-14, waiting for Leigh's approval.** Decisions below are her answers from 2026-11-14.
+Status: **approved by Leigh 2026-11-14** (after releasing 0.9.0). Decisions below are her answers from 2026-11-14.
 
 **Goal:** one place on your website where you and your colleagues write, upload, file and share test questions.
 Each question belongs to the person who added it; banks group questions; sharing works for one question or a whole bank.
