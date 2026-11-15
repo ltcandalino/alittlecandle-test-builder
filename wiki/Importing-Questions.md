@@ -6,6 +6,8 @@ Everything is on the **Import & backup** tab. Questions go into the course chose
 
 Choose one or more `.bnk` files. The question text, answer choices, correct answers, points, pictures and math come in: fractions, square roots, exponents, overlines, segments, rays, arcs and triangle symbols.
 
+Standards like `A.REI.A.1, NY: A.N.1` are split: the Common Core code stays in **Standard**, and the old NY code goes to **Old NY standard**.
+
 If a question has a **reference** in the form `MMYYQQ`, the app fills in:
 - **Month**: `01`, `06` or `08` (January, June, August)
 - **Year**: the last two digits (`24` → 2024)
@@ -46,7 +48,26 @@ Answer: True
 
 ## Spreadsheet (CSV)
 
-Use **Blank template** to get the column headings, fill them in, then **Import CSV**. **Export CSV** saves your bank as a spreadsheet. Math and pictures don't fit in a CSV, so use a backup file to keep everything.
+Use **Blank template** to get the column headings, fill them in, then **Import CSV**. Columns for **Old NY standard** and your own fields (by their name) come in too. **Export CSV** saves your bank as a spreadsheet. Math and pictures don't fit in a CSV, so use a backup file to keep everything.
+
+## Bank files (.json)
+
+**Import & backup → Bank files** saves banks as files, one `.json` file per bank, with everything: math, pictures, answers, all the details and your own fields. Use them to keep your banks on a NAS, or to give a bank to another teacher.
+
+- **Save to a folder…**: tick the banks, click the button, and choose the folder (for example your NAS folder). Chrome and Edge save straight into it, replacing older copies of the same banks. Other browsers put the files in Downloads.
+- **Open bank files…**: choose one or more bank files. New questions are added; questions you already have from that file are updated to the file's version. Your own fields are matched by name, so another teacher's "DOK" goes into your "DOK".
+
+A full backup is a different file (everything at once): open it with **Restore a backup…**.
+
+## Shared library (website version)
+
+On the website, **Import & backup → Shared library** lists banks the teachers on your site have shared.
+
+- **Share**: pick one of your banks and click **Share**. Everyone with an account on the site can see it. Share it again after you fix something to replace the library copy.
+- **Add to my questions**: adds a copy to your own questions (or updates the copy you added before). Changing your copy doesn't change the library.
+- Only the teacher who shared a bank, or the site admin, can replace or **Remove** it.
+
+The library is a folder on the server. Your site admin can put it on a NAS (see [[Website Setup (Docker)]]).
 
 ## Keeping the original files
 

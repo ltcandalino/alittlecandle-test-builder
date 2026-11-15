@@ -118,8 +118,8 @@ function sanitize(html){
 }
 
 /* ================= state & storage ================= */
-var state={settings:Object.assign({},DEFAULT_SETTINGS),questions:[],selected:[],banks:{}};
-var ui={tab:'bank',q:'',bank:'',topic:'',type:'',std:'',unit:'',section:'',source:'',year:'',month:'',cluster:'',sub:'',sort:'bank',limit:40,pv:0,showAns:false,pickN:5,pickBank:'',pickTopic:'',pickType:'',pickUnit:'',pickSection:''};
+var state={settings:Object.assign({},DEFAULT_SETTINGS),questions:[],selected:[],banks:{},fields:[]};
+var ui={tab:'bank',q:'',bank:'',topic:'',type:'',std:'',unit:'',section:'',source:'',year:'',month:'',cluster:'',sub:'',need:'',sort:'bank',limit:40,pv:0,showAns:false,pickN:5,pickBank:'',pickTopic:'',pickType:'',pickUnit:'',pickSection:''};
 try{var uu=JSON.parse(localStorage.getItem('tb-ui')||'null');if(uu)Object.assign(ui,uu,{limit:40});}catch(e){}
 function saveUi(){try{localStorage.setItem('tb-ui',JSON.stringify(ui));}catch(e){}}
 applyDisplay();
@@ -143,7 +143,7 @@ function normalize(s){
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
     if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
-    if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.html=q.html||textToHtml(q.text||'');fillMeta(q);
+    if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.nyStd=q.nyStd||'';if(q.extra!==undefined&&(!q.extra||typeof q.extra!=='object'||Array.isArray(q.extra)||!Object.keys(q.extra).length))delete q.extra;q.html=q.html||textToHtml(q.text||'');fillMeta(q);
     if(q.type==='bm'){q.space=q.space||2;}
     if(isMC(q.type)){q.choices=(Array.isArray(q.choices)?q.choices:[]).map(function(c){return c;});if(typeof q.answer!=='number')q.answer=-1;}
     if(q.type==='es'){q.answerArea=q.answerArea||'lines';if(q.lines==null)q.lines=8;if(q.space==null)q.space=3;}
@@ -160,6 +160,7 @@ function normalize(s){
   var fz=s.settings.frozen&&s.savedTests.filter(function(t){return t.id===s.settings.savedId;})[0];if(fz)(fz.questions||[]).forEach(function(q){ids[q.id]=1;});
   s.selected=Array.isArray(s.selected)?s.selected.filter(function(id,i,a){return ids[id]&&a.indexOf(id)===i;}):[];
   s.banks=s.banks||{};
+  s.fields=Array.isArray(s.fields)?s.fields.filter(function(f,i,a){return f&&f.id&&f.label&&a.map(function(x){return x&&x.id;}).indexOf(f.id)===i;}).map(function(f){return {id:String(f.id),label:String(f.label)};}):[];
   return s;
 }
 var CLOUDON=!!(window.CLOUD&&CLOUD.enabled);
@@ -183,7 +184,7 @@ window.addEventListener('beforeunload',function(){saveUi();if(saveTimer){clearTi
 /* ================= lookup ================= */
 function byId(id){for(var i=0;i<state.questions.length;i++)if(state.questions[i].id===id)return state.questions[i];return null;}
 function isSel(id){return state.selected.indexOf(id)>=0;}
-function uniq(field){var t={};cq().forEach(function(q){var v=q[field];if(v){if(field==='standard')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
+function uniq(field){var t={};cq().forEach(function(q){var v=q[field];if(v){if(field==='standard'||field==='nyStd')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
 function selectedQs(){return state.selected.map(selQ).filter(Boolean);}
 /* ---- Saved tests ----
    state.savedTests: [{id,name,course,created,savedAt,printedAt,settings,selected,questions}]
@@ -516,7 +517,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= CSV ================= */
 function parseCSV(text){
@@ -527,14 +528,14 @@ function parseCSV(text){
   if(f!==''||row.length){row.push(f);rows.push(row);}
   return rows.filter(function(r){return r.some(function(x){return x.trim();});});
 }
-var CSV_HEAD=['Course','Type','Bank','Source','Unit','Section','Topic','Subtopic','Cluster','Month','Year','Question #','Reference','Standard','Points','Question','Answer','Choice A','Choice B','Choice C','Choice D','Choice E','Choice F','Lines','Keep choice order','Notes'];
+var CSV_HEAD=['Course','Type','Bank','Source','Unit','Section','Topic','Subtopic','Cluster','Month','Year','Question #','Reference','Standard','Points','Question','Answer','Choice A','Choice B','Choice C','Choice D','Choice E','Choice F','Lines','Keep choice order','Notes','Old NY standard'];
 function csvCell(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function toCSV(qs){
-  var out=[CSV_HEAD.join(',')];
+  var xf=myFields(),out=[CSV_HEAD.concat(xf.map(function(f){return f.label;})).map(csvCell).join(',')];
   qs.forEach(function(q){
     var ans=isMC(q.type)?(q.answer>=0?LETTERS[q.answer]:''):q.type==='tf'?(q.answer==='T'?'True':q.answer==='F'?'False':''):(q.answer||'');
     var ch=isMC(q.type)?q.choices.slice(0,6).map(plain):[];while(ch.length<6)ch.push('');
-    out.push([coursesOf(q).join('; ')].concat([{mc:'MC',bm:'Bimodal',tf:'TF',sa:'SA',es:'Open'}[q.type],q.bank,q.source||'',q.unit||'',q.section||'',q.topic,q.subtopic||'',q.cluster||'',q.month||'',q.year||'',q.qnum||'',q.ref||'',q.standard,q.points,plain(q.html),ans].concat(ch).concat([q.type==='sa'||q.type==='es'?(q.lines||''):'',q.lockChoices?'Yes':'',q.notes||''])).map(csvCell).join(','));
+    out.push([coursesOf(q).join('; ')].concat([{mc:'MC',bm:'Bimodal',tf:'TF',sa:'SA',es:'Open'}[q.type],q.bank,q.source||'',q.unit||'',q.section||'',q.topic,q.subtopic||'',q.cluster||'',q.month||'',q.year||'',q.qnum||'',q.ref||'',q.standard,q.points,plain(q.html),ans].concat(ch).concat([q.type==='sa'||q.type==='es'?(q.lines||''):'',q.lockChoices?'Yes':'',q.notes||'',q.nyStd||'']).concat(xf.map(function(f){return xval(q,f.id);}))).map(csvCell).join(','));
   });
   return '\uFEFF'+out.join('\r\n')+'\r\n';
 }
@@ -546,7 +547,8 @@ function fromCSV(text,defBank){
   var rows=parseCSV(text);if(!rows.length)return{qs:[],errors:['The file is empty.']};
   var head=rows[0].map(function(h){return h.trim().toLowerCase();});
   function col(names){for(var i=0;i<names.length;i++){var k=head.indexOf(names[i]);if(k>=0)return k;}return -1;}
-  var C={type:col(['type','question type']),bank:col(['bank']),topic:col(['topic','chapter','category','tag']),unit:col(['unit']),section:col(['section']),source:col(['source']),course:col(['course']),notes:col(['notes','note','my notes']),sub:col(['subtopic']),cl:col(['cluster']),mo:col(['month']),yr:col(['year']),qn:col(['question #','question number','qnum','q#']),ref:col(['reference','ref']),std:col(['standard','standards']),points:col(['points','pts']),text:col(['question','question text','text','prompt']),answer:col(['answer','correct answer','correct','key']),lines:col(['lines','answer lines']),lock:col(['keep choice order','lock'])};
+  var C={type:col(['type','question type']),bank:col(['bank']),topic:col(['topic','chapter','category','tag']),unit:col(['unit']),section:col(['section']),source:col(['source']),course:col(['course']),notes:col(['notes','note','my notes']),sub:col(['subtopic']),cl:col(['cluster']),mo:col(['month']),yr:col(['year']),qn:col(['question #','question number','qnum','q#']),ref:col(['reference','ref']),std:col(['standard','standards']),points:col(['points','pts']),text:col(['question','question text','text','prompt']),answer:col(['answer','correct answer','correct','key']),lines:col(['lines','answer lines']),lock:col(['keep choice order','lock']),ny:col(['old ny standard','ny standard'])};
+  var XC=myFields().map(function(f){return [f.id,col([f.label.toLowerCase()])];}).filter(function(p){return p[1]>=0;});
   var chCols=[];'abcdef'.split('').forEach(function(l){var k=col(['choice '+l,'option '+l,'answer '+l,l]);if(k>=0)chCols.push(k);});
   if(C.text<0)return{qs:[],errors:['Couldn’t find a “Question” column. Download the template to see the expected columns.']};
   var qs=[],errors=[];
@@ -555,7 +557,8 @@ function fromCSV(text,defBank){
     var text=g(C.text);if(!text)return;
     var choices=chCols.map(g).filter(Boolean),type=typeFrom(g(C.type)),ans=g(C.answer);
     if(!type)type=choices.length>=2?'mc':/^(t|f|true|false)$/i.test(ans)?'tf':ans?'sa':'es';
-    var q={id:uid(),source:g(C.source),course:g(C.course),type:type,unit:g(C.unit),section:g(C.section),notes:g(C.notes),subtopic:g(C.sub),cluster:g(C.cl),ref:g(C.ref),month:g(C.mo)?String(g(C.mo)).padStart(2,'0'):undefined,year:g(C.yr)?(parseInt(g(C.yr),10)<100?2000+parseInt(g(C.yr),10):parseInt(g(C.yr),10)):undefined,qnum:g(C.qn)?parseInt(g(C.qn),10):undefined,bank:g(C.bank)||defBank,topic:g(C.topic),standard:g(C.std),points:num(g(C.points),1),html:textToHtml(text)};
+    var q={id:uid(),source:g(C.source),course:g(C.course),type:type,unit:g(C.unit),section:g(C.section),notes:g(C.notes),subtopic:g(C.sub),cluster:g(C.cl),ref:g(C.ref),month:g(C.mo)?String(g(C.mo)).padStart(2,'0'):undefined,year:g(C.yr)?(parseInt(g(C.yr),10)<100?2000+parseInt(g(C.yr),10):parseInt(g(C.yr),10)):undefined,qnum:g(C.qn)?parseInt(g(C.qn),10):undefined,bank:g(C.bank)||defBank,topic:g(C.topic),standard:g(C.std),nyStd:g(C.ny),points:num(g(C.points),1),html:textToHtml(text)};
+    XC.forEach(function(p){var v=g(p[1]);if(v){q.extra=q.extra||{};q.extra[p[0]]=v;}});
     if(isMC(type)){
       q.choices=choices.map(textToHtml);var a=-1;
       if(/^[A-Ha-h]$/.test(ans))a=ans.toUpperCase().charCodeAt(0)-65;else if(/^\d+$/.test(ans))a=parseInt(ans,10)-1;
@@ -642,15 +645,17 @@ function render(){renderTabs();if(ui.tab==='build')renderBuild();else if(ui.tab=
 function opts(list,sel,allLabel){return '<option value="">'+esc(allLabel)+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
 function typeOpts(sel,allLabel){return '<option value="">'+allLabel+'</option>'+TYPE_ORDER.map(function(t){return '<option value="'+t+'"'+(sel===t?' selected':'')+'>'+TYPES[t]+'</option>';}).join('');}
 /* Filters: search + unit/section/topic/standard always; the rest behind "More filters". */
-var MORE_F=['bank','type','year','month','cluster','sub','source'];
-var F_LABEL={q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source'};
-function fValue(k,v){if(v==='__none')return '(none)';if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
-function activeFilters(){return Object.keys(F_LABEL).filter(function(k){return ui[k]!==''&&ui[k]!=null;});}
-function moreCount(){return MORE_F.filter(function(k){return ui[k];}).length;}
+var MORE_F=['need','bank','type','year','month','cluster','sub','source'];
+var F_LABEL={q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source',need:'Needs attention'};
+function fLabels(){var o=Object.assign({},F_LABEL);myFields().forEach(function(f){o['x:'+f.id]=f.label;});return o;}
+function fValue(k,v){if(v==='__none')return '(none)';if(k==='need')return needLabel(v);if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
+function activeFilters(){return Object.keys(fLabels()).filter(function(k){return ui[k]!==''&&ui[k]!=null;});}
+function moreCount(){return MORE_F.concat(myFields().map(function(f){return 'x:'+f.id;})).filter(function(k){return ui[k];}).length;}
 function moreFilters(){
   if(!ui.moreF)return '';
   var yrs=uniq('year'),mos=uniq('month'),cls=uniq('cluster'),subs=uniq('subtopic'),banks=uniq('bank'),srcs=uniq('source');
-  var h='<div class="toolbar morebar" id="moreBar">';
+  var h='<div class="toolbar morebar" id="moreBar">',all=cq();
+  h+='<select id="fneed" aria-label="Needs attention"><option value="">Needs attention: any</option>'+NEEDS.map(function(n){var c=all.filter(function(q){return needs(q,n[0]);}).length;return '<option value="'+n[0]+'"'+(ui.need===n[0]?' selected':'')+(c||ui.need===n[0]?'':' disabled')+'>'+esc(n[1])+' ('+c+')</option>';}).join('')+'</select>';
   if(banks.length>1)h+='<select id="fb" aria-label="Bank">'+opts(banks,ui.bank,'All banks')+'</select>';
   h+='<select id="fy" aria-label="Type">'+typeOpts(ui.type,'All types')+'</select>';
   if(yrs.length)h+='<select id="fyr" aria-label="Year"><option value="">All years</option>'+yrs.map(function(y){return '<option value="'+esc(y)+'"'+(String(ui.year)===String(y)?' selected':'')+'>'+esc(y)+'</option>';}).join('')+'</select>';
@@ -658,10 +663,11 @@ function moreFilters(){
   if(cls.length)h+='<select id="fcl" aria-label="Cluster">'+opts(cls,ui.cluster,'All clusters')+'</select>';
   if(subs.length)h+='<select id="fsub" aria-label="Subtopic">'+opts(subs,ui.sub,'All subtopics')+'</select>';
   if(srcs.length)h+='<select id="fsrc" aria-label="Source">'+opts(srcs,ui.source,'All sources')+'</select>';
+  myFields().forEach(function(f){var v=uniqX(f.id),k='x:'+f.id;if(!v.length&&!ui[k])return;h+='<select data-xff="'+esc(f.id)+'" aria-label="'+esc(f.label)+'">'+opts(v,ui[k],'All: '+f.label)+(all.some(function(q){return !xval(q,f.id);})?'<option value="__none"'+(ui[k]==='__none'?' selected':'')+'>(no '+esc(f.label)+')</option>':'')+'</select>';});
   return h+'</div>';
 }
 function chipsHtml(){var a=activeFilters();if(!a.length)return '';
-  return '<div class="chips" aria-label="Active filters">'+a.map(function(k){return '<button type="button" class="chip" data-unf="'+k+'" aria-label="Remove filter '+esc(F_LABEL[k])+': '+esc(fValue(k,ui[k]))+'"><span>'+esc(F_LABEL[k])+':</span> '+esc(fValue(k,ui[k]))+' <span aria-hidden="true">✕</span></button>';}).join('')+'<button type="button" class="small ghost" id="clearF">Clear filters</button></div>';}
+  return '<div class="chips" aria-label="Active filters">'+a.map(function(k){return '<button type="button" class="chip" data-unf="'+k+'" aria-label="Remove filter '+esc(fLabels()[k])+': '+esc(fValue(k,ui[k]))+'"><span>'+esc(fLabels()[k])+':</span> '+esc(fValue(k,ui[k]))+' <span aria-hidden="true">✕</span></button>';}).join('')+'<button type="button" class="small ghost" id="clearF">Clear filters</button></div>';}
 function monthOrder(m){var n=parseInt(m,10);return isNaN(n)?0:n;}
 function sortList(list){
   if(ui.sort==='new')return list.slice().reverse();
@@ -684,7 +690,9 @@ function matches(q,f){
   if(f.source&&q.source!==f.source)return false;
   if(f.type&&q.type!==f.type)return false;
   if(f.std&&String(q.standard).split(/,\s*/).indexOf(f.std)<0)return false;
-  if(f.q){var hay=(plainQ(q).all+' '+q.topic+' '+q.standard+' '+(q.ref||'')+' '+(q.subtopic||'')+' '+(q.unit||'')+' '+(q.section||'')+' '+(q.notes||'')+' '+(q.cluster||'')+' '+examLabel(q)+' '+(q.source||'')+' '+(q.searchText||'')).toLowerCase();var words=f.q.toLowerCase().split(/\s+/).filter(Boolean);for(var i=0;i<words.length;i++)if(hay.indexOf(words[i])<0)return false;}
+  if(f.need&&!needs(q,f.need))return false;
+  var xf=myFields();for(var xi=0;xi<xf.length;xi++){var xv=f['x:'+xf[xi].id];if(xv&&(xv==='__none'?xval(q,xf[xi].id):xval(q,xf[xi].id)!==xv))return false;}
+  if(f.q){var hay=(plainQ(q).all+' '+q.topic+' '+q.standard+' '+(q.ref||'')+' '+(q.subtopic||'')+' '+(q.unit||'')+' '+(q.section||'')+' '+(q.notes||'')+' '+(q.cluster||'')+' '+examLabel(q)+' '+(q.source||'')+' '+(q.nyStd||'')+' '+Object.keys(q.extra||{}).map(function(k){return q.extra[k];}).join(' ')+' '+(q.searchText||'')).toLowerCase();var words=f.q.toLowerCase().split(/\s+/).filter(Boolean);for(var i=0;i<words.length;i++)if(hay.indexOf(words[i])<0)return false;}
   return true;
 }
 function filtered(){return cq().filter(function(q){return matches(q,ui);});}
@@ -695,7 +703,7 @@ function qCard(q){
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions"><button class="small ghost" data-edit="'+q.id+'">Edit</button><button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button></div></li>';
 }
 function renderBank(){
@@ -706,7 +714,7 @@ function renderBank(){
   }
   var banks=uniq('bank');
   var mc=moreCount();
-  main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span><button class="primary" id="newQ">+ New question</button></div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span><button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button></div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
   $('#moreF').onclick=function(){ui.moreF=!ui.moreF;saveUi();renderBank();var b=$('#moreF');if(b)b.focus();};
   $('#fq').oninput=function(){ui.q=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fb'))$('#fb').onchange=function(){ui.bank=this.value;ui.limit=40;saveUi();drawList();};
@@ -716,7 +724,9 @@ function renderBank(){
   $('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fy'))$('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();drawList();};
   $('#newQ').onclick=function(){openEditor(null);};
-  [['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();drawList();};});
+  [['fneed','need'],['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();drawList();};});
+  $$('[data-xff]').forEach(function(el){el.onchange=function(){ui['x:'+el.dataset.xff]=this.value;ui.limit=40;saveUi();drawList();};});
+  $('#cleanBtn').onclick=openCleanup;
   drawList();
 }
 function drawList(){
@@ -725,16 +735,9 @@ function drawList(){
     $$('[data-unf]',ch).forEach(function(b){b.onclick=function(){ui[b.dataset.unf]='';ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};});
     if($('#clearF'))$('#clearF').onclick=function(){activeFilters().forEach(function(k){ui[k]='';});ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};
     var mb=$('#moreF'),mc=moreCount();if(mb)mb.innerHTML='More filters'+(mc?' <span class="count">'+mc+'</span>':'');}
-  $('#subbar').innerHTML='<span>Showing '+list.length+' of '+cq().length+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Set unit / section for these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
+  $('#subbar').innerHTML='<span>Showing '+list.length+' of '+cq().length+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
   $('#fsort').onchange=function(){ui.sort=this.value;ui.limit=40;saveUi();drawList();};
-  var su=$('#setUnit');if(su)su.onclick=function(){
-    var box=$('#unitBox');box.innerHTML='<input type="text" id="unitIn" list="unitList" placeholder="Unit (blank = keep)" style="width:150px;padding:4px 8px"><datalist id="unitList">'+uniq('unit').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist> <input type="text" id="secIn" list="secList" placeholder="Section (blank = keep)" style="width:160px;padding:4px 8px"><datalist id="secList">'+uniq('section').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist> <button class="small primary" id="unitGo">Apply to '+list.length+'</button> <button class="small ghost" id="unitX">Cancel</button>';
-    var inp=$('#unitIn');inp.focus();
-    var go=function(){var v=inp.value.trim(),sv=$('#secIn').value.trim();if(!v&&!sv){toast('Type a unit, a section, or both.');return;}
-      var prev=list.map(function(q){return [q,q.unit,q.section];});list.forEach(function(q){if(v)q.unit=v;if(sv)q.section=sv;});changed();renderBank();
-      toast('Updated '+list.length+' question'+(list.length>1?'s':'')+': '+[v&&('unit “'+v+'”'),sv&&('section “'+sv+'”')].filter(Boolean).join(', ')+'.',function(){prev.forEach(function(p){p[0].unit=p[1];p[0].section=p[2];});changed();renderBank();});};
-    $('#unitGo').onclick=go;$('#unitX').onclick=drawList;inp.onkeydown=$('#secIn').onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape')drawList();};
-  };
+  var su=$('#setUnit');if(su)su.onclick=function(){bulkBox(list);};
   var as=$('#addShown');if(as)as.onclick=function(){
     if(on===list.length){var ids={};list.forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return !ids[id];});}
     else list.forEach(function(q){if(!isSel(q.id))state.selected.push(q.id);});
@@ -755,6 +758,285 @@ function drawList(){
     state.questions.splice(idx,1);if(si>=0)state.selected.splice(si,1);changed();renderTabs();drawList();
     toast('Question deleted.',function(){state.questions.splice(idx,0,q);if(si>=0)state.selected.splice(si,0,id);changed();render();});
   };});
+}
+
+/* ================= her own fields, bulk changes, clean-up, bank files ================= */
+function myFields(){return Array.isArray(state.fields)?state.fields:[];}
+function fieldById(id){return myFields().filter(function(f){return f.id===id;})[0]||null;}
+function addField(label){
+  label=String(label||'').trim();if(!label)return null;
+  var have=myFields().filter(function(f){return f.label.toLowerCase()===label.toLowerCase();})[0];if(have)return have;
+  if(!Array.isArray(state.fields))state.fields=[];
+  var f={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),label:label};state.fields.push(f);return f;
+}
+function xval(q,id){return q.extra&&q.extra[id]!=null?String(q.extra[id]):'';}
+function uniqX(id){var t={};cq().forEach(function(q){var v=xval(q,id);if(v)t[v]=1;});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
+// fields that "Change these…" can set on many questions at once; her own fields are 'x:<id>'
+var BULK_F=[['unit','Unit'],['section','Section'],['topic','Topic'],['subtopic','Subtopic'],['standard','Standard'],['nyStd','Old NY standard'],['cluster','Cluster'],['bank','Bank'],['source','Source'],['part','Part'],['points','Points'],['notes','My notes']];
+var LIST_F={standard:', ',nyStd:', ',subtopic:'; '};
+function bulkFields(){return BULK_F.concat(myFields().map(function(f){return ['x:'+f.id,f.label];}));}
+function bulkLabel(k){var f=bulkFields().filter(function(x){return x[0]===k;})[0];return f?f[1]:k;}
+function getF(q,k){if(k.indexOf('x:')===0)return xval(q,k.slice(2));return q[k]==null?'':String(q[k]);}
+function setF(q,k,v){
+  if(k.indexOf('x:')===0){var id=k.slice(2);if(v===''){if(q.extra){delete q.extra[id];if(!Object.keys(q.extra).length)delete q.extra;}return;}if(!q.extra||typeof q.extra!=='object')q.extra={};q.extra[id]=v;return;}
+  if(k==='points'){q.points=num(v,q.points);return;}
+  if(k==='bank'){q.bank=v||'My questions';return;}
+  if(k==='standard'){var old=q.standard;q.standard=v;if(!q.cluster||q.cluster===clusterOf(old))q.cluster=clusterOf(v);return;}
+  q[k]=v;
+}
+function snapF(qs,keys){return qs.map(function(q){var o={q:q,v:{}};keys.forEach(function(k){o.v[k]=k.indexOf('x:')===0?xval(q,k.slice(2)):q[k];});return o;});}
+function restoreF(snap,keys){snap.forEach(function(o){keys.forEach(function(k){if(k.indexOf('x:')===0)setF(o.q,k,o.v[k]||'');else o.q[k]=o.v[k];});});}
+
+/* Standards: older ExamView banks list the 2005 NY code next to the Common Core one ("A.REI.A.1, NY: A.N.1"). */
+function stdParts(s){return String(s||'').split(/\s*,\s*/).filter(Boolean);}
+function isNY(c){return /^NY:/i.test(c);}
+function isMixed(q){var p=stdParts(q.standard);return p.some(isNY)&&p.some(function(c){return !isNY(c);});}
+function splitNY(q){
+  if(!isMixed(q))return false;
+  var p=stdParts(q.standard),old=stdParts(q.nyStd);
+  p.filter(isNY).forEach(function(c){c=c.replace(/^NY:\s*/i,'');if(c&&old.indexOf(c)<0)old.push(c);});
+  q.nyStd=old.join(', ');q.standard=p.filter(function(c){return !isNY(c);}).join(', ');
+  if(!q.cluster)q.cluster=clusterOf(q.standard);
+  return true;
+}
+/* "Needs attention" checks, used by the filter and by Check & clean up */
+var NEEDS=[['noans','No correct answer'],['nostd','No standard'],['nounit','No unit'],['nosec','No section'],['nocl','No cluster'],['mixed','Old NY codes in the standard']];
+function needLabel(k){var n=NEEDS.filter(function(x){return x[0]===k;})[0];return n?n[1]:k;}
+function hasAnswer(q){if(isMC(q.type))return typeof q.answer==='number'&&q.answer>=0&&q.answer<(q.choices||[]).length;if(q.type==='tf')return q.answer==='T'||q.answer==='F';return true;}
+function needs(q,k){
+  if(k==='noans')return !hasAnswer(q);if(k==='nostd')return !String(q.standard||'').trim();if(k==='nounit')return !q.unit;if(k==='nosec')return !q.section;
+  if(k==='nocl')return !q.cluster&&!!clusterOf(q.standard);if(k==='mixed')return isMixed(q);return false;
+}
+function firstStd(q){return stdParts(q.standard).filter(function(c){return !isNY(c);})[0]||'';}
+// unit/section for questions that have none, when every other question with the same standard agrees on one
+function unitGuesses(qs){
+  var by={};cq().forEach(function(q){var s=firstStd(q);if(!s)return;var b=by[s]||(by[s]={u:{},s:{}});if(q.unit)b.u[q.unit]=1;if(q.section)b.s[q.section]=1;});
+  var out=[];qs.forEach(function(q){var s=firstStd(q),b=s&&by[s];if(!b)return;var u=Object.keys(b.u),sc=Object.keys(b.s),g={q:q};
+    if(!q.unit&&u.length===1)g.unit=u[0];if(!q.section&&sc.length===1)g.section=sc[0];if(g.unit||g.section)out.push(g);});
+  return out;
+}
+function plural(n,one,many){return n+' '+(n===1?one:(many||one+'s'));}
+
+/* ---- Change these N… (bank tab) ---- */
+function bulkBox(list){
+  var box=$('#unitBox');if(!box)return;
+  var ticked=list.filter(function(q){return isSel(q.id);}),fs=bulkFields();
+  var k0=fs.some(function(f){return f[0]===ui.bulkF;})?ui.bulkF:'unit';
+  box.className='bulkbox';
+  box.innerHTML='<label>Change <select id="bkF" aria-label="Detail to change">'+fs.map(function(f){return '<option value="'+esc(f[0])+'"'+(f[0]===k0?' selected':'')+'>'+esc(f[1])+'</option>';}).join('')+'</select></label>'+
+    '<select id="bkA" aria-label="How to change it"><option value="set">set to</option><option value="add">add</option><option value="replace">find and replace</option><option value="clear">clear it</option></select>'+
+    '<input type="text" id="bkFind" placeholder="Find" aria-label="Text to find" hidden>'+
+    '<input type="text" id="bkV" list="bkList" placeholder="New value" aria-label="New value"><datalist id="bkList"></datalist>'+
+    (ticked.length&&ticked.length<list.length?'<select id="bkW" aria-label="Which questions"><option value="all">on all '+list.length+' shown</option><option value="ticked">only on the '+ticked.length+' ticked</option></select>':'<span>on '+plural(list.length,'question')+'</span>')+
+    '<button class="small primary" id="bkGo">Apply</button><button class="small ghost" id="bkX">Cancel</button>';
+  function sync(){
+    var k=$('#bkF').value,a=$('#bkA');ui.bulkF=k;saveUi();
+    $$('option',a).forEach(function(o){o.disabled=k==='points'&&o.value!=='set';});if(k==='points')a.value='set';
+    var how=a.value;$('#bkFind').hidden=how!=='replace';$('#bkV').hidden=how==='clear';
+    $('#bkV').placeholder=how==='replace'?'Replace with':how==='add'?'What to add':'New value';
+    var vals=k.indexOf('x:')===0?uniqX(k.slice(2)):uniq(k);
+    $('#bkList').innerHTML=vals.slice(0,300).map(function(v){return '<option value="'+esc(v)+'">';}).join('');
+  }
+  $('#bkF').onchange=sync;$('#bkA').onchange=sync;sync();$('#bkV').focus();
+  function go(){
+    var k=$('#bkF').value,how=$('#bkA').value,v=$('#bkV').value.trim(),fd=$('#bkFind').value,targets=$('#bkW')&&$('#bkW').value==='ticked'?ticked:list;
+    if(how==='set'&&!v){toast('Type the new value, or choose “clear it”.');$('#bkV').focus();return;}
+    if(how==='add'&&!v){toast('Type what to add.');$('#bkV').focus();return;}
+    if(how==='replace'&&!fd){toast('Type the text to find.');$('#bkFind').focus();return;}
+    var keys=[k];if(k==='standard')keys.push('cluster');
+    var snap=snapF(targets,keys),n=0;
+    targets.forEach(function(q){var cur=getF(q,k),nv=cur;
+      if(how==='set')nv=v;else if(how==='clear')nv='';else if(how==='replace')nv=cur.split(fd).join(v);
+      else{var sep=LIST_F[k];if(sep){var p=cur.split(sep.trim()).map(function(x){return x.trim();}).filter(Boolean);if(p.indexOf(v)<0)p.push(v);nv=p.join(sep);}else nv=cur?cur+' '+v:v;}
+      if(k==='points'&&String(num(nv,q.points))===String(q.points))return;
+      if(nv!==cur){setF(q,k,nv);n++;}});
+    if(!n){toast('Nothing changed: those questions already have that.');return;}
+    changed();renderBank();
+    toast('Changed '+bulkLabel(k).toLowerCase().replace(/^my /,'')+' on '+plural(n,'question')+'.',function(){restoreF(snap,keys);changed();renderBank();});
+  }
+  $('#bkGo').onclick=go;$('#bkX').onclick=drawList;
+  $$('input',box).forEach(function(inp){inp.onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape')drawList();};});
+}
+
+/* ---- Check & clean up (bank tab) ---- */
+function openCleanup(){
+  var back=document.activeElement;
+  function close(){$('#modal').innerHTML='';renderBank();var b=$('#cleanBtn');if(b)b.focus();else if(back&&document.body.contains(back))back.focus();}
+  function show(k){activeFilters().forEach(function(f){ui[f]='';});ui.need=k;ui.moreF=true;ui.limit=40;saveUi();$('#modal').innerHTML='';ui.tab='bank';render();}
+  function fix(kind){
+    var qs=cq(),keys,snap,n=0,msg;
+    if(kind==='mixed'){var t=qs.filter(isMixed);keys=['standard','nyStd','cluster'];snap=snapF(t,keys);t.forEach(function(q){if(splitNY(q))n++;});msg='Moved the old NY codes to “Old NY standard” on '+plural(n,'question')+'.';}
+    else if(kind==='nocl'){var t2=qs.filter(function(q){return needs(q,'nocl');});keys=['cluster'];snap=snapF(t2,keys);t2.forEach(function(q){q.cluster=clusterOf(q.standard);n++;});msg='Filled in the cluster on '+plural(n,'question')+'.';}
+    else if(kind==='units'){var g=unitGuesses(qs.filter(function(q){return !q.unit||!q.section;}));keys=['unit','section'];snap=snapF(g.map(function(x){return x.q;}),keys);g.forEach(function(x){if(x.unit)x.q.unit=x.unit;if(x.section)x.q.section=x.section;n++;});msg='Copied the unit and section to '+plural(n,'question')+'.';}
+    if(!n)return;
+    changed();draw();
+    toast(msg,function(){restoreF(snap,keys);changed();if($('#cuDone'))draw();else render();});
+  }
+  function row(text,fixKind,fixLabel,showKey,hint){
+    return '<li><div><p>'+text+'</p>'+(hint?'<p class="hint">'+hint+'</p>':'')+'</div><div class="cu-acts">'+(fixKind?'<button class="small primary" data-fix="'+fixKind+'">'+esc(fixLabel)+'</button>':'')+(showKey?'<button class="small" data-show="'+showKey+'">Show them</button>':'')+'</div></li>';
+  }
+  function draw(){
+    var qs=cq(),c={};NEEDS.forEach(function(n){c[n[0]]=qs.filter(function(q){return needs(q,n[0]);}).length;});
+    var g=unitGuesses(qs.filter(function(q){return !q.unit||!q.section;})),rows=[];
+    if(c.mixed)rows.push(row('<b>'+plural(c.mixed,'question')+'</b> '+(c.mixed===1?'has':'have')+' an old NY code (like “NY: A.N.1”) mixed in with the Common Core standard.','mixed','Move them to “Old NY standard”','mixed','The Common Core code stays in Standard. The old code is kept in its own field, so you can still search for it.'));
+    if(c.nocl)rows.push(row('<b>'+plural(c.nocl,'question')+'</b> '+(c.nocl===1?'has':'have')+' a standard but no cluster.','nocl','Fill in the clusters','nocl','For example, A.REI.B.4 is in cluster A.REI.B.'));
+    if(g.length)rows.push(row('<b>'+plural(g.length,'question')+'</b> '+(g.length===1?'is':'are')+' missing a unit or section that other questions with the same standard all share.','units','Copy unit and section',null,'Only copied when every question with that standard has the same unit (and section).'));
+    if(c.noans)rows.push(row('<b>'+plural(c.noans,'question')+'</b> '+(c.noans===1?'has':'have')+' no correct answer marked.',null,null,'noans','Open each one and click the circle next to the right answer.'));
+    if(c.nostd)rows.push(row('<b>'+plural(c.nostd,'question')+'</b> '+(c.nostd===1?'has':'have')+' no standard.',null,null,'nostd','Show them, then use <b>Change these…</b> to set the standard for several at once.'));
+    if(c.nounit)rows.push(row('<b>'+plural(c.nounit,'question')+'</b> '+(c.nounit===1?'has':'have')+' no unit.',null,null,'nounit','Show them, filter by standard or topic, then use <b>Change these…</b>.'));
+    if(c.nosec)rows.push(row('<b>'+plural(c.nosec,'question')+'</b> '+(c.nosec===1?'has':'have')+' no section.',null,null,'nosec'));
+    $('#modal').innerHTML='<div class="overlay" id="ov"><div class="dialog cleanup" role="dialog" aria-modal="true" aria-labelledby="cuT"><h2 id="cuT">Check &amp; clean up: '+esc(state.course)+'</h2>'+
+      '<p class="note" style="margin-top:0">Looks through the '+plural(qs.length,'question')+' in '+esc(state.course)+'. Every fix can be undone.</p>'+
+      (rows.length?'<ul class="cleanlist">'+rows.join('')+'</ul>':'<p class="result ok">Everything looks good: every question has an answer, a standard, a unit and a section.</p>')+
+      '<div class="dlg-actions"><span class="spacer"></span><button class="primary" id="cuDone">Done</button></div></div></div>';
+    $$('[data-fix]').forEach(function(b){b.onclick=function(){fix(b.dataset.fix);};});
+    $$('[data-show]').forEach(function(b){b.onclick=function(){show(b.dataset.show);};});
+    $('#cuDone').onclick=close;
+    $('#ov').onmousedown=function(e){if(e.target.id==='ov'){e.preventDefault();close();}};
+    $('#ov').onkeydown=function(e){if(e.key==='Escape'){e.preventDefault();close();}};
+    var f=$('.dialog [data-fix]')||$('.dialog [data-show]')||$('#cuDone');f.focus();
+  }
+  draw();
+}
+
+/* ---- her own fields in the editor ---- */
+function xfHtml(q){
+  return '<label><span class="lbl">Old NY standard</span><input type="text" id="e-ny" value="'+esc(q.nyStd||'')+'" placeholder="e.g. A.A.7"></label>'+
+    myFields().map(function(f){var l='xl-'+f.id;return '<label><span class="lbl">'+esc(f.label)+'</span><input type="text" data-xf="'+esc(f.id)+'" list="'+l+'" value="'+esc(xval(q,f.id))+'"><datalist id="'+l+'">'+uniqX(f.id).map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label>';}).join('')+
+    '<div class="xf-add"><button type="button" class="small" id="e-addf">+ Add a field</button></div>';
+}
+function wireXF(){
+  var b=$('#e-addf');if(!b)return;
+  b.onclick=function(){var box=b.parentNode;box.innerHTML='<input type="text" id="e-newf" placeholder="Field name, e.g. DOK" aria-label="New field name"><button type="button" class="small primary" id="e-newfGo">Add</button>';
+    var inp=$('#e-newf');inp.focus();
+    var add=function(){var v=inp.value.trim();if(!v){inp.focus();return;}collect();var f=addField(v);changed();$('#e-xf').innerHTML=xfHtml(ed);wireXF();var el=$('[data-xf="'+f.id+'"]');if(el)el.focus();};
+    $('#e-newfGo').onclick=add;inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();add();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();$('#e-xf').innerHTML=xfHtml(ed);wireXF();}};};
+}
+
+/* ---- bank files: one bank per .json file, to keep on a NAS or share ---- */
+var BANK_KIND='bank';
+function bankFileName(name){return (String(name||'').replace(/[\\\/:*?"<>|\x00-\x1f]+/g,'-').replace(/^[\s.]+|[\s.]+$/g,'').slice(0,100)||'Bank')+'.json';}
+function bankFileData(name){
+  var qs=cq().filter(function(q){return q.bank===name;}).map(function(q){return JSON.parse(JSON.stringify(q));});
+  var used={},cs={};qs.forEach(function(q){Object.keys(q.extra||{}).forEach(function(k){used[k]=1;});coursesOf(q).forEach(function(c){cs[c]=1;});});
+  return {app:'test-builder',kind:BANK_KIND,version:1,appVersion:APP_VERSION,saved:new Date().toISOString(),bank:name,courses:Object.keys(cs),fields:myFields().filter(function(f){return used[f.id];}),questions:qs};
+}
+function isBankFile(d){return !!(d&&d.kind===BANK_KIND&&Array.isArray(d.questions));}
+// adds the questions in bank files; a question that's already here (same id) is updated to the file's version
+function importBankData(list){
+  var prevQ=state.questions.slice(),prevF=JSON.parse(JSON.stringify(myFields())),byId={},added=0,updated=0,same=0,bad=[],banks=[];
+  state.questions.forEach(function(q,i){byId[q.id]=i;});
+  list.forEach(function(it){
+    var d=it.data;if(!isBankFile(d)){bad.push(it.name);return;}
+    var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine)map[f.id]=mine.id;}});
+    var qs=JSON.parse(JSON.stringify(d.questions)).filter(function(q){return q&&typeof q==='object'&&TYPES[q.type];});
+    qs.forEach(function(q){
+      q.html=sanitize(String(q.html||''));if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return sanitize(String(c||''));});
+      var cs=coursesOf(q).filter(function(c){return state.courses.indexOf(c)>=0;});setCourses(q,cs.length?cs:[state.course]);
+      if(q.extra&&typeof q.extra==='object'){var x={};Object.keys(q.extra).forEach(function(k){var id=map[k]||(fieldById(k)?k:null),v=q.extra[k];if(id&&v!=null&&String(v)!=='')x[id]=String(v);});if(Object.keys(x).length)q.extra=x;else delete q.extra;}else delete q.extra;
+      if(!q.bank)q.bank=d.bank||'My questions';
+    });
+    qs=normalize({questions:qs,courses:state.courses.slice(),course:state.course}).questions;
+    qs.forEach(function(q){
+      var i=byId[q.id];
+      if(i==null){state.questions.push(q);byId[q.id]=state.questions.length-1;added++;return;}
+      var have=state.questions[i];setCourses(q,coursesOf(have).concat(coursesOf(q)));
+      if(JSON.stringify(have)===JSON.stringify(q)){same++;return;}
+      state.questions[i]=q;updated++;
+    });
+    if(banks.indexOf(d.bank)<0&&d.bank)banks.push(d.bank);
+  });
+  if(added||updated){changed();renderTabs();}
+  return {added:added,updated:updated,same:same,bad:bad,banks:banks,undo:function(){state.questions=prevQ;state.fields=prevF;changed();render();}};
+}
+function bankImportMsg(r){
+  var parts=[];if(r.added)parts.push('added '+plural(r.added,'question'));if(r.updated)parts.push('updated '+plural(r.updated,'question'));if(r.same)parts.push(plural(r.same,'question')+' already up to date');
+  var m=parts.length?parts.join(', ').replace(/^./,function(c){return c.toUpperCase();})+(r.banks.length?' ('+r.banks.map(function(b){return '“'+b+'”';}).join(', ')+')':'')+'.':'';
+  if(r.bad.length)m+=(m?' ':'')+r.bad.map(function(n){return '“'+n+'”';}).join(', ')+(r.bad.length===1?' isn’t a bank file.':' aren’t bank files.')+' (A full backup goes in <b>Restore a backup…</b>.)';
+  return m;
+}
+function saveBankFiles(names,res){
+  var files=names.map(function(n){return {name:bankFileName(n),text:JSON.stringify(bankFileData(n))};});
+  function done(where){res.className='result ok';res.innerHTML='Saved '+plural(files.length,'bank file')+where+'.';}
+  if(window.showDirectoryPicker){
+    return window.showDirectoryPicker({id:'alctb-banks',mode:'readwrite'}).then(function(dir){
+      return files.reduce(function(p,f){return p.then(function(){return dir.getFileHandle(f.name,{create:true}).then(function(h){return h.createWritable();}).then(function(w){return w.write(f.text).then(function(){return w.close();});});});},Promise.resolve()).then(function(){done(' to “'+esc(dir.name)+'”');});
+    },function(e){if(e&&e.name==='AbortError')return;res.className='result bad';res.textContent='Couldn’t open that folder: '+(e&&e.message||e);});
+  }
+  files.forEach(function(f){saveFile(f.name,f.text,'application/json');});
+  done(' to your Downloads folder. Move them to your NAS folder (Chrome and Edge can save straight to a folder you choose)');
+  return Promise.resolve();
+}
+
+/* ---- shared library on this website (Docker server) ---- */
+function libOn(){return !!(CLOUDON&&CLOUD.selfHosted&&CLOUD.user());}
+var libCache=null;
+function libBankPath(file){return '/library/v1/banks/'+encodeURIComponent(file);}
+function drawLibrary(){
+  var box=$('#libList');if(!box)return;
+  if(!libCache){box.innerHTML='<p class="note">Loading the library…</p>';return;}
+  if(libCache.error){box.innerHTML='<p class="note" style="color:var(--danger)">'+esc(libCache.error)+'</p>';return;}
+  var list=libCache.banks;
+  box.innerHTML=list.length?'<ul class="banks">'+list.map(function(b){var d=b.shared&&!isNaN(Date.parse(b.shared))?new Date(b.shared).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+    return '<li><span>'+esc(b.bank)+' <small>· '+plural(b.count,'question')+(b.courses&&b.courses.length?' · '+esc(b.courses.join(', ')):'')+' · '+(b.mine?'shared by you':'shared by '+esc(b.sharedBy||'someone'))+(d?', '+esc(d):'')+'</small></span><button class="small" data-libadd="'+esc(b.file)+'">Add to my questions</button>'+(b.canChange?'<button class="small ghost" data-libdel="'+esc(b.file)+'">Remove</button>':'')+'</li>';}).join('')+'</ul>':'<p class="note">Nothing shared yet. Choose one of your banks below and click <b>Share</b>.</p>';
+  $$('[data-libadd]',box).forEach(function(b){b.onclick=function(){var res=$('#libRes');res.className='result';res.textContent='Getting the bank…';
+    CLOUD.request('GET',libBankPath(b.dataset.libadd)).then(function(d){var r=importBankData([{name:b.dataset.libadd,data:d}]);if(ui.tab==='io')renderIO();var rr=$('#libRes');if(rr){rr.className='result '+(r.bad.length?'bad':'ok');rr.innerHTML=bankImportMsg(r)||'Nothing to add.';}if(r.added||r.updated)toast(bankImportMsg(r).replace(/<[^>]+>/g,''),r.undo);},function(e){res.className='result bad';res.textContent=e.message;});};});
+  $$('[data-libdel]',box).forEach(function(b){b.onclick=function(){
+    if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Remove from the library?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Remove';}},3500);return;}
+    CLOUD.request('DELETE',libBankPath(b.dataset.libdel)).then(function(){loadLibrary();toast('Removed from the shared library. Your own copy is unchanged.');},function(e){var res=$('#libRes');res.className='result bad';res.textContent=e.message;});};});
+}
+function loadLibrary(){
+  if(!libOn())return Promise.resolve();
+  libCache=null;drawLibrary();
+  return CLOUD.request('GET','/library/v1/banks').then(function(r){libCache={banks:(r&&r.banks)||[]};drawLibrary();},function(e){libCache={error:e.status===404?'This website’s server doesn’t have the shared library yet. Update the server to the newest version.':'Couldn’t load the library: '+e.message};drawLibrary();});
+}
+function shareBank(name){
+  var res=$('#libRes');res.className='result';res.textContent='Sharing “'+name+'”…';
+  return CLOUD.request('PUT',libBankPath(bankFileName(name)),bankFileData(name)).then(function(){res.className='result ok';res.textContent='Shared “'+name+'”. Everyone with an account on this website can add it now.';return loadLibrary();},function(e){res.className='result bad';res.textContent=e.message;});
+}
+
+/* ---- Import & backup cards: bank files, shared library, her own fields ---- */
+function bankFilesCard(bnames,bc){
+  return '<div class="card" id="bankFilesCard"><h2>Bank files</h2><p class="note" style="margin-top:0">Save banks as files (<b>.json</b>, one per bank) to keep in a folder on your NAS, or to give to another teacher. They keep everything: math, pictures, answers and all the details, including your own fields. Opening a bank file adds its questions, and updates the ones you already have from that file.</p>'+
+    (bnames.length?'<fieldset class="bf-banks"><legend class="lbl">Banks to save</legend>'+bnames.map(function(b){return '<label><input type="checkbox" data-bf value="'+esc(b)+'" checked><span>'+esc(b)+' <small>('+bc[b]+')</small></span></label>';}).join('')+'</fieldset>':'')+
+    '<div class="actions"><button class="primary" id="bfSave"'+(bnames.length?'':' disabled')+'>Save to a folder…</button><span class="filebtn"><button>Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div><div id="bfRes" class="result"></div></div>';
+}
+function libraryCard(bnames){
+  if(!libOn())return '';
+  return '<div class="card" id="libCard"><h2>Shared library</h2><p class="note" style="margin-top:0">Banks shared on this website. Anyone with an account here can add a copy to their own questions. The library is a folder on the server, so it can live on your NAS.</p><div id="libList"></div>'+
+    (bnames.length?'<div class="pickrow"><select id="libBank" aria-label="Bank to share">'+bnames.map(function(b){return '<option value="'+esc(b)+'">'+esc(b)+'</option>';}).join('')+'</select><button id="libShare">Share</button></div>':'')+'<div id="libRes" class="result"></div></div>';
+}
+function fieldsCard(){
+  var fs=myFields();
+  return '<div class="card" id="fieldsCard"><h2>Your own fields</h2><p class="note" style="margin-top:0">Add details the banks don’t have, like DOK or difficulty. They show up when you edit a question (under <b>More details</b>), in <b>More filters</b>, in <b>Change these…</b>, and as columns in CSV files.</p>'+
+    (fs.length?'<ul class="banks">'+fs.map(function(f){var n=state.questions.filter(function(q){return xval(q,f.id);}).length;return '<li><span>'+esc(f.label)+' <small>· filled in on '+plural(n,'question')+'</small></span><button class="small ghost" data-frename="'+esc(f.id)+'">Rename</button><button class="small ghost" data-fdel="'+esc(f.id)+'">Delete</button></li>';}).join('')+'</ul>':'')+
+    '<div class="pickrow"><input type="text" id="newField" placeholder="New field, e.g. DOK" style="flex:1" aria-label="New field name"><button class="small" id="addField">Add field</button></div></div>';
+}
+function wireToolCards(){
+  var save=$('#bfSave');if(save)save.onclick=function(){var names=$$('[data-bf]:checked').map(function(x){return x.value;});if(!names.length){toast('Tick at least one bank to save.');return;}saveBankFiles(names,$('#bfRes'));};
+  var bin=$('#bfIn');if(bin)bin.onchange=function(){
+    var files=Array.prototype.slice.call(this.files||[]);this.value='';if(!files.length)return;
+    Promise.all(files.map(function(f){return f.text().then(function(t){var d=null;try{d=JSON.parse(t);}catch(e){}return {name:f.name,data:d};});})).then(function(list){
+      var r=importBankData(list);renderIO();var res=$('#bfRes');res.className='result '+(r.added||r.updated||r.same?'ok':'bad');res.innerHTML=bankImportMsg(r)||'No questions in '+(files.length===1?'that file':'those files')+'.';
+      if(r.added||r.updated)toast(bankImportMsg(r).replace(/<[^>]+>/g,''),r.undo);
+    });
+  };
+  if($('#libCard')){if(libCache)drawLibrary();else loadLibrary();}
+  var ls=$('#libShare');if(ls)ls.onclick=function(){shareBank($('#libBank').value);};
+  var af=$('#addField'),nf=$('#newField');
+  if(af){af.onclick=function(){var v=nf.value.trim();if(!v){nf.focus();return;}var had=myFields().length,f=addField(v);if(myFields().length===had){toast('You already have a field called “'+f.label+'”.');return;}changed();renderIO();toast('Added the field “'+f.label+'”.');var n=$('#newField');if(n)n.focus();};
+    nf.onkeydown=function(e){if(e.key==='Enter')af.click();};}
+  $$('[data-frename]').forEach(function(b){b.onclick=function(){
+    var f=fieldById(b.dataset.frename),li=b.closest('li');if(!f)return;li.innerHTML='<input type="text" value="'+esc(f.label)+'" style="flex:1" aria-label="Field name"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
+    var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
+    var done=function(){var nn=inp.value.trim();if(nn&&nn!==f.label){if(myFields().some(function(x){return x!==f&&x.label.toLowerCase()===nn.toLowerCase();})){toast('You already have a field called “'+nn+'”.');return;}f.label=nn;changed();}renderIO();};
+    bs[0].onclick=done;bs[1].onclick=renderIO;inp.onkeydown=function(e){if(e.key==='Enter')done();if(e.key==='Escape')renderIO();};};});
+  $$('[data-fdel]').forEach(function(b){b.onclick=function(){
+    var f=fieldById(b.dataset.fdel);if(!f)return;var qs=state.questions.filter(function(q){return xval(q,f.id);});
+    if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent=qs.length?'Delete from '+plural(qs.length,'question')+'?':'Delete?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='Delete';}},3500);return;}
+    var keys=['x:'+f.id],snap=snapF(qs,keys),prevF=myFields().slice();
+    qs.forEach(function(q){setF(q,'x:'+f.id,'');});state.fields=myFields().filter(function(x){return x!==f;});changed();renderIO();
+    toast('Deleted the field “'+f.label+'”.',function(){state.fields=prevF;restoreF(snap,keys);changed();render();});};});
 }
 
 /* ================= editor ================= */
@@ -816,9 +1098,10 @@ function openEditor(q){
     '<details class="fold ed-more" id="e-moreD"'+(edMoreOpen(ed)?' open':'')+'><summary>More details <span class="hint">course, bank, topic, part, my notes, reference, source…</span></summary>'+
     '<div class="row4" style="grid-template-columns:1fr 1.2fr 1.2fr .8fr"><fieldset class="e-courses" id="e-courses"><legend class="lbl">Courses</legend>'+state.courses.map(function(c){var on=coursesOf(ed).length?inCourse(ed,c):c===state.course;return '<label><input type="checkbox" value="'+esc(c)+'"'+(on?' checked':'')+'> '+esc(c)+'</label>';}).join('')+'</fieldset><label><span class="lbl">Bank</span><input type="text" id="e-bank" list="bankList" value="'+esc(ed.bank)+'"><datalist id="bankList">'+uniq('bank').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Topic</span><input type="text" id="e-topic" list="topicList" value="'+esc(ed.topic)+'"><datalist id="topicList">'+uniq('topic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Part</span><input type="text" id="e-part" list="partList" value="'+esc(ed.part||'')+'" placeholder="e.g. Part II"><datalist id="partList">'+uniq('part').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label></div>'+
     '<div class="row4" style="grid-template-columns:1fr 1fr 2fr"><label><span class="lbl">Subtopic</span><input type="text" id="e-sub" list="subList" value="'+esc(ed.subtopic||'')+'"><datalist id="subList">'+uniq('subtopic').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Cluster</span><input type="text" id="e-cl" list="clList" value="'+esc(ed.cluster||'')+'" placeholder="e.g. G.CO.A"><datalist id="clList">'+uniq('cluster').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">My notes <span class="hint" style="font-weight:400">— never printed on tests</span></span><input type="text" id="e-notes" value="'+esc(ed.notes||'')+'" placeholder="e.g. good warm-up; students mix up arcs"></label></div>'+
-    '<div class="row4" style="grid-template-columns:1fr 1.5fr .9fr .7fr .7fr auto"><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="50" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div></details>'+
+    '<div class="row4" style="grid-template-columns:1fr 1.5fr .9fr .7fr .7fr auto"><label><span class="lbl">Reference</span><input type="text" id="e-ref" value="'+esc(ed.ref||'')+'" placeholder="MMYYQQ, e.g. 062504"></label><label><span class="lbl">Source</span><input type="text" id="e-src" list="srcList" value="'+esc(ed.source||'')+'" placeholder="e.g. June 2025 Regents"><datalist id="srcList">'+uniq('source').map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label><span class="lbl">Month</span><select id="e-mo"><option value="">—</option>'+['01','06','08'].concat(ed.month&&['01','06','08'].indexOf(ed.month)<0?[ed.month]:[]).map(function(m){return '<option value="'+m+'"'+(ed.month===m?' selected':'')+'>'+m+' · '+monthName(m)+'</option>';}).join('')+'</select></label><label><span class="lbl">Year</span><input type="number" id="e-yr" min="1990" max="2099" value="'+esc(ed.year||'')+'" placeholder="2026"></label><label><span class="lbl">Question #</span><input type="number" id="e-qn" min="1" max="50" value="'+esc(ed.qnum||'')+'"></label><div style="align-self:end"><button type="button" class="small" id="e-fromref">Fill from reference</button></div></div>'+
+    '<div class="row4 xfields" id="e-xf">'+xfHtml(ed)+'</div></details>'+
     '<p class="err" id="e-err"></p><div id="e-confirm" class="confirm-bar" role="alert" hidden></div><div class="dlg-actions"><span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves</span><span class="spacer"></span><button id="e-cancel">Cancel</button>'+(edIsNew?'<button id="e-more">Save &amp; add another</button>':'')+'<button class="primary" id="e-save">Save</button></div></div></div>';
-  wireRich($('#modal'));
+  wireRich($('#modal'));wireXF();
   $('#e-type').onchange=function(){collect();var t=this.value;ed.type=t;
     if(isMC(t)){if(t==='bm')ed.space=ed.space&&ed.space<=6?ed.space:2;if(!Array.isArray(ed.choices)||!ed.choices.length)ed.choices=['','','',''];if(typeof ed.answer!=='number')ed.answer=-1;}
     else if(t==='tf'){if(ed.answer!=='T'&&ed.answer!=='F')ed.answer='';}
@@ -835,7 +1118,7 @@ function openEditor(q){
 }
 function caretToEnd(el){el.focus();var r=document.createRange();r.selectNodeContents(el);r.collapse(false);var sl=window.getSelection();sl.removeAllRanges();sl.addRange(r);}
 /* "More details" starts open when any of its fields has something in it. */
-function edMoreOpen(q){return !!(q.topic||q.part||q.subtopic||q.cluster||q.notes||q.ref||q.source||q.month||q.year||q.qnum||coursesOf(q).some(function(c){return c!==state.course;})||(q.bank&&q.bank!=='My questions'));}
+function edMoreOpen(q){return !!(q.nyStd||Object.keys(q.extra||{}).length||q.topic||q.part||q.subtopic||q.cluster||q.notes||q.ref||q.source||q.month||q.year||q.qnum||coursesOf(q).some(function(c){return c!==state.course;})||(q.bank&&q.bank!=='My questions'));}
 /* Closing the editor never throws away typing without asking. */
 var edSnap='',edReturn=null;
 function requestClose(){collect();if(JSON.stringify(ed)===edSnap){closeEditor();return;}
@@ -845,6 +1128,7 @@ function hideDiscard(){var c=$('#e-confirm');c.hidden=true;c.innerHTML='';$('#e-
 function collect(){
   if(!ed)return;
   ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;setCourses(ed,$$('#e-courses input:checked').map(function(x){return x.value;}));ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
+  var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var x={};Object.keys(ed.extra||{}).forEach(function(k){if(!fieldById(k))x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
   if(isMC(ed.type))$$('[data-ct]').forEach(function(el){ed.choices[+el.dataset.ct]=el.innerHTML;});
   var a=$('#e-ans');if(a)ed.answer=a.value;
   var l=$('#e-lines');if(l){var lv=parseInt(l.value,10);ed.lines=Math.max(0,Math.min(40,isNaN(lv)?1:lv));}
@@ -879,7 +1163,7 @@ function commitEditor(another){
   collect();var err=$('#e-err');
   var html=sanitize(ed.html);
   if(isBlank(html)){err.textContent='Type the question first.';$('#e-text').focus();return;}
-  var out={id:ed.id,part:(ed.part||'').trim(),type:ed.type,bank:(ed.bank||'').trim()||'My questions',topic:(ed.topic||'').trim(),standard:(ed.standard||'').trim(),ref:(ed.ref||'').trim(),courses:coursesOf(ed).length?coursesOf(ed).slice():[state.course],unit:(ed.unit||'').trim(),section:(ed.section||'').trim(),notes:(ed.notes||'').trim(),subtopic:(ed.subtopic||'').trim(),cluster:(ed.cluster||'').trim(),month:ed.month||'',source:(ed.source||'').trim(),searchText:ed.searchText||'',year:ed.year?parseInt(ed.year,10)||'':'',qnum:ed.qnum?parseInt(ed.qnum,10)||'':'',points:num(ed.points,1),html:html};
+  var out={id:ed.id,part:(ed.part||'').trim(),type:ed.type,bank:(ed.bank||'').trim()||'My questions',topic:(ed.topic||'').trim(),standard:(ed.standard||'').trim(),ref:(ed.ref||'').trim(),courses:coursesOf(ed).length?coursesOf(ed).slice():[state.course],unit:(ed.unit||'').trim(),section:(ed.section||'').trim(),notes:(ed.notes||'').trim(),subtopic:(ed.subtopic||'').trim(),cluster:(ed.cluster||'').trim(),month:ed.month||'',source:(ed.source||'').trim(),nyStd:(ed.nyStd||'').trim(),searchText:ed.searchText||'',year:ed.year?parseInt(ed.year,10)||'':'',qnum:ed.qnum?parseInt(ed.qnum,10)||'':'',points:num(ed.points,1),html:html};
   if(out.qnum&&(out.qnum<1||out.qnum>50)){err.textContent='Question # should be between 1 and 50.';return;}
   if(isMC(ed.type)){
     var ch=[],ans=-1;ed.choices.forEach(function(c,i){var s=sanitize(c||'');if(!isBlank(s)){if(i===ed.answer)ans=ch.length;ch.push(s);}});
@@ -888,6 +1172,7 @@ function commitEditor(another){
     out.choices=ch;out.answer=ans;out.lockChoices=!!ed.lockChoices;if(ed.inImage){out.inImage=true;out.lockChoices=true;}if(ed.type==='bm')out.space=Math.max(.5,Math.min(9,num(ed.space,2)));
   }else if(ed.type==='tf'){if(ed.answer!=='T'&&ed.answer!=='F'){err.textContent='Choose True or False as the correct answer.';return;}out.answer=ed.answer;}
   else{out.answer=(ed.answer||'').trim();var lv2=parseInt(ed.lines,10);out.lines=Math.max(0,Math.min(40,isNaN(lv2)?(ed.type==='sa'?1:8):lv2));if(ed.type==='es'){out.answerArea=ed.answerArea||'lines';out.space=num(ed.space,3);}}
+  if(ed.extra&&Object.keys(ed.extra).length)out.extra=JSON.parse(JSON.stringify(ed.extra));
   var existing=byId(out.id);
   setCourses(out,out.courses);
   if(existing)state.questions[state.questions.indexOf(existing)]=out;else{state.questions.push(out);if(inCourse(out,state.course))state.selected.push(out.id);}
@@ -1109,8 +1394,10 @@ function renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
   main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
+  bankFilesCard(bnames,bc)+libraryCard(bnames)+
   '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
   '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
+  fieldsCard()+
   '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: see <b>Courses…</b> under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
@@ -1118,6 +1405,7 @@ function renderIO(){
   '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
   '<div class="card"><h2>Spreadsheet (CSV)</h2><p class="note" style="margin-top:0">Columns: Course, Type (MC, Bimodal, TF, SA, Open), Bank, Source, Unit, Section, Topic, Subtopic, Cluster, Month, Year, Question #, Reference, Standard, Points, Question, Answer (a letter for MC), Choice A–F, Lines, Notes. Math and pictures don’t go into a CSV, so use the backup file to keep everything.</p><div class="actions"><span class="filebtn"><button>Import CSV…</button><input type="file" id="csvFile" accept=".csv,text/csv"></span><button id="csvOut"'+(state.questions.length?'':' disabled')+'>Export CSV</button><button class="ghost" id="csvTpl">Blank template</button></div><div id="csvRes" class="result"></div></div>'+
   '</div></div>';
+  wireToolCards();
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};
   $$('[data-usein]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){
     var name=cb.dataset.usein,c=cb.value,qs=cq().filter(function(q){return q.bank===name;});
@@ -1195,7 +1483,7 @@ function importBnks(files){
       var g=guessCourse(out.title),course=(g&&state.courses.indexOf(g)>=0)?g:state.course;
       var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&inCourse(q,course);}).length;
       if(existing){var k=2;while(state.questions.some(function(q){return q.bank===name+' ('+k+')'&&inCourse(q,course);}))k++;name=name+' ('+k+')';}
-      out.questions.forEach(function(q){q.id=uid();q.bank=name;q.course=course;fillMeta(q);});
+      out.questions.forEach(function(q){q.id=uid();q.bank=name;q.course=course;splitNY(q);fillMeta(q);});
       state.questions=state.questions.concat(out.questions);total+=out.questions.length;
       var types={};out.questions.forEach(function(q){types[q.type]=(types[q.type]||0)+1;});
       var parts=TYPE_ORDER.filter(function(t){return types[t];}).map(function(t){return types[t]+' '+TYPES[t].toLowerCase();}).join(', ');

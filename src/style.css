@@ -468,3 +468,22 @@ details.fold[open]>summary{margin-bottom:12px}
 .usein-pop{position:absolute;right:0;top:100%;z-index:20;min-width:240px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;gap:6px}
 .usein-pop .hint{margin:0 0 4px}
 .tag.also{border-style:dashed}
+/* Change these… (bulk edit), Check & clean up, her own fields, bank files */
+.bulkbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--ink,#222)}
+.bulkbox label{display:flex;gap:6px;align-items:center}
+.bulkbox select,.bulkbox input{padding:4px 8px;font-size:12.5px}
+.bulkbox input{width:170px}
+.dialog.cleanup{width:min(680px,100%)}
+.cleanlist{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:10px}
+.cleanlist li{display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;border:1px solid var(--line,#e3e3e8);border-radius:10px;padding:10px 12px}
+.cleanlist p{margin:0}
+.cleanlist .hint{margin-top:3px;font-size:12.5px}
+.cu-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:640px){.cleanlist li{grid-template-columns:1fr}.cu-acts{justify-content:flex-start}}
+.dialog .row4.xfields{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.xf-add{align-self:end;display:flex;gap:6px}
+.xf-add input{min-width:0}
+.bf-banks{border:0;margin:0 0 4px;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px}
+.bf-banks legend{padding:0;margin-bottom:4px}
+.bf-banks label{display:flex;gap:6px;align-items:center}
+.tag.mine{background:var(--accent-soft);color:var(--accent)}

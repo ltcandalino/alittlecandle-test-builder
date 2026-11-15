@@ -49,7 +49,7 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
-  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[]};}
+  function statePart(st){return {course:st.course,courses:st.courses,courseTests:st.courseTests,settings:st.settings,selected:st.selected,savedTests:st.savedTests||[],fields:st.fields||[]};}
   function sigState(st){return fnv(canon(statePart(st)));}
 
   /* ---------- pictures ---------- */
@@ -110,7 +110,7 @@ var CLOUD=(function(){
       if(row&&row.data&&row.data.courses){
         var remoteSig=sigState(row.data);
         var localUnchanged=meta.stateSig===null||sigState(st)===meta.stateSig;
-        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
+        if(remoteSig!==meta.stateSig&&localUnchanged){var d=row.data;['course','courses','courseTests','settings','selected','savedTests','fields'].forEach(function(k){if(d[k]!==undefined)st[k]=d[k];});meta.stateSig=sigState(st);changed=true;}
       }
       // look back two minutes so nothing saved at the same moment is missed
       if(maxSeen){var t=Date.parse(maxSeen);meta.lastPull=isNaN(t)?maxSeen:new Date(t-120000).toISOString();}

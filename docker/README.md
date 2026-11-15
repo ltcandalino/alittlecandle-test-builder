@@ -139,6 +139,29 @@ file as it was. The log shows `Copied N account(s) and M question(s)`. Download 
 If the database server is still starting, the app waits for it (`Waiting for the database to accept
 connections…` in the log).
 
+## Shared library (and keeping it on a NAS)
+
+Teachers can share banks with each other on **Import & backup → Shared library**. Each shared bank is one
+`.json` file in the library folder, `/data/library` inside the container. Files you copy into that folder by
+hand (bank files saved from the app) show up in the library too.
+
+To keep the library on your NAS, mount a NAS folder into the container and point `LIBRARY_DIR` at it. In
+`docker-compose.yml`, under `app:`:
+
+```yaml
+    environment:
+      LIBRARY_DIR: /library
+    volumes:
+      - alctb-data:/data
+      - /mnt/nas/question-banks:/library    # a NAS share mounted on this server
+```
+
+If the site runs on the NAS itself (Synology, QNAP, Unraid…), use the shared folder's path on the NAS, for
+example `/volume1/question-banks:/library`. The app runs as user 1000, so that user needs permission to
+write to the folder (or the folder can be read-only if teachers should only add banks, not share them).
+
+Only the teacher who shared a bank, or an admin, can replace or remove it.
+
 ## Backing up the server
 
 With the default SQLite, this saves everyone's accounts, banks and pictures into one file in the current folder:
@@ -273,7 +296,7 @@ docker scout cves ghcr.io/ltcandalino/alittlecandle-test-builder:latest
 
 ## Details
 
-- One container, Node 26 (current LTS). Data: SQLite in `/data` by default, or PostgreSQL / MySQL / MariaDB through `DATABASE_URL`; pictures are files in `/data/images`. The only packages are the database drivers (`pg`, `mysql2`), loaded only when used.
+- One container, Node 26 (current LTS). Data: SQLite in `/data` by default, or PostgreSQL / MySQL / MariaDB through `DATABASE_URL`; pictures are files in `/data/images`; shared banks are `.json` files in `/data/library` (or `LIBRARY_DIR`). The only packages are the database drivers (`pg`, `mysql2`), loaded only when used.
 - Passwords are stored scrambled (scrypt), never as plain text. Sign-ins expire after 60 days of not using the site.
 - Too many wrong passwords in a row pause sign-in for that email for 15 minutes.
 - Health check: `https://tests.yourdomain.com/healthz`

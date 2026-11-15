@@ -15,6 +15,9 @@ const REFRESH_TTL = 60 * 24 * 60 * 60 * 1000; // 60 days
 const MAX_BODY = 25 * 1024 * 1024;
 const IMG_DIR = path.join(DATA, 'images');
 fs.mkdirSync(IMG_DIR, { recursive: true });
+// Shared library: one bank per .json file. Point LIBRARY_DIR at a NAS folder to keep it there.
+const LIB_DIR = path.resolve(process.env.LIBRARY_DIR || path.join(DATA, 'library'));
+fs.mkdirSync(LIB_DIR, { recursive: true });
 
 /* ---------------- database (opened in start() below) ---------------- */
 let db;
@@ -82,6 +85,71 @@ const VERSION = (INDEX.toString('utf8', 0, 4000).match(/<meta name="version" con
 const INDEX_ETAG = '"' + crypto.createHash('sha1').update(INDEX).digest('hex').slice(0, 16) + '"';
 const CONFIG_JS = "window.ALCTB_CONFIG={supabaseUrl:location.origin,supabaseAnonKey:'self-hosted',selfHosted:true};\n";
 const IMG_TYPES = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' };
+
+/* ---------------- shared library (bank files in LIB_DIR) ---------------- */
+const libCache = new Map(); // file name -> { mtime, size, info }
+function libName(raw) {
+  let n; try { n = decodeURIComponent(raw); } catch (e) { return null; }
+  if (n.length > 120 || n.startsWith('.') || /[\\/\x00-\x1f]/.test(n) || !/\.json$/i.test(n)) return null;
+  return n;
+}
+async function libInfo(name) {
+  const file = path.join(LIB_DIR, name);
+  let st; try { st = await fs.promises.stat(file); } catch (e) { return null; }
+  if (!st.isFile()) return null;
+  const hit = libCache.get(name);
+  if (hit && hit.mtime === st.mtimeMs && hit.size === st.size) return hit.info;
+  let j = null; try { j = JSON.parse(await fs.promises.readFile(file, 'utf8')); } catch (e) { j = null; }
+  const info = j && j.kind === 'bank' && Array.isArray(j.questions) ? {
+    file: name, bank: String(j.bank || name.replace(/\.json$/i, '')), count: j.questions.length,
+    courses: Array.isArray(j.courses) ? j.courses.map(String) : [], sharedBy: j.sharedBy || '', sharedById: j.sharedById || '',
+    shared: j.shared || new Date(st.mtimeMs).toISOString(), size: st.size
+  } : null;
+  libCache.set(name, { mtime: st.mtimeMs, size: st.size, info });
+  return info;
+}
+const mayChangeLib = (info, me) => !info || !!me.admin || (!!info.sharedById && info.sharedById === me.id);
+function libPublic(info, me) {
+  const o = Object.assign({}, info); delete o.sharedById;
+  o.mine = !!info.sharedById && info.sharedById === me.id; o.canChange = mayChangeLib(info, me);
+  return o;
+}
+async function library(req, res, p, body, me) {
+  if (p === '/library/v1/banks') {
+    if (req.method !== 'GET') return err(res, 405, 'Method not allowed');
+    const names = (await fs.promises.readdir(LIB_DIR)).filter((f) => !f.startsWith('.') && /\.json$/i.test(f));
+    const banks = [];
+    for (const n of names) { const i = await libInfo(n); if (i) banks.push(libPublic(i, me)); }
+    banks.sort((a, b) => a.bank.localeCompare(b.bank, undefined, { numeric: true }));
+    return send(res, 200, { banks });
+  }
+  const name = libName(p.slice('/library/v1/banks/'.length));
+  if (!name) return err(res, 400, 'That isn’t a bank file name.');
+  const file = path.join(LIB_DIR, name), cur = await libInfo(name);
+  if (req.method === 'GET') {
+    if (!cur) return err(res, 404, 'That bank isn’t in the library any more.');
+    res.writeHead(200, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, SEC));
+    return fs.createReadStream(file).pipe(res);
+  }
+  if (req.method === 'PUT') {
+    const j = json(body);
+    if (!j || j.kind !== 'bank' || !Array.isArray(j.questions)) return err(res, 400, 'That isn’t a bank file.');
+    if (!mayChangeLib(cur, me)) return err(res, 403, '“' + cur.bank + '” in the library was shared by ' + (cur.sharedBy || 'someone else') + '. Only they or the site admin can replace it. Rename your bank to share your own copy.');
+    j.sharedBy = me.email; j.sharedById = me.id; j.shared = now();
+    const tmp = path.join(LIB_DIR, '.' + crypto.randomBytes(6).toString('hex') + '.tmp');
+    await fs.promises.writeFile(tmp, JSON.stringify(j));
+    await fs.promises.rename(tmp, file);
+    libCache.delete(name);
+    return send(res, 200, libPublic(await libInfo(name), me));
+  }
+  if (req.method === 'DELETE') {
+    if (!cur) return send(res, 204, null);
+    if (!mayChangeLib(cur, me)) return err(res, 403, 'Only ' + (cur.sharedBy || 'the person who shared it') + ' or the site admin can remove “' + cur.bank + '”.');
+    await fs.promises.unlink(file); libCache.delete(name);
+    return send(res, 204, null);
+  }
+  return err(res, 405, 'Method not allowed');
+}
 
 /* ---------------- request handling ---------------- */
 async function handle(req, res) {
@@ -153,6 +221,9 @@ async function handle(req, res) {
       return send(res, 200, publicUser(me));
     }
   }
+
+  // ---- shared library ----
+  if (p === '/library/v1/banks' || p.startsWith('/library/v1/banks/')) return library(req, res, p, body, me);
 
   // ---- questions and test settings ----
   if (p === '/rest/v1/questions' || p === '/rest/v1/app_state') {

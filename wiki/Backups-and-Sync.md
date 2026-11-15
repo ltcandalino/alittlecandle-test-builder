@@ -11,6 +11,8 @@ Your work lives in the browser on that computer. To keep it safe:
 
 Clearing the browser's site data deletes your work, so download a backup first.
 
+To keep each bank as its own file (for example in a NAS folder), use **Bank files → Save to a folder…** on the same tab. See [[Importing Questions]].
+
 ## Website version
 
 When you're signed in, your work is saved on the server and follows you to any computer.
@@ -18,6 +20,8 @@ When you're signed in, your work is saved on the server and follows you to any c
 - **☁ Synced** at the top means your latest changes are on the server.
 - If the internet drops, keep working. It catches up when you're back online. Use **Sync now** to sync right away.
 - **Signing out** removes the copy kept in that browser, which is good for shared school computers.
+- Your own fields sync too.
+- **Shared library** (Import & backup) lets you share banks with the other teachers on the site. See [[Importing Questions]].
 
 ### Moving from the single file to the website
 

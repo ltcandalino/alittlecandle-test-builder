@@ -19,7 +19,12 @@ to keep a copy or move to another computer.
 - **Imports questions** from ExamView banks (`.bnk`, with math and pictures), PDFs (as text or
   as pictures) and Word files (`.docx`).
 - **Keeps details for each question:** course, bank, source, unit, section, part, topic,
-  subtopic, standard, cluster, reference (MMYYQQ → month, year, question #), points, notes.
+  subtopic, standard, old NY standard, cluster, reference (MMYYQQ → month, year, question #), points, notes,
+  plus fields you add yourself (like DOK).
+- **Cleans up banks:** change a detail on many questions at once, and **Check & clean up** finds missing
+  answers, standards, units and sections and fixes what it can.
+- **Bank files and a shared library:** save banks as `.json` files (one per bank) to a folder or NAS, and
+  share banks with the other teachers on your website.
 - **Question types:** multiple choice, bimodal (print with or without choices), true/false,
   short answer, extended response.
 - **Document types**, each with the course name and a bar at the top of every page:

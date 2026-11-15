@@ -253,3 +253,50 @@ describe('moving to PostgreSQL or MySQL', { skip: !TEST_DB && 'set TEST_DATABASE
     await s2.stop();
   });
 });
+
+describe('shared library (bank files)', () => {
+  const bank = (name, n = 2) => ({ app: 'test-builder', kind: 'bank', version: 1, bank: name, courses: ['Algebra 1'], fields: [], questions: Array.from({ length: n }, (_, i) => ({ id: 'q' + i, type: 'tf', html: 'Q' + i, answer: 'T', bank: name })) });
+  let T1, T2;
+  before(async () => { T1 = await newUser('lib1@example.com'); T2 = await newUser('lib2@example.com'); });
+  test('needs a sign-in', async () => {
+    assert.equal((await A.call('GET', '/library/v1/banks')).status, 401);
+  });
+  test('share, list, download', async () => {
+    const put = await A.call('PUT', '/library/v1/banks/' + encodeURIComponent('Algebra 1 Regents.json'), { token: T1.access_token, body: bank('Algebra 1 Regents', 3) });
+    assert.equal(put.status, 200, put.text);
+    assert.equal(put.json.count, 3); assert.equal(put.json.mine, true);
+    const list = (await A.call('GET', '/library/v1/banks', { token: T2.access_token })).json.banks;
+    const b = list.find(x => x.file === 'Algebra 1 Regents.json');
+    assert.ok(b); assert.equal(b.sharedBy, 'lib1@example.com'); assert.equal(b.mine, false); assert.equal(b.canChange, false); assert.equal(b.sharedById, undefined);
+    const got = await A.call('GET', '/library/v1/banks/' + encodeURIComponent('Algebra 1 Regents.json'), { token: T2.access_token });
+    assert.equal(got.status, 200); assert.equal(got.json.questions.length, 3); assert.equal(got.json.sharedBy, 'lib1@example.com');
+    assert.ok(fs.existsSync(path.join(srv.dataDir, 'library', 'Algebra 1 Regents.json')), 'kept as a file in the library folder');
+  });
+  test('only the sharer or an admin can replace or remove it', async () => {
+    const name = '/library/v1/banks/' + encodeURIComponent('Algebra 1 Regents.json');
+    const r = await A.call('PUT', name, { token: T2.access_token, body: bank('Algebra 1 Regents', 1) });
+    assert.equal(r.status, 403); assert.match(r.json.message, /lib1@example.com/);
+    assert.equal((await A.call('DELETE', name, { token: T2.access_token })).status, 403);
+    assert.equal((await A.call('PUT', name, { token: T1.access_token, body: bank('Algebra 1 Regents', 4) })).json.count, 4);
+    assert.equal((await A.call('DELETE', name, { token: admin.access_token })).status, 204);
+    assert.equal((await A.call('GET', name, { token: T1.access_token })).status, 404);
+  });
+  test('refuses bad names and files that aren’t banks', async () => {
+    for (const bad of ['..%2Fx.json', '%2E%2E%2Fusers.json', 'x.txt', '.hidden.json', 'a%5Cb.json'])
+      assert.equal((await A.call('PUT', '/library/v1/banks/' + bad, { token: T1.access_token, body: bank('x') })).status, 400, bad);
+    assert.equal((await A.call('PUT', '/library/v1/banks/x.json', { token: T1.access_token, body: { state: {} } })).status, 400);
+    assert.ok(!fs.existsSync(path.join(srv.dataDir, 'x.json')));
+  });
+  test('files put in the folder by hand show up; LIBRARY_DIR moves the folder', async () => {
+    const os = require('os');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'alctb-lib-'));
+    fs.writeFileSync(path.join(dir, 'Geometry.json'), JSON.stringify(bank('Geometry', 5)));
+    fs.writeFileSync(path.join(dir, 'notes.json'), '{"not":"a bank"}');
+    const s2 = await startServer({ LIBRARY_DIR: dir });
+    try {
+      const B = api(s2.url), t = (await B.login('admin@example.com', 'admin-password-1')).json.access_token;
+      const list = (await B.call('GET', '/library/v1/banks', { token: t })).json.banks;
+      assert.deepEqual(list.map(b => [b.bank, b.count, b.canChange]), [['Geometry', 5, true]]);
+    } finally { await s2.stop(); }
+  });
+});

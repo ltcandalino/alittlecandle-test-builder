@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Change these…** on the Question bank tab (replaces "Set unit / section"): change one detail on every question shown, or only on the ticked ones. Set it, add to it, find and replace, or clear it. Works for unit, section, topic, subtopic, standard, old NY standard, cluster, bank, source, part, points, notes and your own fields. Undo right after.
+- **Check & clean up** on the Question bank tab: finds questions with old NY codes mixed into the standard, no cluster, no correct answer, no standard, no unit or no section. One click moves the old NY codes to their own field, fills in clusters from the standards, or copies a unit and section from other questions with the same standard. **Show them** lists the questions that need you. Every fix can be undone.
+- **Needs attention** filter under More filters: no correct answer, no standard, no unit, no section, no cluster, old NY codes in the standard.
+- **Old NY standard** field. ExamView imports now put codes like "NY: A.N.1" there and keep only the Common Core code in Standard.
+- **Your own fields** (Import & backup): add details like DOK or difficulty. Fill them in under More details in the editor (or add one right there), filter by them, change many at once, and they come and go as CSV columns. They sync on the website and are in backups.
+- **Bank files** (Import & backup): save banks as `.json` files, one per bank, straight into a folder you choose (Chrome and Edge; other browsers download them). Opening bank files adds their questions and updates the ones you already have from them. Your own fields are matched by name.
+- **Shared library** on the website: share a bank with everyone who has an account on your site, and add theirs to your own questions. Only the person who shared a bank (or the admin) can replace or remove it. The library is a folder on the server (`LIBRARY_DIR`, default `/data/library`), so it can be a NAS folder.
+
 ### Fixed
 - ExamView banks: newer Regents banks (Algebra I 2020 onward, including 2023–2024 and 2023–2025) put "2pt multiple choice", the course code and "EXAM 0123AI" next to the topic. The reader mixed these up: the topic said "2pt multiple choice", the subtopic held "012301ai; AI; Operations with Polynomials; subtraction; EXAM 0123AI", and the reference was empty. Now the reference, topic and subtopic each land in their own field. Questions you already imported are fixed automatically the next time the app opens; no need to import them again.
 - ExamView banks: the Algebra II 2018–2019 bank froze the browser while importing. One question in it has an unusual layout that sent the reader into an endless loop. It now reads all 222 questions in a fraction of a second.

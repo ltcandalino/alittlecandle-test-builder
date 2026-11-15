@@ -81,9 +81,18 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   swapped by `switchCourse`).
 - Question fields: courses[] (shared banks: one copy in several courses; `course` mirrors courses[0] for
   older copies; use `coursesOf`/`inCourse`/`setCourses`/`dropCourse`, never compare `q.course`), bank, source, unit, section, part, topic, subtopic, standard, cluster,
-  ref (MMYYQQ → month/year/qnum 1–50 via `parseRef`/`fillMeta`; month ∈ 01/06/08), notes, points, type
+  ref (MMYYQQ → month/year/qnum 1–50 via `parseRef`/`fillMeta`; month ∈ 01/06/08), nyStd (old 2005 NY codes, split out of
+  `standard` by `splitNY`; ExamView import does it automatically), extra {fieldId: value} (her own fields, defined in
+  `state.fields` [{id,label}], synced in app_state; `extra` is left off entirely when empty so sync signatures don't
+  change), notes, points, type
   (`mc` `bm` `tf` `sa` `es`), html, choices[], answer, inImage, lockChoices, space, lines, answerArea.
   Question HTML is sanitized (`sanitize`) on import/edit.
+- Bank tools (section "her own fields, bulk changes, clean-up, bank files" in app.js): `getF`/`setF` ('x:<id>' for her
+  fields), `bulkBox` (**Change these…**, replaced "Set unit / section", button id still `#setUnit`), `openCleanup`
+  (**Check & clean up**, `NEEDS`/`needs`, `unitGuesses`), `ui.need` + `data-xff` selects in More filters, `fLabels()`
+  for chips. Bank files: `{app,kind:'bank',version:1,bank,courses,fields,questions}`, `bankFileData`/`importBankData`
+  (same id → update, fields matched by label, html sanitized), `saveBankFiles` (showDirectoryPicker, else downloads).
+  Shared library: `CLOUD.request` to `/library/v1/banks[/<file>]`, cards only when self-hosted and signed in.
 - `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
 - `sanitize` parses into an inert `<template>` (so `onerror` never runs), drops script/style/svg/etc.,
   and allows images that are `data:`, `https:`, or this server's own picture URLs on `http:`.
@@ -154,7 +163,9 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
   via `DATABASE_URL`; first start on an empty one copies from `DATA_DIR/alctb.db`) + picture files in `DATA_DIR`, scrypt
   passwords, bearer tokens, admin endpoints `/admin/api/users…`, `/healthz`, and generates `config.js`
   with `selfHosted:true` (shows "Manage accounts" for admins). Env: `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`, `DATABASE_URL`.
+  (first start only), `ADMIN_RESET=1`, `PORT`, `DATA_DIR`, `DATABASE_URL`, `LIBRARY_DIR` (shared library folder, default
+  `DATA_DIR/library`; one bank per `.json`; `sharedBy`/`sharedById` written into the file; only the sharer or an admin may
+  replace/remove; file names checked by `libName`, list cached by mtime/size).
 
 ## Testing
 
@@ -169,7 +180,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - `core` pure helpers; `documents` buildVersion/layouts/keys/printJobs/courses; `imports` DOCX/PDF/BNK;
   `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup/CSV downloads, print
   with `window.print` stubbed); `server` API incl. isolation, lockout, admin, restart, ADMIN_RESET;
-  `sync` app served by the server, two browser contexts; `print` PDFs in `tests/out/`.
+  `sync` app served by the server, two browser contexts; `print` PDFs in `tests/out/`; `tools` Change these…, clean-up,
+  her own fields, bank files (library API in `server`, library + field sync end to end in `sync`).
 - Fixtures: `tests/fixtures/sample-exam.docx`, `sample-questions.pdf` (regenerate with
   `make-fixtures.py`, needs python-docx + reportlab). Her real files go in `tests/fixtures/private/`
   (gitignored; on her Mac it has `GEO2024-2026EXAMs.bnk` and `Geometry_Unit_3_Exam_v1.docx`), and are
@@ -210,6 +222,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - [ ] Docker setup on her web hosting/VPS (all-in-one container + Caddy).
 - [x] Release v0.6.0 (2026-11-13).
 - [ ] Collect her feedback from trying the single-file version.
+- [ ] Bank tools (2026-11-14): she wants to try Change these…, Check & clean up, her own fields, bank files and the shared
+      library on her real banks; library on her NAS needs `LIBRARY_DIR` + a volume in her compose file (not edited: her local
+      compose changes are uncommitted on purpose). Ideas: auto unit/section from a standard→unit map she provides.
 - [ ] ExamView equation codes not understood yet (shown as test diagnostics, the math around them still reads): 3 (251×),
       16 (148×), 17 (65×), 23 (24×), 24 (14×), 2 (3×), mostly in older banks (GE 2008–2016, Sequential III, Math A/B,
       Ch 9 Test Bank). Probably matrices/piles/limits; look at those questions next to ExamView output.
@@ -303,3 +318,10 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   of freezing the run) and checks fields. Import tests relaxed for her full collection ("undefined" is real math text,
   -1 answers are flagged "no answer", missing-picture check instead of "has pictures").
 - **2026-11-14**: no green left: `--es` #4e2f78, `--tf` plum #9b3b77, saved dot, key highlight #e9e0f4, keynote, icon tints.
+- **2026-11-14 (cloud session via her Mac)**: bank tools she asked for after seeing her AICCSS2018-2019 metadata (mixed
+  "A.REI.A.1, NY: A.N.1" standards, 3 MC without answers, 1 without a standard, empty unit/section/cluster): **Change these…**
+  (bulk edit, undo), **Check & clean up** dialog + **Needs attention** filter, **Old NY standard** field (`nyStd`, ExamView
+  import splits automatically), **her own fields** (`state.fields`, `q.extra`; editor, filters, bulk, CSV, sync, backups),
+  **bank files** (.json per bank; save to a chosen folder / open), **shared library** on the server (`LIBRARY_DIR`, NAS
+  mount documented in docker/README). New `tests/tools.test.cjs`, library tests in server/sync tests. 228 tests; the 3
+  export tests fail in the cloud sandbox only (same on the commit before). Not released yet (MINOR: 0.9.0).
