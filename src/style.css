@@ -494,3 +494,23 @@ details.fold[open]>summary{margin-bottom:12px}
 .sh-courses{display:flex;flex-wrap:wrap;gap:2px 12px;margin-left:auto}
 .sh-courses label{display:flex;gap:6px;align-items:center;font-weight:400;font-size:13px}
 .e-vis{display:inline-flex;flex-direction:column;margin-bottom:10px}
+
+/* team banks */
+.tag.team{background:#efe8f6;border-color:#b9a3d6;color:#4e2f78}
+.teamlist li{display:block}
+.teamlist .tb-head{display:flex;gap:8px;align-items:center}
+.teamlist .sh-courses{margin:6px 0 0}
+.tb-add{margin-top:6px}
+.tb-set{position:relative;margin-top:6px}
+.tb-set>summary{list-style:none;cursor:pointer;display:inline-block;padding:4px 10px;border-radius:8px;font-size:13px}
+.tb-set>summary::-webkit-details-marker{display:none}
+.tb-pop{margin-top:6px;border:1px solid var(--line,#ddd);border-radius:10px;padding:10px 12px;display:grid;gap:10px}
+.tb-pop fieldset{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+.tb-pop legend{padding:0;margin-bottom:4px;width:100%}
+.tb-pop label,.sh-list label,.g-mem label{display:flex;gap:6px;align-items:center;font-weight:400}
+.sh-h{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 8px}
+.sh-list{display:grid;gap:6px}
+.glist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.glist li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 12px}
+.g-head{display:flex;gap:8px;align-items:center}
+.g-mem{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}

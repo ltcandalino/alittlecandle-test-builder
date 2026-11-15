@@ -34,7 +34,8 @@ to keep a copy or move to another computer.
   share banks with the other teachers on your website.
 - **Sharing with colleagues (website):** every question is private until you make its bank public (Regents yes,
   purchased textbook banks no). Colleagues pick public banks for their courses, use them read-only and can copy a
-  question to make their own version.
+  question to make their own version. **Team banks** share questions (even private ones) with a group the admin sets
+  up, with editors who may fix them; **Share** on a question adds it to a team bank.
 - **Question types:** multiple choice, bimodal (print with or without choices), true/false,
   short answer, extended response.
 - **Document types**, each with the course name and a bar at the top of every page:

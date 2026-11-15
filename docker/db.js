@@ -19,6 +19,15 @@ const SCHEMA = {
     `CREATE INDEX IF NOT EXISTS questions_upd ON questions(user_id, updated_at)`,
     `CREATE TABLE IF NOT EXISTS app_state (user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
        data TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+    // groups (made by the admin) and team banks (lists of questions shared with groups, with editors)
+    `CREATE TABLE IF NOT EXISTS user_groups (id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS group_members (group_id TEXT NOT NULL REFERENCES user_groups(id) ON DELETE CASCADE,
+       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (group_id, user_id))`,
+    `CREATE TABLE IF NOT EXISTS team_banks (id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL,
+       deleted INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS team_access (bank_id TEXT NOT NULL, user_id TEXT NOT NULL, role INTEGER NOT NULL, PRIMARY KEY (bank_id, user_id))`,
+    `CREATE TABLE IF NOT EXISTS team_items (bank_id TEXT NOT NULL, q_owner TEXT NOT NULL, q_id TEXT NOT NULL, PRIMARY KEY (bank_id, q_owner, q_id))`,
+    `CREATE INDEX IF NOT EXISTS team_items_q ON team_items(q_owner, q_id)`,
   ],
   postgres: [
     `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, pw TEXT NOT NULL,
@@ -31,6 +40,14 @@ const SCHEMA = {
     `CREATE INDEX IF NOT EXISTS questions_upd ON questions(user_id, updated_at)`,
     `CREATE TABLE IF NOT EXISTS app_state (user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
        data TEXT NOT NULL, updated_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS user_groups (id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS group_members (group_id TEXT NOT NULL REFERENCES user_groups(id) ON DELETE CASCADE,
+       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE, PRIMARY KEY (group_id, user_id))`,
+    `CREATE TABLE IF NOT EXISTS team_banks (id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL,
+       deleted SMALLINT NOT NULL DEFAULT 0, updated_at TEXT NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS team_access (bank_id TEXT NOT NULL, user_id TEXT NOT NULL, role SMALLINT NOT NULL, PRIMARY KEY (bank_id, user_id))`,
+    `CREATE TABLE IF NOT EXISTS team_items (bank_id TEXT NOT NULL, q_owner TEXT NOT NULL, q_id TEXT NOT NULL, PRIMARY KEY (bank_id, q_owner, q_id))`,
+    `CREATE INDEX IF NOT EXISTS team_items_q ON team_items(q_owner, q_id)`,
   ],
   mysql: [
     `CREATE TABLE IF NOT EXISTS users (id VARCHAR(64) PRIMARY KEY, email VARCHAR(320) NOT NULL UNIQUE, pw VARCHAR(255) NOT NULL,
@@ -44,6 +61,16 @@ const SCHEMA = {
        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) DEFAULT CHARSET=utf8mb4`,
     `CREATE TABLE IF NOT EXISTS app_state (user_id VARCHAR(64) PRIMARY KEY, data LONGTEXT NOT NULL, updated_at VARCHAR(40) NOT NULL,
        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) DEFAULT CHARSET=utf8mb4`,
+    `CREATE TABLE IF NOT EXISTS user_groups (id VARCHAR(64) PRIMARY KEY, name VARCHAR(200) NOT NULL, created_at VARCHAR(40) NOT NULL) DEFAULT CHARSET=utf8mb4`,
+    `CREATE TABLE IF NOT EXISTS group_members (group_id VARCHAR(64) NOT NULL, user_id VARCHAR(64) NOT NULL, PRIMARY KEY (group_id, user_id),
+       FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE,
+       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE) DEFAULT CHARSET=utf8mb4`,
+    `CREATE TABLE IF NOT EXISTS team_banks (id VARCHAR(64) PRIMARY KEY, owner VARCHAR(64) NOT NULL, data LONGTEXT NOT NULL,
+       deleted TINYINT NOT NULL DEFAULT 0, updated_at VARCHAR(40) NOT NULL) DEFAULT CHARSET=utf8mb4`,
+    `CREATE TABLE IF NOT EXISTS team_access (bank_id VARCHAR(64) NOT NULL, user_id VARCHAR(64) NOT NULL, role TINYINT NOT NULL,
+       PRIMARY KEY (bank_id, user_id)) DEFAULT CHARSET=utf8mb4`,
+    `CREATE TABLE IF NOT EXISTS team_items (bank_id VARCHAR(64) NOT NULL, q_owner VARCHAR(64) NOT NULL, q_id VARCHAR(100) NOT NULL,
+       PRIMARY KEY (bank_id, q_owner, q_id), INDEX team_items_q (q_owner, q_id)) DEFAULT CHARSET=utf8mb4`,
   ],
 };
 
@@ -76,7 +103,7 @@ function upsertSql(kind, table, keys, cols) {
 const pgSql = (sql) => { let i = 0; return sql.replace(/\?/g, () => '$' + (++i)); };
 
 // Counts and BIGINTs come back as strings from Postgres/MySQL; make them numbers.
-const NUMERIC = new Set(['n', 'expires', 'admin', 'deleted', 'questions', 'pub']);
+const NUMERIC = new Set(['n', 'expires', 'admin', 'deleted', 'questions', 'pub', 'role', 'team']);
 const fixRow = (r) => { if (r) for (const k of Object.keys(r)) if (NUMERIC.has(k) && r[k] != null) r[k] = Number(r[k]); return r; };
 
 function kindOf(url) {
@@ -191,11 +218,16 @@ async function copyFromSqlite(db, file, fs) {
   const tokens = await old.all('SELECT * FROM tokens WHERE expires > ?', [Date.now()]);
   const questions = await old.all('SELECT * FROM questions');
   const states = await old.all('SELECT * FROM app_state');
+  const groups = await old.all('SELECT * FROM user_groups'), members = await old.all('SELECT * FROM group_members');
+  const banks = await old.all('SELECT * FROM team_banks');
   await db.tx(async (t) => {
     for (const u of users) await t.run('INSERT INTO users (id, email, pw, admin, created_at) VALUES (?,?,?,?,?)', [u.id, u.email, u.pw, u.admin, u.created_at]);
     for (const k of tokens) await t.run('INSERT INTO tokens (token, user_id, kind, expires) VALUES (?,?,?,?)', [k.token, k.user_id, k.kind, k.expires]);
     for (const q of questions) await t.run('INSERT INTO questions (user_id, id, data, deleted, updated_at, pub) VALUES (?,?,?,?,?,?)', [q.user_id, q.id, q.data, q.deleted, q.updated_at, q.pub || 0]);
     for (const s of states) await t.run('INSERT INTO app_state (user_id, data, updated_at) VALUES (?,?,?)', [s.user_id, s.data, s.updated_at]);
+    for (const g of groups) await t.run('INSERT INTO user_groups (id, name, created_at) VALUES (?,?,?)', [g.id, g.name, g.created_at]);
+    for (const m of members) await t.run('INSERT INTO group_members (group_id, user_id) VALUES (?,?)', [m.group_id, m.user_id]);
+    for (const b of banks) await t.run('INSERT INTO team_banks (id, owner, data, deleted, updated_at) VALUES (?,?,?,?,?)', [b.id, b.owner, b.data, b.deleted, b.updated_at]);
   });
   await old.close();
   return { users: users.length, questions: questions.length };

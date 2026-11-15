@@ -37,12 +37,47 @@ Shared questions belong to the colleague who shared them, so only they can chang
 - **Remove** takes the question out of the current course. It stays in **Shared with you**, so you can add it back.
 - **Change these…** and **Check & clean up** leave shared questions alone.
 
+## Team banks: sharing with a group
+
+A **team bank** is a list of questions shared with a **group**, like your Geometry team. It can hold private questions
+(for example a textbook bank your department bought): only the people in the group see them, never the whole site.
+
+**Groups** are made by the site admin: click your email at the top right → **Manage accounts** → **Groups**. Type a
+name, click **Add group**, and tick who is in it.
+
+**Make a team bank** (Import & backup → **Team banks**):
+
+1. Type a name and click **Make team bank**.
+2. Choose one of your banks in **Add one of your banks…** to put all of its questions in. To add one question, click
+   **Share** on it in the question bank and tick the team bank.
+3. Open **Groups & editors…**, tick the group to share it with, and tick the **editors**: the people who may fix its
+   questions. Everyone else in the group can use the questions but not change them.
+
+Your questions stay yours: they keep their bank, unit and courses in your question bank. A question can be in several
+team banks. The question bank shows a purple tag with the team bank's name, and the **Bank** filter (More filters) lists
+team banks too.
+
+**Using a team bank someone shared with you:** it appears under **Team banks** on Import & backup. Tick the courses where
+you want to use it. If you're an editor, the questions have an **Edit** button; your fix reaches everyone, including the
+owner (their copy shows who changed it). Otherwise use **Copy to mine** to make your own version.
+
+**Who can do what**
+
+| | Owner | Editor | Group member |
+|---|---|---|---|
+| Use the questions on tests | yes | yes | yes |
+| Fix a question | yes | yes | no (Copy to mine) |
+| Add or take out questions | yes | yes | no |
+| Rename, choose groups and editors, delete the team bank | yes (and the admin) | no | no |
+
+Deleting a team bank never deletes anyone's questions: they go back to being only in their owner's banks. Taking a
+group off a team bank (or a person out of a group) removes the questions from their app at the next sync.
+
 ## When someone leaves
 
-If the admin removes an account, that person's public questions stay for everyone (the admin takes them over). Their
-private questions are deleted with the account.
+If the admin removes an account, that person's public questions stay for everyone and their team banks stay too (the
+admin takes both over). Their private questions are deleted with the account, so they also leave any team bank.
 
 ## Coming next
 
-Groups (like a Geometry team) with chosen editors, sharing single questions, one copy of each Regents question, copies
-that tell you when the original was fixed, comments, and a review status. See `PLAN.md` (Plan 3) in the repository.
+One copy of each Regents question, copies that tell you when the original was fixed, comments, and a review status. See `PLAN.md` (Plan 3) in the repository.

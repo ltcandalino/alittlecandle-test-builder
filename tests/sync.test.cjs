@@ -239,3 +239,119 @@ describe('public banks shared with colleagues (website version)', () => {
     await a.context.close(); await b.context.close();
   });
 });
+
+describe('team banks (website version)', () => {
+  test('owner shares a private bank with a group; an editor fixes a question; a member uses it read-only', async () => {
+    const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
+    const mk = async (email) => (await A.call('POST', '/admin/api/users', { token: t, body: { email, password: 'team-pass-123' } })).json.id;
+    const ownerId = await mk('t-owner@example.com'), editorId = await mk('t-editor@example.com'), memberId = await mk('t-member@example.com');
+    const gid = (await A.call('POST', '/admin/api/groups', { token: t, body: { name: 'Geometry team' } })).json.id;
+    await A.call('PUT', '/admin/api/groups/' + gid, { token: t, body: { members: [ownerId, editorId, memberId] } });
+
+    const o = await signIn('t-owner@example.com', 'team-pass-123');
+    await o.page.evaluate(() => {
+      const T = window.__tb, st = T.state;
+      st.questions.push({ id: 'book-1', course: st.course, type: 'tf', html: 'Textbook question', answer: 'T', bank: 'Bought textbook', points: 1 });
+      st.questions.push({ id: 'book-2', course: st.course, type: 'tf', html: 'Second textbook question', answer: 'F', bank: 'Bought textbook', points: 1 });
+      T.state = T.normalize(st);
+    });
+    await o.page.evaluate(() => window.__tb.fn.persist());
+    await syncNow(o.page);
+    await o.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await o.page.fill('#tbNew', 'Geometry textbook');
+    await o.page.click('#tbAdd');
+    await o.page.waitForSelector('#teamCard [data-tbfrom]');
+    await o.page.selectOption('#teamCard [data-tbfrom]', 'Bought textbook');
+    await o.page.waitForFunction(() => /2 questions/.test(document.querySelector('#teamCard').textContent));
+    await o.page.click('#teamCard .tb-set summary');
+    await o.page.check('#teamCard [data-tbg]');
+    await o.page.waitForSelector('#teamCard [data-tbe]', { state: 'attached' });
+    assert.ok(await o.page.evaluate(() => document.querySelector('#teamCard .tb-set').open), 'panel stays open after a tick');
+    await o.page.check('#teamCard [data-tbe][value="' + editorId + '"]');
+    await o.page.waitForFunction(id => (window.__tb.state.teamBanks[0].editors || []).includes(id), editorId);
+    const b0 = await o.page.evaluate(() => window.__tb.state.teamBanks[0]);
+    assert.deepEqual(b0.editors, [editorId]); assert.equal(b0.items.length, 2);
+    // the questions stay private: not in Shared with you, not public
+    assert.ok(await o.page.evaluate(() => window.__tb.state.questions.every(q => !q.visibility)));
+
+    // the editor fixes a question
+    const e = await signIn('t-editor@example.com', 'team-pass-123');
+    await syncNow(e.page);
+    await e.page.waitForFunction(() => window.__tb.state.questions.some(q => q.id === 'book-1' && q.canEdit));
+    const ecourse = await e.page.evaluate(() => window.__tb.state.course);
+    await e.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await e.page.check('#teamCard [data-tbuse][value="' + ecourse + '"]');
+    await e.page.evaluate(() => { window.__tb.ui().tab = 'bank'; window.__tb.render(); });
+    await e.page.waitForSelector('#qlist [data-edit="book-1"]');
+    assert.match(await e.page.textContent('#qlist'), /Geometry textbook/);
+    await e.page.evaluate(() => { const q = window.__tb.state.questions.find(x => x.id === 'book-1'); q.html = 'Textbook question (fixed)'; window.__tb.fn.persist(); });
+    await syncNow(e.page);
+    // the owner gets the fix; her bank name and courses stay hers
+    await syncNow(o.page);
+    await o.page.waitForFunction(() => { const q = window.__tb.state.questions.find(x => x.id === 'book-1'); return q && q.html === 'Textbook question (fixed)'; }, null, { timeout: 15000 });
+    const oq = await o.page.evaluate(() => window.__tb.state.questions.find(x => x.id === 'book-1'));
+    assert.equal(oq.bank, 'Bought textbook'); assert.ok(!oq.owner); assert.equal(oq.changedBy, 't-editor@example.com');
+
+    // a member sees it read-only
+    const m = await signIn('t-member@example.com', 'team-pass-123');
+    await syncNow(m.page);
+    await m.page.waitForFunction(() => window.__tb.state.questions.some(q => q.id === 'book-1'));
+    const mq = await m.page.evaluate(() => window.__tb.state.questions.find(x => x.id === 'book-1'));
+    assert.equal(mq.html, 'Textbook question (fixed)'); assert.ok(!mq.canEdit); assert.equal(mq.owner, ownerId);
+    await m.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    assert.match(await m.page.textContent('#teamCard'), /shared with you/);
+    assert.equal(await m.page.$('#teamCard .tb-set'), null, 'only the owner manages groups and editors');
+    assert.equal(await m.page.$('#teamCard [data-tbfrom]'), null, 'members can’t add questions');
+    assert.doesNotMatch(await m.page.textContent('#sharedCard'), /Bought textbook/, 'team questions aren’t listed as public');
+
+    // the owner stops sharing: gone for the member after the next sync
+    await o.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    assert.ok(await o.page.evaluate(() => document.querySelector('#teamCard .tb-set').open), 'still open from before');
+    await o.page.uncheck('#teamCard [data-tbg]');
+    await o.page.waitForFunction(() => /not shared with a group yet/.test(document.querySelector('#teamCard').textContent));
+    await syncNow(m.page);
+    await m.page.waitForFunction(() => !window.__tb.state.questions.some(q => q.id === 'book-1'), null, { timeout: 15000 });
+    for (const s of [o, e, m]) await s.context.close();
+  });
+});
+
+describe('groups in Manage accounts (website version)', () => {
+  test('the admin adds a group and ticks who is in it', async () => {
+    const a = await signIn('admin@example.com', 'admin-password-1');
+    await a.page.evaluate(() => window.__tb.fn.usersDialog());
+    await a.page.waitForSelector('#gNew');
+    await a.page.fill('#gNew', 'Algebra team');
+    await a.page.click('#gAdd');
+    await a.page.waitForSelector('.glist li .g-mem input');
+    const li = '.glist li:has-text("Algebra team")';
+    await a.page.check(li + ' .g-mem label:has-text("teacher@example.com") input');
+    const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
+    for (let i = 0; i < 50; i++) {
+      const g = (await A.call('GET', '/admin/api/groups', { token: t })).json.groups.find(x => x.name === 'Algebra team');
+      if (g && g.members.length === 1) return a.context.close();
+      await new Promise(r => setTimeout(r, 100));
+    }
+    throw new Error('member was not saved');
+  });
+});
+
+describe('Share on one question (website version)', () => {
+  test('adds it to a team bank you can edit, or makes it public', async () => {
+    const A = api(srv.url), t = (await A.login('admin@example.com', 'admin-password-1')).json.access_token;
+    await A.call('POST', '/admin/api/users', { token: t, body: { email: 'sharer1@example.com', password: 'share-pass-123' } });
+    const s = await signIn('sharer1@example.com', 'share-pass-123');
+    const tok = (await A.login('sharer1@example.com', 'share-pass-123')).json.access_token;
+    await A.call('PUT', '/team/v1/banks/share-test', { token: tok, body: { name: 'Common tasks', groups: [], editors: [], items: [] } });
+    await s.page.evaluate(() => { const T = window.__tb, st = T.state; st.questions.push({ id: 'one-q', course: st.course, type: 'tf', html: 'Share me', answer: 'T', bank: 'Mine', points: 1 }); T.state = T.normalize(st); T.fn.persist(); });
+    await syncNow(s.page);
+    await s.page.evaluate(() => { window.__tb.ui().tab = 'bank'; window.__tb.render(); });
+    await s.page.click('#qlist [data-share="one-q"]');
+    await s.page.check('[data-sht="share-test"]');
+    await s.page.waitForFunction(() => { const b = window.__tb.state.teamBanks.find(x => x.id === 'share-test'); return b && b.items.some(i => i.id === 'one-q'); }, null, { timeout: 15000 });
+    await s.page.check('#shPub'); // the dialog stays open while the team bank saves
+    await s.page.click('#shDone');
+    assert.equal(await s.page.evaluate(() => window.__tb.state.questions.find(q => q.id === 'one-q').visibility), 'public');
+    assert.match(await s.page.textContent('#qlist'), /Common tasks/);
+    await s.context.close();
+  });
+});

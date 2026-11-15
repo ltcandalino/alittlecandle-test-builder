@@ -212,6 +212,75 @@ describe('public questions (shared with colleagues)', () => {
   });
 });
 
+describe('groups and team banks', () => {
+  const shared = async (t) => (await A.call('GET', '/rest/v1/questions?shared=1&limit=1000', { token: t })).json;
+  const put = (t, id, body) => A.call('PUT', '/team/v1/banks/' + id, { token: t, body });
+  let owner, editor, member, outsider, gid;
+  before(async () => {
+    owner = await newUser('team-owner@example.com'); editor = await newUser('team-editor@example.com');
+    member = await newUser('team-member@example.com'); outsider = await newUser('team-out@example.com');
+    const g = await A.call('POST', '/admin/api/groups', { token: admin.access_token, body: { name: 'Geometry Team' } });
+    assert.equal(g.status, 201); gid = g.json.id;
+    assert.equal((await A.call('PUT', '/admin/api/groups/' + gid, { token: admin.access_token, body: { members: [owner.user.id, editor.user.id, member.user.id] } })).status, 200);
+    await A.call('POST', '/rest/v1/questions', { token: owner.access_token, body: [{ id: 'tb1', data: { id: 'tb1', html: 'Textbook 1', bank: 'Book', courses: ['Geometry'] } }, { id: 'tb2', data: { id: 'tb2', html: 'Not shared' } }] });
+  });
+  test('only the admin manages groups; everyone can list groups and people', async () => {
+    assert.equal((await A.call('POST', '/admin/api/groups', { token: owner.access_token, body: { name: 'Mine' } })).status, 403);
+    const pp = (await A.call('GET', '/team/v1/people', { token: member.access_token })).json;
+    assert.deepEqual(pp.groups.find(g => g.id === gid).members.sort(), [owner.user.id, editor.user.id, member.user.id].sort());
+    assert.ok(pp.people.some(x => x.email === 'team-out@example.com') && pp.people.every(x => Object.keys(x).sort().join() === 'email,id'));
+  });
+  test('a private bank shared with a group: members see it, others never', async () => {
+    const r = await put(owner.access_token, 'geo-book', { name: 'Geometry textbook', groups: [gid], editors: [editor.user.id], items: [{ o: owner.user.id, id: 'tb1' }] });
+    assert.equal(r.status, 200, r.text);
+    const m = await shared(member.access_token);
+    const q = m.find(x => x.id === 'tb1');
+    assert.equal(q.data.html, 'Textbook 1'); assert.equal(q.owner_email, 'team-owner@example.com'); assert.equal(q.can_edit, false);
+    assert.ok(!m.some(x => x.id === 'tb2'), 'questions not in the bank stay private');
+    assert.ok(!(await shared(outsider.access_token)).some(x => x.id === 'tb1'), 'not in the group: nothing');
+    assert.equal((await shared(editor.access_token)).find(x => x.id === 'tb1').can_edit, true);
+    const banks = (await A.call('GET', '/team/v1/banks', { token: member.access_token })).json;
+    assert.deepEqual(banks.map(b => [b.name, b.role, b.manage]), [['Geometry textbook', 1, false]]);
+    assert.deepEqual((await A.call('GET', '/team/v1/banks', { token: outsider.access_token })).json, []);
+  });
+  test('editors can change the questions (owner keeps bank, courses, visibility); members and outsiders cannot', async () => {
+    const edit = (t, html) => A.call('POST', '/rest/v1/questions', { token: t, body: [{ id: 'tb1', user_id: owner.user.id, data: { id: 'tb1', html, bank: 'Hijacked', courses: ['X'], visibility: 'public' } }] });
+    assert.equal((await edit(member.access_token, 'member')).status, 403);
+    assert.equal((await edit(outsider.access_token, 'outsider')).status, 403);
+    assert.equal((await edit(editor.access_token, 'Textbook 1 (fixed)')).status, 201);
+    const mine = (await A.call('GET', '/rest/v1/questions', { token: owner.access_token })).json.find(x => x.id === 'tb1');
+    assert.equal(mine.data.html, 'Textbook 1 (fixed)'); assert.equal(mine.data.bank, 'Book'); assert.deepEqual(mine.data.courses, ['Geometry']);
+    assert.equal(mine.data.visibility, undefined); assert.equal(mine.data.changedBy, 'team-editor@example.com');
+    assert.ok(!(await shared(outsider.access_token)).some(x => x.id === 'tb1'), 'still private');
+    // deleting someone else's question is never allowed
+    assert.equal((await A.call('POST', '/rest/v1/questions', { token: editor.access_token, body: [{ id: 'tb1', user_id: owner.user.id, data: {}, deleted: true }] })).status, 403);
+  });
+  test('editors add and remove questions but cannot rename or re-share; a bank never passes on others’ questions', async () => {
+    await A.call('POST', '/rest/v1/questions', { token: editor.access_token, body: [{ id: 'ed1', data: { id: 'ed1', html: 'Editor’s own' } }] });
+    await A.call('POST', '/rest/v1/questions', { token: outsider.access_token, body: [{ id: 'out1', data: { id: 'out1', html: 'Outsider private' } }] });
+    const r = await put(editor.access_token, 'geo-book', { name: 'Renamed', groups: [], editors: [], items: [{ o: owner.user.id, id: 'tb1' }, { o: editor.user.id, id: 'ed1' }, { o: outsider.user.id, id: 'out1' }] });
+    assert.equal(r.status, 200);
+    const b = (await A.call('GET', '/team/v1/banks', { token: owner.access_token })).json.find(x => x.id === 'geo-book');
+    assert.equal(b.name, 'Geometry textbook'); assert.deepEqual(b.groups, [gid]); assert.equal(b.items.length, 3);
+    const m = await shared(member.access_token);
+    assert.ok(m.some(x => x.id === 'ed1')); assert.ok(!m.some(x => x.id === 'out1'), 'outsider is not owner or editor: no access granted');
+    assert.equal((await put(member.access_token, 'geo-book', { name: 'x', items: [] })).status, 403);
+    assert.equal((await A.call('DELETE', '/team/v1/banks/geo-book', { token: editor.access_token })).status, 403);
+  });
+  test('leaving the group, or deleting the bank, takes the questions away', async () => {
+    await A.call('PUT', '/admin/api/groups/' + gid, { token: admin.access_token, body: { members: [owner.user.id, editor.user.id] } });
+    const m = await shared(member.access_token);
+    assert.ok(!m.some(x => x.id === 'tb1' && !x.deleted), 'gone after leaving the group');
+    assert.equal((await A.call('DELETE', '/team/v1/banks/geo-book', { token: owner.access_token })).status, 200);
+    assert.ok(!(await shared(editor.access_token)).some(x => x.id === 'tb1' && !x.deleted));
+    assert.equal((await A.call('GET', '/team/v1/banks', { token: editor.access_token })).json.length, 0);
+  });
+  test('bad bank ids and missing names are refused', async () => {
+    assert.equal((await put(owner.access_token, 'bad id!', { name: 'x' })).status, 404);
+    assert.equal((await put(owner.access_token, 'ok-id', { name: '  ' })).status, 422);
+  });
+});
+
 describe('Manage accounts (admin)', () => {
   test('only admins can manage accounts', async () => {
     const u = await newUser('notadmin@example.com');

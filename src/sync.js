@@ -49,6 +49,10 @@ var CLOUD=(function(){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
+  // a colleague's question as its owner stores it: without our course choices and the owner/permission marks we add
+  var LOCAL_ONLY={owner:1,ownerName:1,canEdit:1,courses:1,course:1,visibility:1};
+  function ownerCopy(q){var o={};Object.keys(q).forEach(function(k){if(!LOCAL_ONLY[k])o[k]=q[k];});return o;}
+  function sigC(q){return sigQ(ownerCopy(q));}
   // colleagues' questions (q.owner set) aren't ours to push; the courses we put them in travel in app_state as "use"
 function foreign(q){return !!(q&&q.owner);}
   function useOf(st){if(!st.questions)return st.use||{};var u={};st.questions.forEach(function(q){if(foreign(q)&&q.courses&&q.courses.length)u[q.id]=q.courses.slice();});return u;}
@@ -91,8 +95,19 @@ function foreign(q){return !!(q&&q.owner);}
     }
     return next();
   }
+  // team banks shared with me (website only). When they change, questions may have become visible (or not): pull everything.
+  function pullTeams(){
+    if(!cfg.selfHosted)return Promise.resolve(false);
+    return Promise.all([call('GET','/team/v1/banks'),call('GET','/team/v1/people')]).then(function(r){
+      var st=hooks.getState(),banks=r[0]||[],sig=fnv(canon(banks.map(function(b){return [b.id,b.updated_at,b.role];})));
+      st.teamBanks=banks;st.people=r[1]||{groups:[],people:[]};
+      if(sig!==meta.teamSig){meta.teamSig=sig;meta.lastPull=null;}
+      return true;
+    });
+  }
   function pull(){
-    var st=hooks.getState(),changed=false,maxSeen=meta.lastPull||null;
+    var st=hooks.getState(),changed=false,maxSeen=meta.lastPull||null,full=!meta.lastPull,seen={};
+    meta.fsynced=meta.fsynced||{};
     return pullAll(meta.lastPull).then(function(rows){
       var byId={};st.questions.forEach(function(q,i){byId[q.id]=i;});
       rows.forEach(function(r){
@@ -101,9 +116,13 @@ function foreign(q){return !!(q&&q.owner);}
         if(r.owner&&r.owner!==session.user.id){
           // ponytail: same id as one of ours (e.g. from a shared bank file) -> ours wins; Plan 3 step 3 links duplicates
           if(local&&!foreign(local))return;
-          if(r.deleted){if(local){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}return;}
+          if(r.deleted){if(local){st.questions.splice(i,1);st.questions.forEach(function(q,k){byId[q.id]=k;});delete byId[r.id];st.selected=st.selected.filter(function(x){return x!==r.id;});changed=true;}delete meta.fsynced[r.id];return;}
           var fq=r.data;if(!fq||!fq.id)return;
+          seen[r.id]=1;
+          if(local&&local.canEdit&&meta.fsynced[r.id]!=null&&sigC(local)!==meta.fsynced[r.id])return; // my edit to it isn't sent yet
           fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
+          if(r.can_edit)fq.canEdit=true;else delete fq.canEdit;
+          meta.fsynced[r.id]=sigC(fq);
           if(local)st.questions[i]=fq;else{st.questions.push(fq);byId[fq.id]=st.questions.length-1;}
           changed=true;return;
         }
@@ -117,6 +136,8 @@ function foreign(q){return !!(q&&q.owner);}
         if(!local){st.questions.push(data);byId[data.id]=st.questions.length-1;meta.synced[r.id]=sigQ(data);changed=true;}
         else if(localSig===synced||synced==null&&localSig===sigQ(data)){if(localSig!==sigQ(data)){st.questions[i]=data;changed=true;}meta.synced[r.id]=sigQ(data);}
       });
+      // a full pull lists every colleague's question I may still see; the others were unshared
+      if(full&&cfg.selfHosted){var before=st.questions.length;st.questions=st.questions.filter(function(q){if(foreign(q)&&!seen[q.id]){delete meta.fsynced[q.id];return false;}return true;});if(st.questions.length!==before){var ids={};st.questions.forEach(function(q){ids[q.id]=1;});st.selected=st.selected.filter(function(x){return ids[x];});changed=true;}}
       return call('GET','/rest/v1/app_state?select=data,updated_at');
     }).then(function(rows){
       var row=rows&&rows[0];
@@ -134,10 +155,11 @@ function foreign(q){return !!(q&&q.owner);}
   }
   function push(){
     var st=hooks.getState(),ups=[],dels=[],have={},uid=session.user.id;
-    st.questions.forEach(function(q){if(foreign(q))return;have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
+    var fups=[];meta.fsynced=meta.fsynced||{};
+    st.questions.forEach(function(q){if(foreign(q)){if(q.canEdit&&meta.fsynced[q.id]!=null&&sigC(q)!==meta.fsynced[q.id])fups.push(q);return;}have[q.id]=1;if(meta.synced[q.id]!==sigQ(q))ups.push(q);});
     Object.keys(meta.synced).forEach(function(id){if(!have[id])dels.push(id);});
     var stateDirty=sigState(st)!==meta.stateSig;
-    if(!ups.length&&!dels.length&&!stateDirty)return Promise.resolve(false);
+    if(!ups.length&&!dels.length&&!stateDirty&&!fups.length)return Promise.resolve(false);
     var total=ups.length,done=0,localChanged=false;
     setStatus('Syncing…');
     var chain=Promise.resolve();
@@ -159,6 +181,18 @@ function foreign(q){return !!(q&&q.owner);}
         });
       });
     })(ups.slice(b,b+20));
+    // edits to colleagues' questions in team banks I'm an editor of, one at a time (a refusal only affects that one)
+    fups.forEach(function(q){chain=chain.then(function(){
+      return hostImages(q.html).then(function(h){return Promise.all((q.choices||[]).map(hostImages)).then(function(ch){
+        if(h!==q.html||(q.choices&&ch.some(function(c,i){return c!==q.choices[i];}))){q.html=h;if(q.choices)q.choices=ch;localChanged=true;}
+        var sent=ownerCopy(q),sg=sigC(q);
+        return call('POST','/rest/v1/questions',[{user_id:q.owner,id:q.id,data:sent}],{headers:{'Prefer':'return=minimal'}}).then(function(){meta.fsynced[q.id]=sg;return saveMeta();},function(e){
+          if(e.status!==403&&e.status!==409)throw e;
+          // no longer allowed (or deleted): drop my copy; the next full pull brings back the owner's version if I may still see it
+          var cur=hooks.getState();cur.questions=cur.questions.filter(function(x){return x!==q;});delete meta.fsynced[q.id];meta.lastPull=null;localChanged=true;return saveMeta();
+        });
+      });});
+    });});
     if(dels.length)chain=chain.then(function(){
       return call('POST','/rest/v1/questions?on_conflict=user_id,id',dels.map(function(id){return {user_id:uid,id:id,data:{},deleted:true,updated_at:new Date().toISOString()};}),{headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}}).then(function(){dels.forEach(function(id){delete meta.synced[id];});return saveMeta();});
     });
@@ -177,7 +211,7 @@ function foreign(q){return !!(q&&q.owner);}
     if(!enabled||!session||!meta)return Promise.resolve();
     if(busy){again=true;return Promise.resolve();}
     busy=true;setStatus('Syncing…');
-    return pull().then(function(ch){if(ch)hooks.applied();return push();}).then(function(localCh){
+    return pullTeams().then(pull).then(function(ch){if(ch)hooks.applied();return push();}).then(function(localCh){
       if(localCh)hooks.localChanged();
       busy=false;setStatus(navigator.onLine===false?'Offline':'Synced');
       if(again){again=false;return sync();}

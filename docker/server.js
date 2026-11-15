@@ -152,6 +152,118 @@ async function library(req, res, p, body, me) {
 }
 
 /* ---------------- request handling ---------------- */
+/* ---------------- groups and team banks ----------------
+   A team bank is a list of questions (items {o: owner id, id}) that its owner shares with groups.
+   Owner and editors (role 2) may change the questions; group members (role 1) may see and use them.
+   A bank only grants anything for questions owned by its owner or one of its editors, so nobody can
+   pass on a colleague's private question by putting it in their own bank.
+   team_access / team_items are rebuilt from team_banks + group_members after every change (school-sized). */
+const BANK_ID = /^[A-Za-z0-9_-]{1,64}$/;
+async function refreshTeam() {
+  const banks = (await db.all('SELECT id, owner, data FROM team_banks WHERE deleted = 0')).map((b) => Object.assign(JSON.parse(b.data), { id: b.id, owner: b.owner }));
+  const members = await db.all('SELECT group_id, user_id FROM group_members');
+  const users = new Set((await db.all('SELECT id FROM users')).map((u) => u.id));
+  await db.tx(async (t) => {
+    await t.run('DELETE FROM team_access');
+    await t.run('DELETE FROM team_items');
+    for (const b of banks) {
+      const roles = new Map();
+      for (const m of members) if ((b.groups || []).includes(m.group_id)) roles.set(m.user_id, 1);
+      for (const e of [b.owner].concat(b.editors || [])) if (users.has(e)) roles.set(e, 2);
+      for (const [u, r] of roles) await t.run('INSERT INTO team_access (bank_id, user_id, role) VALUES (?,?,?)', [b.id, u, r]);
+      const trusted = new Set([b.owner].concat(b.editors || [])), seen = new Set();
+      for (const it of b.items || []) {
+        const k = it.o + '\n' + it.id;
+        if (trusted.has(it.o) && !seen.has(k)) { seen.add(k); await t.run('INSERT INTO team_items (bank_id, q_owner, q_id) VALUES (?,?,?)', [b.id, it.o, it.id]); }
+      }
+    }
+  });
+}
+// best role (1 see, 2 change) user has on question (owner, id) through team banks; 0 for none
+const TEAM_ROLE = 'SELECT MAX(ta.role) AS role FROM team_items ti JOIN team_access ta ON ta.bank_id = ti.bank_id WHERE ti.q_owner = ? AND ti.q_id = ? AND ta.user_id = ?';
+async function teamRole(owner, id, userId) { const r = await db.get(TEAM_ROLE, [owner, id, userId]); return (r && r.role) || 0; }
+
+function cleanBank(j) {
+  const str = (v, n) => typeof v === 'string' && v.length <= n;
+  if (!j || !str(j.name, 120) || !j.name.trim()) return null;
+  const list = (a, ok) => (Array.isArray(a) ? a : []).filter(ok);
+  return {
+    name: j.name.trim(),
+    groups: list(j.groups, (g) => str(g, 64)),
+    editors: list(j.editors, (e) => str(e, 64)),
+    items: list(j.items, (it) => it && str(it.o, 64) && str(it.id, 100)).slice(0, 50000).map((it) => ({ o: it.o, id: it.id })),
+  };
+}
+async function team(req, res, p, body, me) {
+  if (p === '/team/v1/people' && req.method === 'GET') {
+    const groups = await db.all('SELECT id, name FROM user_groups ORDER BY name');
+    const members = await db.all('SELECT group_id, user_id FROM group_members');
+    const people = await db.all('SELECT id, email FROM users ORDER BY email');
+    return send(res, 200, { groups: groups.map((g) => ({ id: g.id, name: g.name, members: members.filter((m) => m.group_id === g.id).map((m) => m.user_id) })), people });
+  }
+  if (p === '/team/v1/banks' && req.method === 'GET') {
+    const rows = await db.all(`SELECT b.id, b.owner, b.data, b.updated_at, u.email, a.role FROM team_banks b JOIN team_access a ON a.bank_id = b.id AND a.user_id = ?
+      LEFT JOIN users u ON u.id = b.owner WHERE b.deleted = 0 ORDER BY b.id`, [me.id]);
+    return send(res, 200, rows.map((r) => Object.assign(JSON.parse(r.data), { id: r.id, owner: r.owner, owner_email: r.email || '', updated_at: r.updated_at, role: r.role, manage: r.owner === me.id || !!me.admin })));
+  }
+  const id = decodeURIComponent(p.slice('/team/v1/banks/'.length));
+  if (!p.startsWith('/team/v1/banks/') || !BANK_ID.test(id)) return err(res, 404, 'Not found');
+  const row = await db.get('SELECT owner, data, deleted FROM team_banks WHERE id = ?', [id]);
+  const old = row && !row.deleted ? JSON.parse(row.data) : null;
+  if (row && row.deleted) return err(res, 404, 'That team bank was deleted.');
+  const manage = !row || row.owner === me.id || !!me.admin;
+  const role = row ? ((await db.get('SELECT role FROM team_access WHERE bank_id = ? AND user_id = ?', [id, me.id])) || {}).role || 0 : 2;
+  if (req.method === 'DELETE') {
+    if (!row || !manage) return err(res, 403, 'Only the person who made this team bank can delete it.');
+    await db.run('UPDATE team_banks SET deleted = 1, updated_at = ? WHERE id = ?', [now(), id]);
+    await refreshTeam();
+    return send(res, 200, { ok: true });
+  }
+  if (req.method === 'PUT') {
+    const j = cleanBank(json(body));
+    if (!j) return err(res, 422, 'A team bank needs a name.');
+    if (!manage && role < 2) return err(res, 403, 'Only the owner and editors can change this team bank.');
+    // editors may add and remove questions; name, groups and editors are the owner's (or the admin's)
+    const data = manage ? j : Object.assign({}, old, { items: j.items });
+    if (row) await db.run('UPDATE team_banks SET data = ?, updated_at = ? WHERE id = ?', [JSON.stringify(data), now(), id]);
+    else await db.run('INSERT INTO team_banks (id, owner, data, deleted, updated_at) VALUES (?,?,?,?,?)', [id, me.id, JSON.stringify(data), 0, now()]);
+    await refreshTeam();
+    return send(res, 200, Object.assign({}, data, { id, owner: row ? row.owner : me.id }));
+  }
+  return err(res, 405, 'Not allowed');
+}
+async function groupsAdmin(req, res, parts, body) {
+  const gid = parts[3], j = json(body) || {};
+  if (!gid && req.method === 'GET') return team(Object.assign({}, req, { method: 'GET' }), res, '/team/v1/people', body, {});
+  if (!gid && req.method === 'POST') {
+    const name = String(j.name || '').trim();
+    if (!name || name.length > 120) return err(res, 422, 'Give the group a name.');
+    const nid = crypto.randomUUID();
+    await db.run('INSERT INTO user_groups (id, name, created_at) VALUES (?,?,?)', [nid, name, now()]);
+    return send(res, 201, { id: nid, name, members: [] });
+  }
+  if (!(await db.get('SELECT 1 AS one FROM user_groups WHERE id = ?', [gid]))) return err(res, 404, 'No such group.');
+  if (req.method === 'PUT') {
+    if (j.name !== undefined) { const name = String(j.name).trim(); if (!name || name.length > 120) return err(res, 422, 'Give the group a name.'); await db.run('UPDATE user_groups SET name = ? WHERE id = ?', [name, gid]); }
+    if (Array.isArray(j.members)) {
+      const users = new Set((await db.all('SELECT id FROM users')).map((u) => u.id));
+      await db.tx(async (t) => {
+        await t.run('DELETE FROM group_members WHERE group_id = ?', [gid]);
+        for (const u of new Set(j.members)) if (users.has(u)) await t.run('INSERT INTO group_members (group_id, user_id) VALUES (?,?)', [gid, u]);
+      });
+      await refreshTeam();
+    }
+    return send(res, 200, { ok: true });
+  }
+  if (req.method === 'DELETE') {
+    await db.run('DELETE FROM group_members WHERE group_id = ?', [gid]);
+    await db.run('DELETE FROM user_groups WHERE id = ?', [gid]);
+    await refreshTeam();
+    return send(res, 200, { ok: true });
+  }
+  return err(res, 405, 'Not allowed');
+}
+
 async function handle(req, res) {
   const u = new URL(req.url, 'http://x');
   const p = u.pathname;
@@ -222,6 +334,9 @@ async function handle(req, res) {
     }
   }
 
+  // ---- groups' team banks ----
+  if (p.startsWith('/team/v1/')) return team(req, res, p, body, me);
+
   // ---- shared library ----
   if (p === '/library/v1/banks' || p.startsWith('/library/v1/banks/')) return library(req, res, p, body, me);
 
@@ -240,13 +355,15 @@ async function handle(req, res) {
       // A question that stopped being public, or was deleted, comes back as "deleted" so copies disappear.
       // Older apps don't ask, so they never mistake someone else's question for their own.
       if (u.searchParams.get('shared') === '1') {
-        const rows = await db.all(`SELECT q.user_id, q.id, q.data, q.deleted, q.pub, q.updated_at, u.email FROM questions q JOIN users u ON u.id = q.user_id
-          WHERE (q.user_id = ? OR q.pub > 0)${since ? ' AND q.updated_at > ?' : ''} ORDER BY q.updated_at, q.user_id, q.id LIMIT ? OFFSET ?`,
-          since ? [me.id, since, limit, offset] : [me.id, limit, offset]);
+        // ...and questions in team banks shared with this person (team = 1 see, 2 change)
+        const TEAM = 'SELECT MAX(ta.role) FROM team_items ti JOIN team_access ta ON ta.bank_id = ti.bank_id WHERE ti.q_owner = q.user_id AND ti.q_id = q.id AND ta.user_id = ?';
+        const rows = await db.all(`SELECT q.user_id, q.id, q.data, q.deleted, q.pub, q.updated_at, u.email, (${TEAM}) AS team FROM questions q JOIN users u ON u.id = q.user_id
+          WHERE (q.user_id = ? OR q.pub > 0 OR (${TEAM}) > 0)${since ? ' AND q.updated_at > ?' : ''} ORDER BY q.updated_at, q.user_id, q.id LIMIT ? OFFSET ?`,
+          since ? [me.id, me.id, me.id, since, limit, offset] : [me.id, me.id, me.id, limit, offset]);
         return send(res, 200, rows.map((r) => {
           if (r.user_id === me.id) return { id: r.id, data: JSON.parse(r.data), deleted: !!r.deleted, updated_at: r.updated_at };
-          const gone = r.deleted || r.pub !== 1;
-          return { id: r.id, owner: r.user_id, owner_email: r.email, data: gone ? {} : JSON.parse(r.data), deleted: !!gone, updated_at: r.updated_at };
+          const gone = r.deleted || (r.pub !== 1 && !r.team);
+          return { id: r.id, owner: r.user_id, owner_email: r.email, data: gone ? {} : JSON.parse(r.data), deleted: !!gone, can_edit: !gone && r.team === 2, updated_at: r.updated_at };
         }));
       }
       const rows = since
@@ -260,6 +377,18 @@ async function handle(req, res) {
       const t = now();
       try {
         await db.tx(async (t2) => { for (const r of arr) {
+          if (table === 'questions' && r.user_id && r.user_id !== me.id) {
+            // an editor changing a colleague's question in a team bank: the owner's bank, courses and visibility stay theirs
+            if (typeof r.id !== 'string' || r.deleted || (await teamRole(r.user_id, r.id, me.id)) < 2) throw Object.assign(new Error('Only the owner and the team bank’s editors can change this question.'), { code: 403 });
+            const cur = await t2.get('SELECT data, pub FROM questions WHERE user_id = ? AND id = ? AND deleted = 0', [r.user_id, r.id]);
+            if (!cur) throw Object.assign(new Error('That question was deleted.'), { code: 409 });
+            const was = JSON.parse(cur.data), d = Object.assign({}, r.data || {});
+            for (const k of ['bank', 'courses', 'course', 'visibility']) { if (was[k] === undefined) delete d[k]; else d[k] = was[k]; }
+            delete d.owner; delete d.ownerName; delete d.canEdit;
+            d.changedBy = me.email;
+            await t2.run(db.upsertQuestion, [r.user_id, r.id, JSON.stringify(d), 0, t, cur.pub]);
+            continue;
+          }
           if (r.user_id && r.user_id !== me.id) throw Object.assign(new Error('Not allowed'), { code: 403 });
           if (table === 'questions') {
             if (typeof r.id !== 'string' || !r.id || r.id.length > 100) throw Object.assign(new Error('Bad id'), { code: 400 });
@@ -290,6 +419,7 @@ async function handle(req, res) {
   if (p.startsWith('/admin/api/')) {
     if (!me.admin) return err(res, 403, 'Only admins can manage accounts.');
     const parts = p.split('/').filter(Boolean); // admin, api, users, :id, action
+    if (parts[2] === 'groups') return groupsAdmin(req, res, parts, body);
     if (parts[2] !== 'users') return err(res, 404, 'Not found');
     const id = parts[3], action = parts[4];
     const j = json(body) || {};
@@ -328,8 +458,10 @@ async function handle(req, res) {
       const pubs = (await db.all('SELECT id FROM questions WHERE user_id = ? AND pub = 1 AND deleted = 0', [id])).filter((r) => !mine.has(r.id));
       await db.tx(async (t2) => {
         for (const r of pubs) await t2.run('UPDATE questions SET user_id = ?, updated_at = ? WHERE user_id = ? AND id = ?', [me.id, now(), id, r.id]);
+        await t2.run('UPDATE team_banks SET owner = ?, updated_at = ? WHERE owner = ?', [me.id, now(), id]);
         await t2.run('DELETE FROM users WHERE id = ?', [id]);
       });
+      await refreshTeam();
       if (!pubs.length) fs.rmSync(path.join(IMG_DIR, id), { recursive: true, force: true }); // pictures of public questions stay
       return send(res, 200, { ok: true });
     }
@@ -340,6 +472,7 @@ async function handle(req, res) {
 async function start() {
   db = await DB.open(process.env.DATABASE_URL, DATA);
   const copied = await DB.copyFromSqlite(db, db.sqliteFile, fs);
+  await refreshTeam();
   if (copied) console.log('Copied ' + copied.users + ' account(s) and ' + copied.questions + ' question(s) from ' + db.sqliteFile + ' (the file is left as it was).');
 
   // locked out? set ADMIN_RESET=1 for one start to reset ADMIN_EMAIL's password to ADMIN_PASSWORD

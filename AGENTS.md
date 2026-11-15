@@ -175,6 +175,14 @@ parts and `[N]` credits, exam header info. Non-ASCII characters in `docx.js` are
   synced as `app_state.use {id:[courses]}` (`useOf` in statePart). `dropCourse` never deletes them; Change these…,
   clean-up, bank rename/delete and Your banks skip them. **Copy to mine** = `data-dup` with `origin {id,owner,ownerName}`.
   Same id as one of yours → yours wins. Admin deleting an account moves its public questions to the admin.
+- **Team banks (Plan 3 step 2):** tables `user_groups`, `group_members`, `team_banks` (id, owner, data JSON {name, groups,
+  editors, items [{o,id}]}), and derived `team_access` (bank, user, role 1 see / 2 change) + `team_items` (only items owned
+  by the bank's owner or an editor), rebuilt by `refreshTeam()` after every bank/group/user change. API: `/team/v1/people`,
+  `/team/v1/banks[/<id>]` (PUT: owner/admin set all, editors only items), `/admin/api/groups[/<id>]`. Shared pulls add
+  rows visible through `team_items` with `can_edit`; editors POST `{user_id: owner}` rows (server keeps the owner's bank,
+  courses, visibility, adds `changedBy`). `sync.js` `pullTeams()` first: when the bank list changes it does a full pull and
+  drops colleagues' questions no longer visible; `ownerCopy`/`sigC`/`meta.fsynced` track editors' unsent edits. App:
+  `teams()`, `teamsOf(q)` (by `owner|id`), `teamQs`, `saveTeam`, `shareDialog`, `teamCardHtml`/`wireTeamCard`, `loadGroups`.
 - `docker/server.js` implements that subset with `docker/db.js` (SQLite by default, or Postgres/MySQL/MariaDB
   via `DATABASE_URL`; first start on an empty one copies from `DATA_DIR/alctb.db`) + picture files in `DATA_DIR`, scrypt
   passwords, bearer tokens, admin endpoints `/admin/api/users…`, `/healthz`, and generates `config.js`
@@ -213,7 +221,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 ## Status (2026-11-12)
 
 - **v0.10.0 released 2026-11-15** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only).
-  Next: Plan 3 step 2. Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
+  Plan 3 step 2 (groups, team banks, editors, Share) done, not released (MINOR 0.11.0). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
@@ -359,3 +367,6 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-15**: `:latest` only for releases (`:edge` for master; weekly cron rebuilds newest tag); re-ran v0.9.0 to reset
   `:latest`. Her sign-in trouble was test@example.com (her local admin is test@test.com). Released v0.10.0 (CI, Release,
   `:latest` = 0.10.0 checked).
+- **2026-11-15**: Plan 3 step 2: groups (admin), team banks with editors, Share dialog, editors' edits synced to owners,
+  full pull when sharing changes. Kept personal banks as they are (team banks are the lists). 1484 checks + test:db green.
+  Library → team banks still to do.
