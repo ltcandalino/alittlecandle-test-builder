@@ -16,6 +16,53 @@ body:
       label: What would help?
       description: Your idea, if you have one. A sketch or an example from another program is welcome.
   - type: dropdown
+    id: where
+    attributes:
+      label: Where in the app?
+      multiple: true
+      options:
+        - Question bank
+        - Build & print
+        - Import & backup
+        - Manage accounts (website admin)
+        - Sharing / team banks (website)
+        - Not sure / somewhere new
+  - type: dropdown
+    id: docs
+    attributes:
+      label: Which documents or downloads? (if it's about what prints)
+      multiple: true
+      options:
+        - Test
+        - Quiz
+        - Review
+        - Lesson
+        - Answer keys
+        - Accommodated copy
+        - Printing
+        - Word download
+        - LaTeX download
+        - All of them
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when…
+      description: How will you check that it works? Be concrete.
+      placeholder: "All four document types print with ½-inch margins, and the Review table has no lines."
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: An example to test with
+      description: A real question, bank or file name, or a screenshot. Don't attach private or purchased questions here (this page is public); say where they are instead.
+  - type: textarea
+    id: keep
+    attributes:
+      label: Leave alone
+      description: Anything that should NOT change.
+      placeholder: "Keep the purple shading on the Multiple Choice heading."
+  - type: dropdown
     id: who
     attributes:
       label: Who would use it?
