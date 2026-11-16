@@ -249,7 +249,7 @@ describe('team banks (website version)', () => {
     // more than one bank: add a second, then take it out again (the fold stays open)
     await o.page.check('#teamCard [data-tbfrom][value="Workbook"]');
     await o.page.waitForFunction(() => window.__tb.state.teamBanks[0].items.length === 3);
-    assert.match(await o.page.textContent('#teamCard [data-tbbanks] summary'), /2 of 2/);
+    await o.page.waitForFunction(() => /2 of 2/.test(document.querySelector('#teamCard [data-tbbanks] summary').textContent)); // redraw follows the save
     await o.page.uncheck('#teamCard [data-tbfrom][value="Workbook"]');
     await o.page.waitForFunction(() => window.__tb.state.teamBanks[0].items.length === 2);
     assert.ok(await o.page.isChecked('#teamCard [data-tbfrom][value="Bought textbook"]'));
