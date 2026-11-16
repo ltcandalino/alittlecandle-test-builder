@@ -220,8 +220,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.10.0 released 2026-11-15** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only).
-  Plan 3 step 2 (groups, team banks, editors, Share) done, not released (MINOR 0.11.0). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
+- **v0.11.0 released 2026-11-16** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
+  Her local compose file still points at `:edge` (from trying step 2); switch it back to `:latest` when she says so.
+  Before it, **v0.10.0** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
   MySQL/MariaDB), image scanning, print accommodations, saved tests. GitHub Release with the app HTML and Docker
@@ -373,3 +374,6 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   (all courses; partly-in shows mixed; untick takes it out) replaces the one-at-a-time menu; `ui.tbBanks` keeps it open. 1479 checks.
 - **2026-11-15**: her request: ½-inch margins on every document type (print, Word, LaTeX; preview sheet too) and no borders
   on Review tables. Checked the print PDFs and the compiled LaTeX page by page. 1479 checks.
+- **2026-11-16**: feature request form gained Where / Which documents / Done when / Example / Leave alone. MySQL CI race in the
+  team bank test fixed (wait for the redraw). Nightly CI failed once on a Trivy DB download 404 (mirror.gcr.io), not our code.
+  Released v0.11.0 (CI, Release, `:latest` = 0.11.0 checked).
