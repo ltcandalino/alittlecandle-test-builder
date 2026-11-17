@@ -573,12 +573,10 @@ details.fold[open]>summary{margin-bottom:12px}
 .linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .br-on{font-size:13.5px;color:var(--ink2)}
 .br-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
-.br-card{display:grid;gap:6px;text-align:left;background:#fff;border:1px solid var(--line);border-top:5px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);font-size:13.5px;color:var(--ink2)}
-.br-card.team{border-top-color:#9b3b77}
+.br-card{display:grid;gap:6px;justify-items:start;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:13.5px;color:var(--ink2)}
 .br-card b{font-size:16px;color:var(--ink);font-weight:600;overflow-wrap:anywhere}
 .br-card em{font-style:normal;color:var(--accent);font-weight:600}
 .br-card:hover{border-color:var(--accent)}
-.br-kind{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .br-tree{display:grid;gap:4px}
 .br-unit{padding:6px 0;border-bottom:1px solid var(--line)}
 .br-unit:last-child{border-bottom:0}
@@ -609,6 +607,19 @@ details.fold[open]>summary{margin-bottom:12px}
 .pv-empty p{margin:0 0 10px}
 @media (max-width:760px){.rc-list{grid-template-columns:minmax(0,1fr)}}
 main[data-place=print] .pv-empty button,main[data-place=print] #pbWarn{display:none} /* the recap above already says it */
+
+/* polish (design review 2026-11-17) */
+.rail .ri{position:relative;display:inline-flex;flex:none}
+.rail .rn{display:none}
+.rail .rdot{position:absolute;top:-2px;right:-3px;width:8px;height:8px;border-radius:50%;background:#d08a12;box-shadow:0 0 0 2px var(--bg)}
+.rmin .rail .rn{display:block;position:absolute;right:-7px;bottom:-6px;font-size:10px;font-weight:700;line-height:1;color:inherit;background:var(--bg);padding:1px 2px;border-radius:4px}
+.rmin .rail button.on .rn{background:#fff}
+.rmin .rail .count{display:block;position:absolute;margin:-26px 0 0 26px;min-width:0;padding:0 4px;font-size:10px;line-height:15px}
+.rmin .rail button{position:relative}
+.pv-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pv-h h2{margin:0;flex:1}
+.pv-ans{display:flex;gap:7px;align-items:center;font-size:13px;font-weight:400}
+button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-head button[data-ga=del]{color:var(--danger)}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -3067,10 +3078,12 @@ function curSub(p){var L=subsOf(p),v=(ui.subs||{})[p];return L.some(function(x){
 function go(place,sub){var o=OLD_PLACE[place];if(o){sub=OLD_SUB[sub]||sub||o[1];place=o[0];}ui.tab=place;if(sub){ui.subs=Object.assign({},ui.subs);ui.subs[place]=sub;}ui.limit=40;saveUi();render();window.scrollTo(0,0);}
 function renderTabs(){
   renderCourses();
-  var p=placeOf(),cnt={setup:state.selected.length,bank:cq().length};
+  var p=placeOf(),cnt={setup:state.selected.length,bank:cq().length},bk=state.questions.length&&backupStale();
   $('#tabs').innerHTML=(ui.railMin?'':'<div class="rail-h">Make a test</div>')+RAIL.map(function(r){if(!r)return '<hr>';
-    var on=r[0]===p;return '<button data-tab="'+r[0]+'" class="'+(on?'on':'')+'"'+(on?' aria-current="page"':'')+' title="'+esc(r[2])+(r[1]?' (Alt+'+r[1]+')':'')+'">'+
-      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+r[3]+'"/></svg><span class="rl">'+(r[1]?r[1]+' ':'')+esc(r[2])+'</span>'+(cnt[r[0]]!=null?'<span class="count">'+cnt[r[0]]+'</span>':'')+'</button>';}).join('')+
+    var on=r[0]===p,c=cnt[r[0]],dot=r[0]==='io'&&bk,name=(r[1]?r[1]+' ':'')+r[2]+(c!=null?', '+plural(c,'question'):'')+(dot?', no recent backup':'');
+    return '<button data-tab="'+r[0]+'" class="'+(on?'on':'')+'"'+(on?' aria-current="page"':'')+' aria-label="'+esc(name)+'" title="'+esc(name)+(r[1]?' (Alt+'+r[1]+')':'')+'">'+
+      '<span class="ri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+r[3]+'"/></svg>'+(r[1]?'<span class="rn" aria-hidden="true">'+r[1]+'</span>':'')+(dot?'<span class="rdot" aria-hidden="true"></span>':'')+'</span>'+
+      '<span class="rl" aria-hidden="true">'+(r[1]?r[1]+' ':'')+esc(r[2])+'</span>'+(c!=null?'<span class="count" aria-hidden="true">'+c+'</span>':'')+'</button>';}).join('')+
     '<button class="rail-min" id="railMin" title="'+(ui.railMin?'Show the labels':'Icons only, for a wider page')+'" aria-label="'+(ui.railMin?'Show the labels':'Icons only')+'">'+(ui.railMin?'»':'« <span class="rl">Icons only</span>')+'</button>';
   $$('#tabs [data-tab]').forEach(function(b){b.onclick=function(){go(b.dataset.tab);};});
   var hd=$('.top');if(hd)document.documentElement.style.setProperty('--toph',hd.offsetHeight+'px');
@@ -3193,12 +3206,12 @@ function _renderBrowse(){
   var inSel=function(qs){return qs.filter(function(q){return isSel(q.id);}).length;};
   if(!bk){
     main.innerHTML='<div class="br-top">'+crumbs(['All banks'])+'<span class="spacer"></span>'+onLine+'</div><div class="br-cards">'+all.map(function(b){var n=inSel(b.qs);
-      return '<button class="br-card'+(b.team?' team':'')+'" data-brbank="'+esc(b.key)+'"><span class="br-kind">'+(b.team?'Team bank':b.who?'Shared by '+esc(b.who):'Your bank')+'</span><b>'+esc(b.name)+'</b><span>'+plural(b.qs.length,'question')+(n?' · <em>'+n+' on the test</em>':'')+'</span></button>';}).join('')+'</div>';
+      return '<button class="br-card'+(b.team?' team':'')+'" data-brbank="'+esc(b.key)+'"><b>'+esc(b.name)+'</b><span>'+plural(b.qs.length,'question')+(n?' · <em>'+n+' on the test</em>':'')+'</span>'+(b.team?'<span class="tag team">Team bank</span>':b.who?'<span class="tag shared">Shared by '+esc(b.who)+'</span>':'')+'</button>';}).join('')+'</div>';
   }else if(!ui.brUnit&&!flat){
     main.innerHTML='<div class="br-top">'+crumbs(['All banks',bk.name])+'<span class="spacer"></span>'+onLine+'</div><div class="card br-tree">'+natSort(Object.keys(units)).map(function(u){
       var secs=natSort(Object.keys(units[u])),uq=[].concat.apply([],secs.map(function(x){return units[u][x];})),n=inSel(uq);
       return '<div class="br-unit"><button class="br-u" data-brunit="'+esc(u)+'" data-brsec=""><b>'+esc(unitName(u))+'</b><span class="hint">'+plural(uq.length,'question')+(n?' · '+n+' on the test':'')+'</span></button>'+
-        (secs.length>1||secs[0]!=='__none'?'<div class="br-secs">'+secs.map(function(x){var m=inSel(units[u][x]);return '<button class="br-s" data-brunit="'+esc(u)+'" data-brsec="'+esc(x)+'">'+esc(secName(x))+' <span class="hint">'+units[u][x].length+(m?' · '+m+' on':'')+'</span></button>';}).join('')+'</div>':'')+'</div>';}).join('')+'</div>';
+        (secs.length>1||secs[0]!=='__none'?'<div class="br-secs">'+secs.map(function(x){var m=inSel(units[u][x]);return '<button class="br-s" data-brunit="'+esc(u)+'" data-brsec="'+esc(x)+'">'+esc(secName(x))+' <span class="hint">'+plural(units[u][x].length,'question')+(m?', '+m+' on the test':'')+'</span></button>';}).join('')+'</div>':'')+'</div>';}).join('')+'</div>';
   }else{
     var where=[unitName(ui.brUnit)].concat(ui.brSec?[secName(ui.brSec)]:[]).join(' · ');
     main.innerHTML='<div class="br-top">'+crumbs(flat?['All banks',bk.name]:['All banks',bk.name,where])+'<span class="spacer"></span>'+onLine+'</div>'+
@@ -3557,13 +3570,13 @@ function saveBankFiles(names,res){
 /* Your banks: one list. Tick banks to save them as files; each row's ⋯ menu has Courses, Make public, Rename, Delete. */
 var BANKS_SHOWN=10;
 function yourBanksCard(bnames,bc){
-  if(!bnames.length)return '<div class="card" id="banksCard"><h2>Your banks</h2><p class="note" style="margin:0">No questions yet.</p><div class="actions"><span class="filebtn"><button>Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div><div id="bfRes" class="result"></div></div>';
+  if(!bnames.length)return '<div class="card" id="banksCard"><h2>Your banks</h2><p class="note" style="margin:0">No questions yet.</p><div class="actions"><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true">Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple aria-label="Open bank files"></span></div><div id="bfRes" class="result"></div></div>';
   var many=bnames.length>BANKS_SHOWN+2;
   return '<div class="card" id="banksCard"><h2>Your banks <small class="hint">'+bnames.length+'</small></h2>'+
     '<div class="b-tools">'+(many?'<input type="search" id="bankFind" placeholder="Find a bank" aria-label="Find a bank">':'')+
       '<label class="b-all"><input type="checkbox" id="bfAll"> All</label><span class="spacer"></span>'+
       '<button class="small" id="bfSave" title="Bank files (.json) keep everything: math, pictures, answers and your own fields. Keep them on your NAS or give them to another teacher.">Save all as files…</button>'+
-      '<span class="filebtn"><button class="small">Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div>'+
+      '<span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true" class="small">Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple aria-label="Open bank files"></span></div>'+
     '<div id="bfRes" class="result"></div>'+
     '<ul class="blist">'+bnames.map(function(b,i){
       var qs=cq().filter(function(q){return q.bank===b&&own(q);}),pub=sharing()&&qs.length&&qs.every(function(q){return q.visibility==='public';});
@@ -3826,7 +3839,7 @@ function _renderBuild(){
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions under 1 Pick questions. Questions print in this order unless you shuffle or group them.</p></div>'+
     (exam&&s.group?'<div class="card" data-show="setup:page"><h2>Part directions</h2><div><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></div></div>':'')+
-    '</div><div class="bright" data-show="setup:* print:preview"><div class="card recap" id="recap" data-show="print:preview"></div><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
+    '</div><div class="bright" data-show="setup:* print:preview"><div class="card recap" id="recap" data-show="print:preview"></div><div class="card pvcard"><div class="pv-h"><h2>Preview</h2><label class="pv-ans"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</label></div>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
     '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
@@ -4028,13 +4041,13 @@ function renderIO(){_renderIO();showPlace();}
 function _renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
   main.innerHTML='<div class="place-cards">'+
-  '<div class="card" data-show="io:backup"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
+  '<div class="card" data-show="io:backup"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true">Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json" aria-label="Restore a backup"></span></div><div id="bkRes" class="result"></div></div>'+
   '<div data-show="io:banks">'+yourBanksCard(bnames,bc)+'</div>'+
   '<div data-show="bank:fields">'+fieldsCard()+'</div>'+
   '<div data-show="pick:shared">'+sharedCardHtml()+'</div><div data-show="pick:team io:team">'+teamCardHtml()+'</div>'+
-  '<div class="card" data-show="io:import"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
-  '<div class="card" data-show="io:import"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
-  '<div class="card" data-show="io:import"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
+  '<div class="card" data-show="io:import"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true" class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple aria-label="Import .bnk files"></span></div><div id="bnkRes" class="result"></div></div>'+
+  '<div class="card" data-show="io:import"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true" class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-label="Import a Word file"></span></div></div>'+
+  '<div class="card" data-show="io:import"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button type="button" tabindex="-1" aria-hidden="true" class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf" aria-label="Import a PDF"></span></div><div id="pdfRes" class="result"></div></div>'+
   '<div class="card wide" data-show="io:import"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
   '<div class="card" id="coursesCard" data-show="io:courses"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: open its <b>⋯</b> menu under <b>Your banks</b>.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div>';

@@ -635,6 +635,22 @@ describe('accommodations', () => {
   });
 });
 
+describe('polish from the design review', () => {
+  test('rail names say the counts, a backup dot shows until a backup, file pickers are one named tab stop', async () => {
+    await addQuestions(page, [{ html: 'One' }]);
+    await page.evaluate(() => { delete window.__tb.ui().lastBackup; window.__tb.render(); });
+    assert.match(await page.getAttribute('#tabs [data-tab="bank"]', 'aria-label'), /Question bank, \d+ questions?/);
+    assert.ok(await page.$('#tabs [data-tab="io"] .rdot'), 'dot while there is no backup');
+    await gotoTab(page, 'io', 'backup');
+    assert.equal(await page.getAttribute('#bkIn', 'aria-label'), 'Restore a backup');
+    assert.equal(await page.getAttribute('#bkIn + *, .filebtn button', 'tabindex'), '-1', 'the look-alike button is not a second tab stop');
+    await page.evaluate(() => { window.__tb.ui().lastBackup = new Date().toISOString(); window.__tb.render(); });
+    assert.equal(await page.$('#tabs [data-tab="io"] .rdot'), null, 'no dot after a fresh backup');
+    await goPlace(page, 'setup', 'questions');
+    assert.equal((await page.textContent('.pvcard h2')).trim(), 'Preview', 'the heading is just the heading');
+  });
+});
+
 describe('picking only picks', () => {
   test('1 Pick questions has the tick box and Edit; Delete, Copy and the bank tools stay in Question bank', async () => {
     const [id] = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);

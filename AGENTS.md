@@ -416,3 +416,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   queued (busy); now it applies the saved bank locally before syncing.
 - **2026-11-17**: review step 3: `picking()` (place pick): `qCard` shows only Edit (or nothing for read-only colleagues' questions); the
   toolbar drops Check & clean up / + New question and the subbar's Change these… becomes a hint with `#toBank` → Question bank. 1484 checks.
+- **2026-11-17**: review step 4 (polish): rail buttons have `aria-label` with counts, `.ri` icon wrapper with `.rn` step number and
+  `.rdot` (no recent backup, `backupStale`) shown when folded; bank cards lose the stripe/eyebrow (tags for shared/team); section counts
+  spelled out; red Delete for courses/banks/team banks/fields/groups; `.pv-h` keeps Show answers out of the h2; every `.filebtn` button is
+  `tabindex=-1 aria-hidden` and its file input carries the name (was a dead tab stop). All four review steps done; re-run critique next.

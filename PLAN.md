@@ -321,5 +321,5 @@ Her choices: put related settings together and add Next first; three steps (Pick
    and a way back to picking when the test is empty. **Done 2026-11-17.**
 3. Picking only picks: 1 Pick questions › Search keeps the tick box, search, filters, sort and Edit; Delete, Copy, Change these…,
    Check & clean up and + New question stay in Question bank. **Done 2026-11-17.**
-4. Polish: folded rail keeps numbers and the count, a backup dot on Import & backup, and the small fixes from the review.
+4. Polish: folded rail keeps numbers and the count, a backup dot on Import & backup, and the small fixes from the review. **Done 2026-11-17.**
 
