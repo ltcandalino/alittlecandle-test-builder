@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-11-16
+
 ### Changed
 - **Import & backup**: **ExamView banks** and **Courses** moved to the right column, so the two columns are closer in length.
 - **Your banks** is one tidy list: a line per bank with a tick box, and a **⋯** menu for Also use in (courses), Make public, Rename and Delete. With many banks it shows 10 at a time, with **Find a bank** and **Show all**. **Save all as files…** and **Open bank files…** moved here from the old Bank files card (tick banks to save only those).
