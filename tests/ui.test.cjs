@@ -635,6 +635,23 @@ describe('accommodations', () => {
   });
 });
 
+describe('picking only picks', () => {
+  test('1 Pick questions has the tick box and Edit; Delete, Copy and the bank tools stay in Question bank', async () => {
+    const [id] = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
+    for (const [where, sub] of [['pick', 'search'], ['pick', 'browse']]) {
+      await place(where, sub);
+      if (sub === 'browse') { await page.click('[data-brbank="Test bank"]'); if (await page.$('[data-brunit]')) await page.click('[data-brunit]'); }
+      assert.ok(await page.$(`#qlist [data-pick="${id}"]`), where + ':' + sub + ' tick box');
+      assert.ok(await page.$(`#qlist [data-edit="${id}"]`), 'Edit');
+      for (const sel of ['[data-del]', '[data-dup]', '[data-share]', '#setUnit', '#newQ', '#cleanBtn']) assert.equal(await page.$(sel), null, sel + ' is not in Pick');
+    }
+    await place('pick', 'search');
+    await page.click('#toBank');
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'bank');
+    for (const sel of [`[data-del="${id}"]`, `[data-dup="${id}"]`, '#setUnit', '#newQ', '#cleanBtn']) assert.ok(await page.$(sel), sel + ' is in Question bank');
+  });
+});
+
 describe('3 Print: what will print', () => {
   test('a recap with links to each setting, warnings, a receipt after printing, and a way back when empty', async () => {
     await place('print', 'preview');

@@ -414,3 +414,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   empty test → **Go to 1 Pick questions**; on Print the print-bar warning and the empty-preview button are hidden (recap says it).
   CI flake in the team-banks sync test was a real race: `saveTeam` re-rendered from stale `state.teamBanks` when `CLOUD.sync()` only
   queued (busy); now it applies the saved bank locally before syncing.
+- **2026-11-17**: review step 3: `picking()` (place pick): `qCard` shows only Edit (or nothing for read-only colleagues' questions); the
+  toolbar drops Check & clean up / + New question and the subbar's Change these… becomes a hint with `#toBank` → Question bank. 1484 checks.
