@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-16
+
 ### Added
 - **Browse banks** in **1 Pick questions** (Plan 4, stage 2): one card per bank (yours, shared and team banks), then its units and sections with counts, then that section's questions to tick, with **Add 5 at random** (and Undo). A path at the top goes back; **Arrange them** jumps to 2 Arrange. Banks without units open straight to their questions.
 
