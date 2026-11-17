@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-17
+
 ### Changed
 - **Polish from the design review:** the narrow rail (**Icons only**) keeps the step numbers and question counts; a small amber dot on **Import & backup** while there's no recent backup; bank cards without the colored stripe or the "YOUR BANK" label (shared and team banks get a small tag); section counts read "5 questions, 4 on the test"; every Delete button is red; the Preview heading no longer reads "PreviewShow answers" to screen readers; file buttons (Import, Restore, Open bank files) are one named Tab stop and work from the keyboard.
 - **1 Pick questions only picks:** its lists show the tick box and **Edit**. **Delete**, **Copy**, **Share**, **Change these…**, **Check & clean up** and **+ New question** are in **Question bank**, so that's the only place a question can be deleted. A line in Pick points there.
