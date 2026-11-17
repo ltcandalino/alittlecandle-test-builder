@@ -139,7 +139,7 @@ describe('Test and Quiz', () => {
 });
 
 describe('Review', () => {
-  beforeEach(async () => { await settings(page, { docType: 'review', reviewSpace: '1' }); });
+  beforeEach(async () => { await settings(page, { docType: 'review', spacing: { review: { sa: '1', es: '1', bm: '1' } } }); });
   test('title, open questions first, then multiple choice', async () => {
     const v = await version(1);
     const firstMc = v.findIndex(x => x.pk === 'mc');
@@ -157,11 +157,11 @@ describe('Review', () => {
   test('work space setting', async () => {
     const saRow = h => h.split('<tr').find(r => r.includes('SA five'));
     assert.match(saRow(await html(0)), /pt-space" style="height:1in/);
-    await settings(page, { reviewSpace: '3' });
+    await settings(page, { spacing: { review: { sa: '3' } } });
     assert.match(saRow(await html(0)), /pt-space" style="height:3in/);
-    await settings(page, { reviewSpace: '0' });
+    await settings(page, { spacing: { review: { sa: '0' } } });
     assert.doesNotMatch(saRow(await html(0)), /pt-space|pt-lines/);
-    await settings(page, { reviewSpace: '' });
+    await settings(page, { spacing: { review: {} } });
     assert.match(saRow(await html(0)), /pt-lines/, 'each question’s own setting: SA uses its answer lines');
   });
   test('pages 2+ header says Unit 3 Review in italics', async () => {
@@ -221,6 +221,40 @@ describe('Lesson', () => {
     assert.equal(b, 'none');
     await settings(page, { docType: 'lesson' });
   });
+});
+
+describe('spacing by question type (every document type)', () => {
+  const body = (h, word) => h.split(/<div class="pt-q|<tr class="rv-q/).find(r => r.includes(word)) || '';
+  test('room to answer per type, lines or inches, and each document type keeps its own', async () => {
+    const qs = await page.evaluate(() => window.__tb.state.questions.filter(q => window.__tb.state.selected.includes(q.id)).map(q => ({ t: q.type, h: q.html.replace(/<[^>]+>/g, '').slice(0, 12) })));
+    const es = qs.find(q => q.t === 'es'), sa = qs.find(q => q.t === 'sa');
+    assert.ok(es && sa, 'fixture has open and short answer questions');
+    for (const doc of ['test', 'quiz', 'review', 'lesson']) {
+      await settings(page, { docType: doc, spacing: { [doc]: { es: 'l12', sa: '2' } } });
+      const h = await html(0);
+      assert.equal((body(h, es.h).match(/<div><\/div>/g) || []).length >= 12, true, doc + ': 12 answer lines for open response');
+      assert.match(body(h, sa.h), /pt-space" style="height:2in/, doc + ': 2 inches for short answer');
+    }
+    // another document type's settings don't leak: Test with no spacing uses each question's own
+    await settings(page, { docType: 'test', spacing: { review: { sa: '2' } } });
+    assert.doesNotMatch(body(await html(0), sa.h), /height:2in/);
+  });
+  test('space after each question is a blank strip after every question', async () => {
+    for (const doc of ['test', 'review', 'lesson']) {
+      await settings(page, { docType: doc, spacing: { [doc]: { gap: '0.5' } } });
+      const h = await html(0), n = (h.match(/class="pt-gap" style="height:0.5in"/g) || []).length;
+      assert.ok(n >= 3, doc + ': ' + n + ' gaps');
+    }
+    await settings(page, { docType: 'test', spacing: {} });
+    assert.doesNotMatch(await html(0), /pt-gap/);
+  });
+  test('the old Review "Work space" setting moves into Spacing', async () => {
+    const st = await page.evaluate(() => window.__tb.fn.migrateSettings({ docType: 'review', reviewSpace: '3', spacing: { review: { sa: '1.5', es: '1.5', bm: '1.5' } } }));
+    assert.deepEqual(st.spacing.review, { sa: '3', es: '3', bm: '3' }); assert.ok(!('reviewSpace' in st));
+    const own = await page.evaluate(() => window.__tb.fn.migrateSettings({ docType: 'review', reviewSpace: '' }));
+    assert.deepEqual(own.spacing.review, { sa: '', es: '', bm: '' });
+  });
+  after(async () => { await settings(page, { docType: 'test', spacing: { review: { sa: '1.5', es: '1.5', bm: '1.5' } } }); });
 });
 
 describe('answer keys', () => {

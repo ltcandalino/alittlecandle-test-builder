@@ -211,6 +211,7 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .pt .pt-tf .ans{background:#e9e0f4;outline:3px solid #e9e0f4}
 .pt .pt-lines div{border-bottom:1px solid #888;height:24pt}
 .pt .pt-space{border:1px dashed transparent}
+.pt .pt-gap{break-before:avoid}
 .pt .pt-keynote{color:#7851a9;font-family:Arial,sans-serif;font-size:10pt;margin-top:3pt;font-weight:600}
 .pt .pt-key{width:100%;border-collapse:collapse;font-size:.92em;margin-top:8pt}
 .pt .pt-key th{text-align:left;font-family:Arial,sans-serif;font-size:9pt;color:#555;border-bottom:1.5px solid #000;padding:3pt 6pt}
@@ -2373,9 +2374,23 @@ function clusterOf(std){var first=String(std||'').split(/,\s*/)[0];if(/^[A-Z]{2,
 function fillMeta(q){if(q.ref&&q.month===''&&q.year===''&&q.qnum===''&&parseRef(q.ref)){delete q.month;delete q.year;delete q.qnum;}if(q.month===undefined||q.year===undefined||q.qnum===undefined){var p=parseRef(q.ref);if(q.month===undefined)q.month=p?p.month:'';if(q.year===undefined)q.year=p?p.year:'';if(q.qnum===undefined)q.qnum=p?p.qnum:'';}if(q.cluster===undefined)q.cluster=clusterOf(q.standard);if(q.subtopic===undefined)q.subtopic='';}
 function examLabel(q){var parts=[];if(q.month||q.year)parts.push(((q.month?monthName(q.month)+' ':'')+(q.year||'')).trim());if(q.qnum)parts.push('#'+q.qnum);return parts.join(' ');}
 var LETTERS='ABCDEFGH';
-var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,reviewSpace:'1.5',roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,nameLine:true,showPoints:false,blanks:false,labels:'num',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
+var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,spacing:{review:{sa:'1.5',es:'1.5',bm:'1.5'}},roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,nameLine:true,showPoints:false,blanks:false,labels:'num',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
 var LABELS={lowerdot:function(i){return LETTERS[i].toLowerCase()+'.';},upper:function(i){return LETTERS[i]+'.';},lower:function(i){return LETTERS[i].toLowerCase()+')';},num:function(i){return '('+(i+1)+')';}};
 var FONTS={'Century Schoolbook':'"Century Schoolbook","New Century Schoolbook","Century Schoolbook L","TeX Gyre Schola",C059,Georgia,serif','Times New Roman':'"Times New Roman",Times,"Liberation Serif",serif','Cambria':'Cambria,"Caladea",Georgia,serif','Georgia':'Georgia,serif','Book Antiqua':'"Book Antiqua",Palatino,"Palatino Linotype","TeX Gyre Pagella",serif','Garamond':'Garamond,"EB Garamond","Adobe Garamond Pro",serif','Arial':'Arial,Helvetica,"Liberation Sans",sans-serif','Calibri':'Calibri,Carlito,"Segoe UI",sans-serif','Verdana':'Verdana,"DejaVu Sans",sans-serif','Comic Sans MS':'"Comic Sans MS","Comic Neue",cursive','Atkinson Hyperlegible':'"Atkinson Hyperlegible Next","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif','OpenDyslexic':'"OpenDyslexic","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif'};
+/* Spacing (her design 2026-11-17): each document type remembers room to answer for open response (es), short answer (sa)
+   and bimodal (bm), and extra space after every question (gap). '' = each question's own setting; a number = inches of
+   blank space; 'l8' = 8 answer lines. Stored as settings.spacing[docType]. */
+var SPACE_OPTS={
+  es:[['','Each question’s own'],['0','None'],['0.5','½ inch'],['1','1 inch'],['1.5','1½ inches'],['2','2 inches'],['3','3 inches'],['4','4 inches'],['5','5 inches'],['6','6 inches'],['l4','4 lines'],['l6','6 lines'],['l8','8 lines'],['l10','10 lines'],['l12','12 lines'],['l16','16 lines'],['l20','20 lines']],
+  sa:[['','Each question’s own'],['0','None'],['l1','1 line'],['l2','2 lines'],['l3','3 lines'],['l4','4 lines'],['0.5','½ inch'],['1','1 inch'],['1.5','1½ inches'],['2','2 inches']],
+  bm:[['','Each question’s own'],['0','None'],['0.5','½ inch'],['1','1 inch'],['1.5','1½ inches'],['2','2 inches'],['3','3 inches'],['4','4 inches']],
+  gap:[['','Normal'],['0.25','+ ¼ inch'],['0.5','+ ½ inch'],['0.75','+ ¾ inch'],['1','+ 1 inch'],['1.5','+ 1½ inches'],['2','+ 2 inches']]};
+var SPACE_LABELS={es:'Open response',sa:'Short answer',bm:'Bimodal',gap:'Space after each question'};
+function spacing(){var sp=state.settings.spacing,v=sp&&typeof sp==='object'?sp[docType()]:null;return v&&typeof v==='object'?v:{};}
+function spaceOf(k){var v=spacing()[k];return v==null?'':String(v);}
+function areaHtml(v){if(/^l\d+$/.test(v)){var n=parseInt(v.slice(1),10);return n>0?'<div class="pt-lines">'+Array(n+1).join('<div></div>')+'</div>':'';}var x=num(v,0);return x>0?'<div class="pt-space" style="height:'+x+'in"></div>':'';}
+// extra space after a question: an empty strip, so print, Word and LaTeX all keep it
+function gapHtml(){var g=num(spaceOf('gap'),0);return g>0?'<div class="pt-gap" style="height:'+g+'in"></div>':'';}
 function ptStyle(){var s=state.settings;return '--ptf:'+(FONTS[s.font]||FONTS['Century Schoolbook']).replace(/"/g,"'")+';--pts:'+num(s.fontSize,12)+'pt';}
 /* Accommodated copy: one chosen version, same questions and answer order (so its key still works),
    printed with a readable font, larger text, more spacing and/or fewer questions per page. */
@@ -2671,6 +2686,8 @@ function isBonus(q){return isExamDoc()&&!!(state.settings.bonus||{})[q.id];}
 function migrateSettings(st,course){
   if(!DOC_TYPES[st.docType])st.docType='test';
   if(st.lessonIcons===false){st.toolCompass=st.toolRuler=st.toolTrace=false;st.lessonIcons=true;}
+  if('reviewSpace' in st){var rs=st.reviewSpace==null?'':String(st.reviewSpace);st.spacing=JSON.parse(JSON.stringify(st.spacing||{}));st.spacing.review={sa:rs,es:rs,bm:rs};delete st.reviewSpace;}
+  if(!st.spacing||typeof st.spacing!=='object')st.spacing={review:{sa:'1.5',es:'1.5',bm:'1.5'}};
   if(st._v===2)return st;st._v=2;st.style='classic';
   if(st.instructions==='Read each question carefully.')st.instructions='';
   var t=String(st.title||'').trim();
@@ -2717,23 +2734,19 @@ function labelItems(items){
   return items;
 }
 /* the answer area under a question: choices, work space, lines, key notes */
-function qBody(it,A,ov){
-  var q=it.q,h='';
-  if(ov!=null&&ov!==''&&q.type!=='tf'&&!(isMC(q.type)&&!it.open)){
-    if(it.open||q.inImage);else if(isMC(q.type))h+='<ul class="pt-ch '+choiceCols(it.choices)+'">'+it.choices.map(function(c,ci){return '<li class="'+(A&&ci===it.answer?'ans':'')+'"><b>'+letterOf(ci)+'</b><span>'+c+'</span></li>';}).join('')+'</ul>';
-    if(num(ov,0)>0)h+='<div class="pt-space" style="height:'+num(ov,0)+'in"></div>';
-    if(A&&it.answer>=0&&isMC(q.type))h+='<div class="pt-keynote">Key: '+it.choices[it.answer]+'</div>';
-    if(A&&(q.type==='sa'||q.type==='es')&&q.answer)h+='<div class="pt-keynote">Key: '+textToHtml(q.answer)+'</div>';
-    return h;
-  }
-  if(it.open)h+='<div class="pt-space" style="height:'+Math.max(.5,num(q.space,2))+'in"></div>'+(A&&it.answer>=0?'<div class="pt-keynote">Key: '+it.choices[it.answer]+'</div>':'');
-  else if(q.inImage){if(A&&it.answer>=0)h+='<div class="pt-keynote">Answer: '+esc(plain(q.choices[it.answer]))+'</div>';if(q.type==='bm')h+='<div class="pt-space" style="height:'+Math.max(.5,num(q.space,2))+'in"></div>';}
-  else if(isMC(q.type))h+='<ul class="pt-ch '+choiceCols(it.choices)+'">'+it.choices.map(function(c,ci){return '<li class="'+(A&&ci===it.answer?'ans':'')+'"><b>'+letterOf(ci)+'</b><span>'+c+'</span></li>';}).join('')+'</ul>'+(q.type==='bm'?'<div class="pt-space" style="height:'+Math.max(.5,num(q.space,2))+'in"></div>':'');
+function qBody(it,A){
+  var q=it.q,h='',ov=q.type==='es'||q.type==='sa'||q.type==='bm'?spaceOf(q.type):'';
+  var bmRoom=function(){return ov!==''?areaHtml(ov):'<div class="pt-space" style="height:'+Math.max(.5,num(q.space,2))+'in"></div>';};
+  var choices=function(){return '<ul class="pt-ch '+choiceCols(it.choices)+'">'+it.choices.map(function(c,ci){return '<li class="'+(A&&ci===it.answer?'ans':'')+'"><b>'+letterOf(ci)+'</b><span>'+c+'</span></li>';}).join('')+'</ul>';};
+  if(it.open)h+=bmRoom()+(A&&it.answer>=0?'<div class="pt-keynote">Key: '+it.choices[it.answer]+'</div>':'');
+  else if(q.inImage){if(A&&isMC(q.type)&&it.answer>=0)h+='<div class="pt-keynote">Answer: '+esc(plain(q.choices[it.answer]))+'</div>';if(q.type==='bm')h+=bmRoom();else if(ov!=='')h+=areaHtml(ov);}
+  else if(isMC(q.type))h+=choices()+(q.type==='bm'?bmRoom():'');
   else if(q.type==='tf')h+='<div class="pt-tf"><span class="'+(A&&q.answer==='T'?'ans':'')+'">T</span><span class="'+(A&&q.answer==='F'?'ans':'')+'">F</span></div>';
+  else if(ov!=='')h+=areaHtml(ov);
   else if(q.type==='es'&&q.answerArea==='space'){var sp=Math.max(0,num(q.space,3));if(sp>0)h+='<div class="pt-space" style="height:'+sp+'in"></div>';}
   else{var nl=Math.max(0,num(q.lines,q.type==='sa'?1:8));if(nl>0)h+='<div class="pt-lines">'+Array(nl+1).join('<div></div>')+'</div>';}
   if(A&&(q.type==='sa'||q.type==='es')&&q.answer)h+='<div class="pt-keynote">Key: '+textToHtml(q.answer)+'</div>';
-  return h;
+  return h+gapHtml();
 }
 function isTall(q){return (q.type==='bm'&&num(q.space,2)>5)||q.type==='es'&&(q.answerArea==='space'?num(q.space,3):num(q.lines,8)*0.33)>5||/<table/.test(q.html);}
 function nameRow(){return '<div class="cl-row cl-name"><span>Name: <span class="cl-line" style="width:3.1in"></span></span><span>Date: <span class="cl-line" style="width:1.6in"></span></span></div>';}
@@ -2787,7 +2800,7 @@ function reviewHtml(items,v,opts){
   items.forEach(function(it){
     if(it.pk!==last){h+='<tr class="rv-h'+(it.pk==='mc'?' mc':'')+'"><td colspan="2">'+(it.pk==='mc'?'Multiple Choice Questions':'Short/Extended Response Questions')+'</td></tr>';last=it.pk;}
     var q=it.q,ref=s.showRef?refText(q):'';
-    h+='<tr class="rv-q"><td class="rv-n">'+it.num+'</td><td><div class="pt-qt">'+q.html+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+qBody(it,A,s.reviewSpace)+(ref?'<div class="rv-ref">'+esc(ref)+'</div>':'<div class="rv-pad"></div>')+'</td></tr>';
+    h+='<tr class="rv-q"><td class="rv-n">'+it.num+'</td><td><div class="pt-qt">'+q.html+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+qBody(it,A)+(ref?'<div class="rv-ref">'+esc(ref)+'</div>':'<div class="rv-pad"></div>')+'</td></tr>';
   });
   return h+'</table>';
 }
@@ -2897,7 +2910,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3606,7 +3619,6 @@ function renderBuild(){
   else if(dt==='review')details=
     '<div class="row3">'+tf('unitNum','Unit #','3')+'</div>'+
     tf('title','Title','auto: '+autoTitle())+
-    '<label><span class="lbl">Work space under each short/extended response question</span><select data-set="reviewSpace">'+[['','Each question’s own setting'],['0','None'],['0.5','½ inch'],['1','1 inch'],['1.5','1½ inches'],['2','2 inches'],['3','3 inches'],['4','4 inches']].map(function(o){return '<option value="'+o[0]+'"'+(String(s.reviewSpace)===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>'+
     ta('instructions','Instructions','optional',2,'printed above the questions');
   else details=
     '<div class="row3">'+tf('unitNum','Unit #','3')+tf('sectionNum','Section #','2')+'</div>'+
@@ -3624,7 +3636,7 @@ function renderBuild(){
     '<label><span class="lbl">Course name <span class="hint" style="font-weight:400">— centered above the bar on every page</span></span><input type="text" data-set="headerText" value="'+esc(s.headerText)+'" placeholder="'+esc(state.course)+'"></label>'+
     details+
     '<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+
-    '</div>'+accSection()+'<details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
+    '</div>'+spacingSection()+accSection()+'<details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
     '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions in the list on the right.</span></label>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
@@ -3655,6 +3667,10 @@ function renderBuild(){
   });
   $('#pageStyle').ontoggle=function(){ui.pageStyle=this.open;saveUi();};
   $('#accFold').ontoggle=function(){ui.accFold=this.open;saveUi();};
+  $('#spaceFold').ontoggle=function(){ui.spaceFold=this.open;saveUi();};
+  $$('[data-sp]',main).forEach(function(el){el.onchange=function(){var dt=docType(),sp=JSON.parse(JSON.stringify(s.spacing||{}));sp[dt]=sp[dt]||{};
+    if(el.value==='')delete sp[dt][el.dataset.sp];else sp[dt][el.dataset.sp]=el.value;s.spacing=sp;changed();
+    var sm=$('#spaceFold summary .hint');if(sm)sm.textContent='room to answer, space between questions · for this '+DOC_TYPES[dt]+(Object.keys(sp[dt]).length?' · changed':'');drawPreviewSoon();};});
   $$('[data-acc]',main).forEach(function(el){el.onchange=function(){var k=el.dataset.acc,v=el.type==='checkbox'?el.checked:(k==='perPage'||k==='version'?parseInt(el.value,10)||0:el.value);
     s.accom=Object.assign({},accom());s.accom[k]=v;changed();
     if(k==='on'){if(v)ui.pv='acc';renderBuild();var f=$('[data-acc="on"]');if(f)f.focus();}else{if(ui.pv!=='acc'){ui.pv='acc';saveUi();}drawPreview();drawPrintBar();}};});
@@ -3684,6 +3700,14 @@ function renderBuild(){
     toast('New versions made. Print new answer keys too.',function(){s.seed=prev;changed();drawPreview();});};
   $('#showAns').onchange=function(){ui.showAns=this.checked;saveUi();drawPreview();};
   drawPreview();drawPrintBar();drawSaved();
+}
+function spacingSection(){
+  var dt=docType(),sp=spacing(),set=['es','sa','bm','gap'].some(function(k){return sp[k];});
+  return '<details class="fold" id="spaceFold"'+(ui.spaceFold?' open':'')+'><summary>Spacing <span class="hint">room to answer, space between questions · for this '+esc(DOC_TYPES[dt])+(set?' · changed':'')+'</span></summary><div class="fields">'+
+    '<p class="hint" style="margin:0">Room to answer, by question type. <b>Each question’s own</b> uses the size set in each question’s editor.</p>'+
+    '<div class="row3">'+['es','sa','bm'].map(function(k){return '<label><span class="lbl">'+SPACE_LABELS[k]+'</span><select data-sp="'+k+'">'+SPACE_OPTS[k].map(function(o){return '<option value="'+o[0]+'"'+(String(sp[k]==null?'':sp[k])===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>';}).join('')+'</div>'+
+    '<div class="row"><label><span class="lbl">'+SPACE_LABELS.gap+'</span><select data-sp="gap">'+SPACE_OPTS.gap.map(function(o){return '<option value="'+o[0]+'"'+(String(sp.gap==null?'':sp.gap)===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label><span></span></div>'+
+    '</div></details>';
 }
 function accSection(){var a=accom(),n=nVersions(),dis=a.on?'':' disabled';
   function sel(k,label,opts,hint){return '<label><span class="lbl">'+label+'</span><select data-acc="'+k+'"'+dis+'>'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(a[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';}

@@ -384,3 +384,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `details.bmenu` (`ui.bOpen` keeps it open after a re-render) with Also use in / Make public / Rename / Delete. The Bank files card
   and `bankCoursesHtml` are gone. 1476 checks.
 - **2026-11-17**: released v0.11.1 (CI, Release, `:latest` = 0.11.1; her local site updated). Public site waits for James.
+- **2026-11-17**: her request: **Spacing** fold on Build & print (`spacingSection`, `data-sp`, `ui.spaceFold`). `settings.spacing[docType]`
+  {es, sa, bm, gap}: '' = each question's own, number = inches, 'lN' = N lines (`SPACE_OPTS`, `spaceOf`, `areaHtml`). `qBody` applies
+  it on every document type; `gapHtml` adds an empty `.pt-gap` strip after each question, which Word/LaTeX already turn into
+  space (generic empty-div-with-height rule). `migrateSettings` moves the old `reviewSpace` into `spacing.review`. 1479 checks.

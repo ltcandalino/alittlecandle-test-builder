@@ -31,7 +31,8 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 - Questions are in a table with no borders: **Short/Extended Response Questions** first, then **Multiple Choice Questions** (with a shaded purple heading row).
 - Each question's source and exam (like "Regents June 2024 #12") prints in small gray type. Turn this off with **Show the reference under each question**.
-- **Work space** sets how much blank room goes under each short/extended response question: each question's own setting, none, or ½ inch up to 4 inches.
+- Work space under each question is set under **Spacing** (below). A new Review starts with 1½ inches for open response,
+  short answer and bimodal questions.
 - Pages 2 and on show *Unit 3 Review* under the bar.
 
 ## Lesson
@@ -65,6 +66,19 @@ The **Saved tests** box at the top of **Build & print** keeps every test you mak
 Saved tests are in your backups, and on the website version they're on every computer you sign in on.
 
 ## Settings for every type
+
+### Spacing
+
+Open **Spacing** in the Document box. Each document type (Test, Quiz, Review, Lesson) keeps its own spacing, so a Review
+can have lots of work space while a Quiz stays compact.
+
+- **Open response**, **Short answer**, **Bimodal**: the room to answer under every question of that type. Pick blank space
+  (½ inch to 6 inches), answer lines (1 to 20 lines), or **None**. **Each question's own** uses the size set in each
+  question's editor.
+- **Space after each question**: extra room between one question and the next (**Normal**, or ¼ inch up to 2 inches more).
+
+Multiple choice and True/False questions have no answer room; the space after each question still applies to them.
+The spacing is the same when you print and in Word and LaTeX downloads.
 
 The settings you rarely change are folded under **Page style** at the bottom of the Document box. Click it to open it; it stays open or closed the way you left it.
 
