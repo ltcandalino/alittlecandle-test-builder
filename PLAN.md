@@ -269,3 +269,44 @@ Each question belongs to the person who added it; banks group questions; sharing
 - Students never get accounts; every account is a teacher.
 - When an account is removed, its public questions stay (owned by the admin); its private ones are deleted.
 - A Regents question uploaded as Private by mistake can be switched to Public later (and then joins the single copy).
+
+# Plan 4: one thing at a time (step rail, sub-tabs, bank browser)
+
+Approved 2026-11-17 (her choices: ideas 1 + 3 from the mock-ups; one left rail; sub-tabs everywhere; browser first).
+
+## What you'll see
+
+- **One rail on the left** instead of the three top tabs:
+  - **Make a test:** 1 Pick questions · 2 Arrange · 3 Format · 4 Print (each shows its question/version count)
+  - then a line, then **Question bank** and **Import & backup**.
+  - On a phone the rail becomes a row of buttons across the top.
+- **Sub-tabs** at the top of each place, so only one panel shows at a time:
+  - 1 Pick questions: **Browse banks** · **Search** (today's list and filters) · **Team banks** · **Shared with you**
+  - 2 Arrange: **Order** (the list on this test, move up/down, roles for lessons) · **Parts** · **Versions**
+  - 3 Format: **Document** (type, course name, unit, title…) · **Spacing** · **Accommodations** · **Page style**
+  - 4 Print: **Preview** (with the print bar) · **Saved tests**
+  - Question bank: **All questions** · **Needs attention** · **Your fields**
+  - Import & backup: **Import** (ExamView, Word, PDF, paste) · **Your banks** · **Team banks** · **Backup** · **Courses**
+- **Bank browser** (Browse banks): one card per bank → its units and sections → that section's questions, each with
+  **+ Add** (or **Added ✓**), plus **Add 5 at random** for the section. A path at the top (All banks › Bank › Unit 3)
+  goes back. A small "On this test: 14" line stays in view.
+- Nothing about your questions, banks, settings or printouts changes; only where things are on the screen.
+
+## How it's built
+
+- `ui.place` (pick, arrange, format, print, bank, io) + `ui.sub[place]`, remembered in `tb-ui`; the old `ui.tab` values map
+  over (bank → bank, build → pick, io → io) so the app opens where you were.
+- The existing cards are reused, just shown one sub-tab at a time (no rewrite of the forms); the Preview card moves to Print.
+- Bank browser reads `unit`/`section` already on every question; questions without them go under "No unit".
+- Tests (`ui`, `tools`, `sync`) switch places through one helper instead of clicking old tabs; new tests for the rail, sub-tabs
+  and browser. README, wiki (every page names buttons and tabs), in-app Help, issue forms updated.
+
+## Order of work (each stage released and tried before the next)
+
+1. The rail and sub-tabs everywhere (MINOR 0.13.0).
+2. The bank browser in 1 Pick questions (MINOR 0.14.0).
+
+## Open decisions (defaults unless you say otherwise)
+
+- The rail can fold to icons only, for a wider preview.
+- Keyboard: Alt+1…4 jump to the steps.
