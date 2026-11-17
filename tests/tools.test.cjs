@@ -148,7 +148,7 @@ describe('her own fields', () => {
   test('add on Import & backup, fill in the editor, filter, delete with undo', async () => {
     await reset();
     await add([{ html: 'First' }, { html: 'Second' }]);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'bank', 'fields');
     await page.fill('#newField', 'DOK'); await page.click('#addField');
     const f = await page.evaluate(() => window.__tb.state.fields);
     assert.equal(f.length, 1); assert.equal(f[0].label, 'DOK');
@@ -171,7 +171,7 @@ describe('her own fields', () => {
     list = await qs();
     assert.deepEqual(list.map(q => q.extra[f[0].id]), ['3', '3']);
     // delete the field
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'bank', 'fields');
     await page.click('[data-fdel]'); await page.click('[data-fdel]');
     assert.equal((await page.evaluate(() => window.__tb.state.fields)).length, 0);
     assert.ok((await qs()).every(q => !q.extra));
@@ -182,6 +182,7 @@ describe('her own fields', () => {
   test('a field can be added from the editor', async () => {
     await reset();
     await add([{ html: 'Only' }]);
+    await gotoTab(page, 'bank');
     await page.click('[data-edit]');
     await page.click('#e-addf'); await page.fill('#e-newf', 'Difficulty'); await page.press('#e-newf', 'Enter');
     const id = await page.evaluate(() => window.__tb.state.fields[0].id);
@@ -206,7 +207,7 @@ describe('bank files', () => {
     assert.equal(data.kind, 'bank'); assert.equal(data.questions.length, 2); assert.deepEqual(data.fields.map(f => f.label), ['DOK']);
     assert.equal(await fn(page, 'bankFileName', 'Unit 3: a/b?'), 'Unit 3- a-b-.json');
     // "save" with downloads (no folder picker in the test browser)
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'banks');
     await page.evaluate(() => { window.showDirectoryPicker = undefined; });
     await page.$$eval('[data-bf]', els => els.forEach(e => { e.checked = e.value === 'Unit 3 bank'; }));
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bfSave')]);

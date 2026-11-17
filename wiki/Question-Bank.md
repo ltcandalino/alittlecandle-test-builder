@@ -1,6 +1,6 @@
 # Question Bank
 
-The **Question bank** tab lists every question in the current course.
+**Question bank** (on the rail) lists every question in the current course; **1 Pick questions › Search** shows the same list for picking.
 
 ## Finding questions
 
@@ -8,7 +8,7 @@ Search by words, or filter by **unit**, **section**, **topic** and **standard**.
 
 Every filter you're using shows as a chip under the filters, like **Unit: 3 ✕**. Click a chip to remove that filter, or **Clear filters** to remove them all. **Sort** (next to "Showing … of …") puts the list in bank order, newest added first, by exam date (newest or oldest first), by standard, or by unit and section.
 
-Tick the questions you want in your document. They're added to the list on **Build & print** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
+Tick the questions you want in your document. They're added to the list on **2 Arrange** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
 
 ## Editing a question
 
@@ -59,13 +59,13 @@ Filter the list down to the questions you want, then click **Change these …** 
 
 ## Your own fields
 
-Add details the banks don't have, like DOK or difficulty, under **Import & backup → Your own fields**, or with **+ Add a field** at the bottom of **More details** in the editor. Then:
+Add details the banks don't have, like DOK or difficulty, under **Question bank → Your fields**, or with **+ Add a field** at the bottom of **More details** in the editor. Then:
 
 - fill them in under **More details**, or for many questions at once with **Change these …**
 - filter by them under **More filters**
 - they're in backups and bank files
 
-Rename or delete a field on **Import & backup**. Deleting removes it from every question (with Undo).
+Rename or delete a field on **Question bank → Your fields**. Deleting removes it from every question (with Undo).
 
 ## Question types
 
@@ -77,7 +77,7 @@ Rename or delete a field on **Import & backup**. Deleting removes it from every 
 | Short answer | Answer lines |
 | Extended response | Lines or blank work space (you choose how much) |
 
-**Bimodal:** on **Build & print**, choose whether bimodal questions print *with* their choices or *without* them (as open-ended questions with work space). You can switch single questions in the list on the right.
+**Bimodal:** on **3 Format › Page style**, choose whether bimodal questions print *with* their choices or *without* them (as open-ended questions with work space). You can switch single questions in the list on the right.
 
 ## Deleting
 

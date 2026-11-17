@@ -149,7 +149,7 @@ describe('her own fields (website version)', () => {
     await a.page.evaluate(() => {
       const T = window.__tb, st = T.state, f = T.fn.addField('DOK');
       st.questions.push({ id: 'lib-1', course: st.course, type: 'tf', html: 'Shared one', answer: 'T', bank: 'Shared bank', points: 1, extra: { [f.id]: '2' } });
-      T.state = T.normalize(st); T.ui().tab = 'io'; T.render();
+      T.state = T.normalize(st); T.fn.go('io', 'banks');
     });
     await a.page.evaluate(() => window.__tb.fn.persist());
     await syncNow(a.page);
@@ -171,7 +171,7 @@ describe('public banks shared with colleagues (website version)', () => {
       const T = window.__tb, st = T.state;
       st.questions.push({ id: 'pub-1', course: st.course, type: 'tf', html: 'A Regents question', answer: 'T', bank: 'Regents bank', ref: '061901ge', points: 2 });
       st.questions.push({ id: 'priv-1', course: st.course, type: 'tf', html: 'A textbook question', answer: 'F', bank: 'Textbook bank', points: 1 });
-      T.state = T.normalize(st); T.ui().tab = 'io'; T.render();
+      T.state = T.normalize(st); T.fn.go('io', 'banks');
     });
     // Make public asks for a second click
     await a.page.click('[data-bmenu="Regents bank"] > summary');
@@ -185,7 +185,7 @@ describe('public banks shared with colleagues (website version)', () => {
 
     const b = await signIn('colleague@example.com', 'colleague-pass-1');
     await syncNow(b.page);
-    await b.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await b.page.evaluate(() => { window.__tb.fn.go('pick', 'shared'); });
     await b.page.waitForSelector('#sharedCard [data-shuse]');
     const card = await b.page.textContent('#sharedCard');
     assert.match(card, /Regents bank/); assert.match(card, /shared by regents@example.com/); assert.doesNotMatch(card, /Textbook/);
@@ -211,7 +211,7 @@ describe('public banks shared with colleagues (website version)', () => {
     await b2.page.waitForFunction(c => { const q = window.__tb.state.questions.find(x => x.id === 'pub-1'); return q && q.courses.includes(c); }, course, { timeout: 15000 });
     await b2.context.close();
     // the owner makes it private again: it disappears for the colleague (her copy stays)
-    await a.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await a.page.evaluate(() => { window.__tb.fn.go('io', 'banks'); });
     await a.page.evaluate(() => { document.querySelector('[data-bmenu="Regents bank"]').open = true; }); // may still be open from before
     await a.page.click('[data-pub="Regents bank"][data-to="private"]');
     await a.page.evaluate(() => window.__tb.fn.persist());
@@ -241,7 +241,7 @@ describe('team banks (website version)', () => {
     });
     await o.page.evaluate(() => window.__tb.fn.persist());
     await syncNow(o.page);
-    await o.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await o.page.evaluate(() => { window.__tb.fn.go('io', 'team'); });
     await o.page.fill('#tbNew', 'Geometry textbook');
     await o.page.click('#tbAdd');
     await o.page.waitForSelector('#teamCard [data-tbbanks]');
@@ -271,7 +271,7 @@ describe('team banks (website version)', () => {
     await syncNow(e.page);
     await e.page.waitForFunction(() => window.__tb.state.questions.some(q => q.id === 'book-1' && q.canEdit));
     const ecourse = await e.page.evaluate(() => window.__tb.state.course);
-    await e.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await e.page.evaluate(() => { window.__tb.fn.go('io', 'team'); });
     await e.page.check('#teamCard [data-tbuse][value="' + ecourse + '"]');
     await e.page.evaluate(() => { window.__tb.ui().tab = 'bank'; window.__tb.render(); });
     await e.page.waitForSelector('#qlist [data-edit="book-1"]');
@@ -290,14 +290,14 @@ describe('team banks (website version)', () => {
     await m.page.waitForFunction(() => window.__tb.state.questions.some(q => q.id === 'book-1'));
     const mq = await m.page.evaluate(() => window.__tb.state.questions.find(x => x.id === 'book-1'));
     assert.equal(mq.html, 'Textbook question (fixed)'); assert.ok(!mq.canEdit); assert.equal(mq.owner, ownerId);
-    await m.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await m.page.evaluate(() => { window.__tb.fn.go('io', 'team'); });
     assert.match(await m.page.textContent('#teamCard'), /shared with you/);
     assert.equal(await m.page.$('#teamCard .tb-set'), null, 'only the owner manages groups and editors');
     assert.equal(await m.page.$('#teamCard [data-tbfrom]'), null, 'members can’t add questions');
     assert.doesNotMatch(await m.page.textContent('#sharedCard'), /Bought textbook/, 'team questions aren’t listed as public');
 
     // the owner stops sharing: gone for the member after the next sync
-    await o.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await o.page.evaluate(() => { window.__tb.fn.go('io', 'team'); });
     assert.ok(await o.page.evaluate(() => document.querySelector('#teamCard .tb-set').open), 'still open from before');
     await o.page.uncheck('#teamCard [data-tbg]');
     await o.page.waitForFunction(() => /not shared with a group yet/.test(document.querySelector('#teamCard').textContent));

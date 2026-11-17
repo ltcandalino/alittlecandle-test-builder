@@ -3,7 +3,7 @@ const { test, describe, before, after, beforeEach, afterEach } = require('node:t
 const assert = require('node:assert/strict');
 const path = require('path');
 const fs = require('fs');
-const { launch, openApp, addQuestions, select, settings, gotoTab, FIX, OUT, privateFixtures } = require('./helpers.cjs');
+const { launch, openApp, addQuestions, select, settings, gotoTab, goPlace, FIX, OUT, privateFixtures } = require('./helpers.cjs');
 
 let browser, ctx, page, errors;
 before(async () => { browser = await launch(); });
@@ -13,6 +13,7 @@ afterEach(async () => { const e = errors.slice(); await ctx.close(); assert.deep
 
 const count = () => page.evaluate(() => window.__tb.state.questions.filter(q => (q.courses || [q.course]).includes(window.__tb.state.course)).length);
 const tab = async name => { await page.click(`#tabs [data-tab="${name}"]`); await page.waitForTimeout(100); };
+const place = (p, sub) => goPlace(page, p, sub);
 
 describe('tabs', () => {
   test('the browser tab shows the candle icon, and so does the header', async () => {
@@ -27,7 +28,7 @@ describe('tabs', () => {
   test('all three tabs open', async () => {
     await addQuestions(page, [{}, { type: 'es' }]);
     await gotoTab(page, 'bank');
-    for (const t of ['build', 'io', 'bank']) {
+    for (const t of ['pick', 'arrange', 'format', 'print', 'io', 'bank']) {
       await tab(t);
       assert.ok(await page.$(`#tabs [data-tab="${t}"].on`), t + ' is highlighted');
     }
@@ -162,7 +163,7 @@ describe('building', () => {
     await gotoTab(page, 'bank');
     for (const id of ids) await page.check(`[data-pick="${id}"]`);
     assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), ids);
-    await tab('build');
+    await tab('arrange');
     assert.equal(await page.$$eval('#selList li', x => x.length), 3);
     await page.click(`#selList [data-rm="${ids[1]}"]`);
     assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), [ids[0], ids[2]]);
@@ -187,10 +188,10 @@ describe('building', () => {
   test('lesson roles and bonus buttons', async () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
     await select(page, ids);
-    await gotoTab(page, 'build');
+    await place('arrange', 'order');
     await page.click(`[data-bonus="${ids[1]}"]`);
     assert.equal(await page.evaluate(id => window.__tb.state.settings.bonus[id], ids[1]), true);
-    await page.click('[data-doctype="lesson"]');
+    await settings(page, { docType: 'lesson' }); await place('arrange', 'order');
     await page.selectOption(`[data-role="${ids[0]}"]`, 'example');
     await page.fill(`[data-exc="${ids[0]}"]`, 'SAS');
     const s = await page.evaluate(() => window.__tb.state.settings);
@@ -263,14 +264,14 @@ describe('build and print layout', () => {
   test('the preview comes before the Print buttons, with a live summary', async () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
     await select(page, ids.slice(0, 1)); await settings(page, { versions: 3 });
-    await gotoTab(page, 'build');
+    await place('arrange', 'order');
     const order = await page.evaluate(() => {
       const y = el => el.getBoundingClientRect().top + window.scrollY;
       return { paper: y(document.querySelector('#paper')), print: y(document.querySelector('[data-print="both"]')) };
     });
     assert.ok(order.paper < order.print, 'paper preview is above the Print buttons');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 1 question · 2 points');
-    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await gotoTab(page, 'build');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await place('arrange', 'order');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 2 questions · 6 points');
     await page.click('#selList [data-rm]');
     assert.match(await page.textContent('#pbSum'), /1 question ·/);
@@ -287,11 +288,11 @@ describe('saving and backups', () => {
   test('download a backup and restore it in an empty browser', async () => {
     await addQuestions(page, [{ html: 'Backup one' }, { html: 'Backup two', type: 'es' }]);
     await settings(page, { unitNum: '9' });
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'backup');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
     const file = path.join(OUT, 'backup.json'); await dl.saveAs(file);
     const other = await openApp(browser);
-    await gotoTab(other.page, 'io');
+    await gotoTab(other.page, 'io', 'backup');
     await other.page.setInputFiles('#bkIn', file);
     await other.page.waitForFunction(() => window.__tb.state.questions.length === 2, null, { timeout: 5000 });
     assert.deepEqual(await other.page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort()), ['Backup one', 'Backup two']);
@@ -299,7 +300,7 @@ describe('saving and backups', () => {
   });
   test('restoring the same backup twice does not duplicate questions', async () => {
     await addQuestions(page, [{ html: 'Only once' }]);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'backup');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
     const file = path.join(OUT, 'backup2.json'); await dl.saveAs(file);
     await page.setInputFiles('#bkIn', file);
@@ -309,13 +310,13 @@ describe('saving and backups', () => {
   });
   test('restore over existing questions: Replace everything, with Undo', async () => {
     const [a] = await addQuestions(page, [{ html: 'Kept A' }, { html: 'Kept B' }]);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'backup');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
     const file = path.join(OUT, 'backup3.json'); await dl.saveAs(file);
     assert.match(await page.textContent('.last-bk'), /today/);
     await page.evaluate(a => { const st = window.__tb.state; st.questions.find(q => q.id === a).html = 'Edited A'; }, a);
     await addQuestions(page, [{ html: 'Extra C' }]);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'backup');
     await page.setInputFiles('#bkIn', file);
     await page.waitForSelector('#rsReplace');
     const msg = await page.textContent('#bkRes');
@@ -328,12 +329,12 @@ describe('saving and backups', () => {
   });
   test('restore over existing questions: add only the missing ones', async () => {
     await addQuestions(page, [{ html: 'From backup 1' }, { html: 'From backup 2' }]);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'backup');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bkOut')]);
     const file = path.join(OUT, 'backup4.json'); await dl.saveAs(file);
     const other = await openApp(browser);
     await addQuestions(other.page, [{ html: 'Already here' }]);
-    await gotoTab(other.page, 'io');
+    await gotoTab(other.page, 'io', 'backup');
     await other.page.setInputFiles('#bkIn', file);
     await other.page.click('#rsAdd');
     assert.deepEqual(await other.page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort()), ['Already here', 'From backup 1', 'From backup 2']);
@@ -344,7 +345,7 @@ describe('saving and backups', () => {
 describe('Your banks list', () => {
   test('long lists show 10 banks, Show all, find a bank, and save counts the ticked banks', async () => {
     await addQuestions(page, Array.from({ length: 15 }, (_, i) => ({ html: 'Q' + i, bank: 'Bank ' + String(i + 1).padStart(2, '0') })));
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'banks');
     const shown = () => page.$$eval('.blist li', els => els.filter(e => !e.hidden).length);
     assert.equal(await shown(), 10);
     await page.fill('#bankFind', 'bank 14');
@@ -365,7 +366,7 @@ describe('courses', () => {
   test('add a course and switch with the Course menu', async () => {
     await addQuestions(page, [{ html: 'Geometry question' }]);
     const start = await page.evaluate(() => window.__tb.state.course);
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'courses');
     await page.fill('#newCourse', 'AP Statistics'); await page.click('#addCourse');
     assert.equal(await page.evaluate(() => window.__tb.state.course), 'AP Statistics');
     assert.equal(await count(), 0);
@@ -377,7 +378,7 @@ describe('courses', () => {
 describe('shared banks (one bank in several courses)', () => {
   const st = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__tb.state.questions.map(q => ({ html: q.html, courses: q.courses, course: q.course })))));
   const share = async (bank, course) => {
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'banks');
     await page.click(`[data-bmenu="${bank}"] > summary`);
     await page.check(`[data-usein="${bank}"][value="${course}"]`);
   };
@@ -431,12 +432,13 @@ describe('shared banks (one bank in several courses)', () => {
     await page.evaluate(() => { window.__tb.state.course = 'Algebra 1'; window.__tb.render(); });
     await addQuestions(page, [{ html: 'Shared one' }, { html: 'Only here' }]);
     await page.evaluate(() => { window.__tb.state.questions[0].courses = ['Algebra 1', 'Algebra 2']; });
-    await gotoTab(page, 'io');
+    await gotoTab(page, 'io', 'banks');
     await page.click('[data-bmenu="Test bank"] > summary');
     await page.click('[data-delbank="Test bank"]'); await page.click('[data-delbank="Test bank"]');
     let q = await st();
     assert.equal(q.length, 1); assert.deepEqual(q[0].courses, ['Algebra 2']);
     await page.click('#toast button'); // Undo
+    await gotoTab(page, 'io', 'courses');
     await page.click('[data-cdel="Algebra 2"]'); await page.click('[data-cdel="Algebra 2"]');
     q = await st();
     assert.equal(q.length, 2); assert.ok(q.every(x => x.courses.length === 1 && x.courses[0] === 'Algebra 1'));
@@ -520,14 +522,31 @@ describe('simpler screens', () => {
     await gotoTab(page, 'bank');
     assert.equal(await page.textContent('.tag.unit'), 'Unit 3 · Sec 2');
   });
-  test('Page style folds away and remembers', async () => {
-    await gotoTab(page, 'build');
-    assert.ok(!(await page.isVisible('[data-set="shuffleQ"]')), 'folded by default');
-    await page.click('#pageStyle summary');
+  test('Format has one panel per sub-tab, and the app reopens where you were', async () => {
+    await place('format', 'doc');
+    assert.ok(!(await page.isVisible('[data-set="shuffleQ"]')), 'scrambling is under 2 Arrange › Versions');
+    assert.ok(!(await page.isVisible('[data-set="font"]')), 'one panel at a time');
+    await page.click('.subtabs [data-sub="page"]');
+    assert.ok(await page.isVisible('[data-set="font"]'));
+    assert.ok(await page.isVisible('#paper'), 'the preview stays beside the settings');
+    await page.waitForFunction(() => window.__tb.ui().subs.format === 'page');
+    await page.evaluate(() => window.__tb.fn.persist());
+    await page.reload(); await page.waitForFunction(() => window.__tb);
+    await page.waitForSelector('.subtabs [data-sub="page"].on');
+    assert.ok(await page.isVisible('[data-set="font"]'), 'still on Page style after reload');
+    await place('arrange', 'versions');
     assert.ok(await page.isVisible('[data-set="shuffleQ"]'));
-    await page.waitForFunction(() => window.__tb.ui().pageStyle === true);
-    await page.reload(); await page.waitForFunction(() => window.__tb); await gotoTab(page, 'build');
-    assert.ok(await page.isVisible('[data-set="shuffleQ"]'), 'stays open after reload');
+  });
+  test('the rail: Alt+1–4 jump to the steps, icons only, and old saved tabs still open', async () => {
+    await place('bank');
+    await page.keyboard.press('Alt+Digit3');
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'format');
+    await page.click('#railMin');
+    assert.ok(await page.$('#shell.rmin'));
+    assert.ok(!(await page.isVisible('#tabs .rl')), 'labels hidden');
+    await page.click('#railMin');
+    await page.evaluate(() => { window.__tb.ui().tab = 'build'; window.__tb.render(); });
+    assert.ok(await page.$('#tabs [data-tab="arrange"].on'), 'the old Build & print tab opens 2 Arrange');
   });
 });
 
@@ -546,9 +565,8 @@ describe('accommodations', () => {
   test('turning on an accommodated copy shows its preview and print button', async () => {
     const ids = await addQuestions(page, [{ html: 'Slope?' }, { html: 'Area?' }]);
     await select(page, ids); await settings(page, { versions: 2 });
-    await gotoTab(page, 'build');
+    await place('format', 'acc');
     assert.ok(await page.isDisabled('[data-acc="font"]'), 'choices wait until it is turned on');
-    await page.click('#accFold summary');
     await page.check('[data-acc="on"]');
     assert.equal(await page.textContent('#vtabs button.on'), 'Accommodated');
     await page.selectOption('[data-acc="font"]', 'OpenDyslexic');
@@ -570,9 +588,11 @@ describe('saved tests', () => {
   test('printing saves the test; save, rename, duplicate, delete and undo', async () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
     await select(page, ids); await settings(page, { unitNum: '3', quarter: '1' });
-    await gotoTab(page, 'build');
+    await place('print', 'saved');
     assert.match(await page.textContent('#svStatus'), /Not saved yet/);
+    await place('print', 'preview');
     await stubPrint(); await page.click('[data-print="tests"]');
+    await place('print', 'saved');
     assert.match(await page.textContent('#svStatus'), /Unit 3 Exam.*printed/);
     const saved = () => page.evaluate(() => window.__tb.state.savedTests.map(t => t.name));
     const names = await saved();
@@ -591,12 +611,12 @@ describe('saved tests', () => {
   });
   test('opening another saved test asks first when the current one has unsaved changes', async () => {
     const ids = await addQuestions(page, [{ html: 'A' }, { html: 'B' }, { html: 'C' }]);
-    await select(page, ids.slice(0, 1)); await gotoTab(page, 'build');
+    await select(page, ids.slice(0, 1)); await place('print', 'saved');
     await page.click('#svSave');
     await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]);
     await page.click('#svNew');
     await page.evaluate(id => window.__tb.state.selected.push(id), ids[2]);
-    await gotoTab(page, 'build');
+    await place('print', 'saved');
     await page.click('#svList summary');
     const first = await page.evaluate(() => window.__tb.state.savedTests[1].id);
     await page.click(`[data-svopen="${first}"]`);
@@ -607,7 +627,7 @@ describe('saved tests', () => {
   });
   test('an edited question shows the note and lets you switch to the latest versions', async () => {
     const ids = await addQuestions(page, [{ html: 'Original' }]);
-    await select(page, ids); await gotoTab(page, 'build');
+    await select(page, ids); await place('print', 'saved');
     await page.click('#svSave');
     const id = await page.evaluate(() => window.__tb.state.settings.savedId);
     await page.evaluate(q => { window.__tb.state.questions.find(x => x.id === q).html = 'Edited'; }, ids[0]);

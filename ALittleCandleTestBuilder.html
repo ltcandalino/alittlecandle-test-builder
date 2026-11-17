@@ -40,10 +40,32 @@ label{display:block}
 .brand .mark{width:40px;height:40px;display:block;flex:none}
 .coursesel{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
 .coursesel select{font-weight:600;color:var(--ink);padding:5px 8px}
-.tabs{display:flex;gap:4px;flex-wrap:wrap}
-.tabs button{border:none;background:transparent;padding:7px 13px;border-radius:8px;color:var(--ink2)}
-.tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow);font-weight:600}
-.tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:5px;border-radius:10px;background:#e7e4dc;font-size:11.5px;color:var(--ink2)}
+/* Plan 4: rail on the left, sub-tabs on top, one panel at a time */
+.shell{display:grid;grid-template-columns:210px minmax(0,1fr);align-items:start}
+.shell.rmin{grid-template-columns:62px minmax(0,1fr)}
+.rail{position:sticky;top:var(--toph,61px);display:grid;gap:2px;padding:16px 10px;max-height:calc(100vh - var(--toph,61px));overflow:auto}
+.rail-h{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:2px 10px 6px}
+.rail hr{border:0;border-top:1px solid var(--line);margin:10px 6px}
+.rail button{display:flex;align-items:center;gap:10px;border:none;background:transparent;padding:9px 10px;border-radius:9px;color:var(--ink2);text-align:left;font-size:14px}
+.rail button:hover{background:var(--accent-soft)}
+.rail button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow);font-weight:600}
+.rail svg{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rail .rl{flex:1}
+.rail .count{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:#e7e4dc;font-size:11.5px;color:var(--ink2);text-align:center}
+.rail .rail-min{margin-top:14px;font-size:12.5px;color:var(--muted);justify-content:center}
+.rmin .rail .rl,.rmin .rail .count{display:none}
+.rmin .rail button{justify-content:center;padding:10px 0}
+.subtabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.subtabs button{border:1px solid var(--line2);background:#fff;padding:6px 14px;border-radius:999px;font-size:13.5px;color:var(--ink2)}
+.subtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+[data-show][hidden],.bleft[hidden]{display:none!important}
+.bgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+.bleft{display:grid;gap:18px;min-width:0}
+.one-col .bgrid{grid-template-columns:minmax(0,1fr)}
+main[data-place=print] .bright{max-width:940px;margin:0 auto;width:100%}
+.place-cards>.wide{grid-column:1/-1}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.place-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start}
 .savebox{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .savebox .dot{width:8px;height:8px;border-radius:50%;background:#7851a9;display:inline-block}
 .savebox .dot.warn{background:#d39b2a}
@@ -102,6 +124,8 @@ main{max-width:1200px;margin:0 auto;padding:22px}
 sup,sub{font-size:.7em;line-height:0}
 .grid2{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
 @media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1000px){.bgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.shell,.shell.rmin{grid-template-columns:minmax(0,1fr)}.rail{position:static;display:flex;overflow-x:auto;padding:8px 12px;max-height:none;border-bottom:1px solid var(--line)}.rail-h,.rail hr,.rail .rail-min{display:none}.rail button{white-space:nowrap;flex:none}}
 .fields{display:grid;gap:11px}
 .fields .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fields input[type=text],.fields select{width:100%}
@@ -2910,7 +2934,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,placeOf:placeOf,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -2955,12 +2979,12 @@ function fileBase(t){return String(t||'Test').replace(/[\\\/:*?"<>|]+/g,'').repl
 /* ================= shell ================= */
 var root=document.getElementById('root');
 function shell(){
-  root.innerHTML='<header class="top"><div class="brand"><img class="mark" alt="" src="'+BRAND_LOGO+'">ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><nav class="tabs" id="tabs" aria-label="Sections"></nav><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><button type="button" class="ghost small helpbtn" popovertarget="helpPop">Help</button><div popover id="helpPop" class="disp helppop" role="dialog" aria-labelledby="helpT">'+HELP_HTML+'</div><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><main id="main"></main><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
+  root.innerHTML='<header class="top"><div class="brand"><img class="mark" alt="" src="'+BRAND_LOGO+'">ALittleCandleTestBuilder<span class="ver" title="Version">v'+esc(APP_VERSION)+'</span></div><label class="coursesel"><span>Course</span><select id="courseSel"></select></label><button type="button" class="ghost small dispbtn" popovertarget="dispPop" title="Display settings: font, text size, contrast"><span aria-hidden="true" class="aa">Aa</span> Display</button><div popover id="dispPop" class="disp"></div><button type="button" class="ghost small helpbtn" popovertarget="helpPop">Help</button><div popover id="helpPop" class="disp helppop" role="dialog" aria-labelledby="helpT">'+HELP_HTML+'</div><div class="savebox"><span id="status"></span><span id="cloud"></span></div></header><div id="bannerSlot"></div><div class="shell'+(ui.railMin?' rmin':'')+'" id="shell"><nav class="rail" id="tabs" aria-label="Places"></nav><main id="main"></main></div><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="modal"></div>';
 }
 function renderCourses(){
   var cs=$('#courseSel');if(!cs)return;
   cs.innerHTML=state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<option value="'+esc(c)+'"'+(c===state.course?' selected':'')+'>'+esc(c)+(n?' ('+n+')':'')+'</option>';}).join('')+'<option value="__manage">Add or rename courses…</option>';
-  cs.onchange=function(){if(this.value==='__manage'){this.value=state.course;ui.tab='io';render();setTimeout(function(){var c=$('#coursesCard');if(c)c.scrollIntoView({behavior:'smooth'});},50);return;}switchCourse(this.value);};
+  cs.onchange=function(){if(this.value==='__manage'){this.value=state.course;go('io','courses');setTimeout(function(){var c=$('#coursesCard');if(c)c.scrollIntoView({behavior:'smooth'});},50);return;}switchCourse(this.value);};
 }
 function switchCourse(name){
   if(name===state.course)return;
@@ -2972,13 +2996,50 @@ function switchCourse(name){
   ['q','bank','topic','type','std','unit','section','source','year','month','cluster','sub','pickBank','pickTopic','pickType','pickUnit','pickSection'].forEach(function(k){ui[k]='';});
   ui.limit=40;saveUi();changed();render();toast('Switched to '+name+'.');
 }
+/* Plan 4: one thing at a time. The rail on the left holds the four steps of making a test, then Question bank and
+   Import & backup (ui.tab = the place). Each place has sub-tabs (ui.subs[place]); every panel carries data-show="place:sub"
+   and only the current one shows. Old ui.tab values ('build') still open in the right place. */
+var RAIL=[['pick','1','Pick questions','M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11'],['arrange','2','Arrange','M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3'],
+  ['format','3','Format','M4 6h16M4 12h16M4 18h16M9 4v4M15 10v4M7 16v4'],['print','4','Print','M7 9V4h10v5M7 17H5V10h14v7h-2M7 14h10v6H7z'],null,
+  ['bank','','Question bank','M5 4h14v16H5zM9 8h6M9 12h6M9 16h4'],['io','','Import & backup','M12 4v11M8 8l4-4 4 4M5 15v4h14v-4']];
+var BUILD_PLACES={arrange:1,format:1,print:1};
+function placeOf(){var t=ui.tab==='build'?'arrange':ui.tab;return RAIL.some(function(r){return r&&r[0]===t;})?t:'bank';}
+function subsOf(p){var sh=sharing(),L={
+  pick:[['search','Search'],sh&&['team','Team banks'],sh&&['shared','Shared with you']],
+  arrange:[['order','Order'],['versions','Versions'],isExamDoc()&&state.settings.group&&['parts','Part directions']],
+  format:[['doc','Document'],['spacing','Spacing'],['acc','Accommodations'],['page','Page style']],
+  print:[['preview','Preview'],['saved','Saved tests']],
+  bank:[['all','All questions'],['fields','Your fields']],
+  io:[['import','Import'],['banks','Your banks'],sh&&['team','Team banks'],['backup','Backup'],['courses','Courses']]}[p]||[];
+  return L.filter(Boolean);}
+function curSub(p){var L=subsOf(p),v=(ui.subs||{})[p];return L.some(function(x){return x[0]===v;})?v:(L[0]?L[0][0]:'');}
+function go(place,sub){ui.tab=place;if(sub){ui.subs=Object.assign({},ui.subs);ui.subs[place]=sub;}ui.limit=40;saveUi();render();window.scrollTo(0,0);}
 function renderTabs(){
   renderCourses();
-  var t=[['bank','Question bank',cq().length],['build','Build & print',state.selected.length],['io','Import & backup',null]];
-  $('#tabs').innerHTML=t.map(function(x){return '<button data-tab="'+x[0]+'" class="'+(ui.tab===x[0]?'on':'')+'"'+(ui.tab===x[0]?' aria-current="page"':'')+'>'+esc(x[1])+(x[2]!=null?'<span class="count">'+x[2]+'</span>':'')+'</button>';}).join('');
-  $$('#tabs button').forEach(function(b){b.onclick=function(){ui.tab=b.dataset.tab;ui.limit=40;saveUi();render();window.scrollTo(0,0);};});
+  var p=placeOf(),cnt={arrange:state.selected.length,bank:cq().length};
+  $('#tabs').innerHTML=(ui.railMin?'':'<div class="rail-h">Make a test</div>')+RAIL.map(function(r){if(!r)return '<hr>';
+    var on=r[0]===p;return '<button data-tab="'+r[0]+'" class="'+(on?'on':'')+'"'+(on?' aria-current="page"':'')+' title="'+esc(r[2])+(r[1]?' (Alt+'+r[1]+')':'')+'">'+
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+r[3]+'"/></svg><span class="rl">'+(r[1]?r[1]+' ':'')+esc(r[2])+'</span>'+(cnt[r[0]]!=null?'<span class="count">'+cnt[r[0]]+'</span>':'')+'</button>';}).join('')+
+    '<button class="rail-min" id="railMin" title="'+(ui.railMin?'Show the labels':'Icons only, for a wider page')+'" aria-label="'+(ui.railMin?'Show the labels':'Icons only')+'">'+(ui.railMin?'»':'« <span class="rl">Icons only</span>')+'</button>';
+  $$('#tabs [data-tab]').forEach(function(b){b.onclick=function(){go(b.dataset.tab);};});
+  var hd=$('.top');if(hd)document.documentElement.style.setProperty('--toph',hd.offsetHeight+'px');
+  $('#railMin').onclick=function(){ui.railMin=!ui.railMin;saveUi();$('#shell').classList.toggle('rmin',!!ui.railMin);renderTabs();};
 }
-function render(){renderTabs();if(ui.tab==='build')renderBuild();else if(ui.tab==='io')renderIO();else renderBank();}
+// after any page is drawn: the sub-tab row on top, and only the current panel showing
+function showPlace(){
+  var main=$('#main'),p=placeOf(),sb=curSub(p),L=subsOf(p),key=p+':'+sb;if(!main)return;
+  var old=$('.subtabs',main);if(old)old.remove();
+  if(L.length>1)main.insertAdjacentHTML('afterbegin','<nav class="subtabs" aria-label="'+esc(RAIL.filter(function(r){return r&&r[0]===p;})[0][2])+'">'+L.map(function(x){return '<button data-sub="'+x[0]+'" class="'+(x[0]===sb?'on':'')+'"'+(x[0]===sb?' aria-current="true"':'')+'>'+esc(x[1])+'</button>';}).join('')+'</nav>');
+  $$('.subtabs [data-sub]',main).forEach(function(b){b.onclick=function(){go(p,b.dataset.sub);};});
+  $$('[data-show]',main).forEach(function(el){el.hidden=!el.dataset.show.split(' ').some(function(t){return t===key||t===p+':*';});});
+  var bl=$('.bleft',main),br=$('.bright',main);
+  if(bl&&br){var lv=$$('.bleft>[data-show]',main).some(function(e){return !e.hidden;});main.classList.toggle('one-col',!lv||br.hidden);bl.hidden=!lv;}
+  else main.classList.remove('one-col');
+  main.dataset.place=p;
+}
+function render(){ui.tab=placeOf();renderTabs();var p=ui.tab,sb=curSub(p);
+  if(BUILD_PLACES[p])renderBuild();else if(p==='io'||(p==='pick'&&sb!=='search')||(p==='bank'&&sb==='fields'))renderIO();else renderBank();}
+document.addEventListener('keydown',function(e){if(!e.altKey||e.ctrlKey||e.metaKey)return;var m=/^Digit([1-4])$/.exec(e.code||'');if(!m)return;e.preventDefault();go(RAIL[+m[1]-1][0]);});
 
 /* ================= bank tab ================= */
 function opts(list,sel,allLabel){return '<option value="">'+esc(allLabel)+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
@@ -3046,11 +3107,12 @@ function qCard(q){
   var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
-function renderBank(){
+function renderBank(){_renderBank();showPlace();}
+function _renderBank(){
   var main=$('#main');
   if(!cq().length){
     main.innerHTML='<div class="empty"><b>No '+esc(state.course)+' questions yet</b>Bring them in from ExamView banks (.bnk), a Word test (.docx), a PDF, a spreadsheet, or by pasting text, or write them one at a time.<div class="actions" style="justify-content:center;margin-top:14px"><button class="primary" id="goImport">Import questions</button><button id="newQ">+ New question</button></div></div>';
-    $('#newQ').onclick=function(){openEditor(null);};$('#goImport').onclick=function(){ui.tab='io';render();};return;
+    $('#newQ').onclick=function(){openEditor(null);};$('#goImport').onclick=function(){go('io','import');};return;
   }
   var banks=uniq('bank');
   var mc=moreCount();
@@ -3276,7 +3338,7 @@ function bulkBox(list){
 function openCleanup(){
   var back=document.activeElement;
   function close(){$('#modal').innerHTML='';renderBank();var b=$('#cleanBtn');if(b)b.focus();else if(back&&document.body.contains(back))back.focus();}
-  function show(k){activeFilters().forEach(function(f){ui[f]='';});ui.need=k;ui.moreF=true;ui.limit=40;saveUi();$('#modal').innerHTML='';ui.tab='bank';render();}
+  function show(k){activeFilters().forEach(function(f){ui[f]='';});ui.need=k;ui.moreF=true;ui.limit=40;saveUi();$('#modal').innerHTML='';go('bank','all');}
   function fix(kind){
     var qs=cq().filter(own),keys,snap,n=0,msg;
     if(kind==='mixed'){var t=qs.filter(isMixed);keys=['standard','nyStd','cluster'];snap=snapF(t,keys);t.forEach(function(q){if(splitNY(q))n++;});msg='Moved the old NY codes to “Old NY standard” on '+plural(n,'question')+'.';}
@@ -3550,7 +3612,7 @@ function collect(){
 function drawSpec(){
   var sp=$('#e-spec'),h='';
   if(isMC(ed.type)){
-    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<p class="hint" style="margin:10px 0 0">Bimodal: prints with these choices, or as an open question without them. Choose on Build &amp; print.</p><label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
+    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<p class="hint" style="margin:10px 0 0">Bimodal: prints with these choices, or as an open question without them. Choose on 3 Format › Page style.</p><label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
   }else if(ed.type==='tf'){
     h='<span class="lbl">Correct answer</span><div class="tfpick"><label class="'+(ed.answer==='T'?'on':'')+'"><input type="radio" name="tf" value="T"'+(ed.answer==='T'?' checked':'')+'>True</label><label class="'+(ed.answer==='F'?'on':'')+'"><input type="radio" name="tf" value="F"'+(ed.answer==='F'?' checked':'')+'>False</label></div>';
   }else if(ed.type==='sa'){
@@ -3599,7 +3661,8 @@ function commitEditor(another){
 function closeEditor(keep){$('#modal').innerHTML='';lastRich=null;if(!keep){ed=null;render();var b=edReturn&&$('[data-edit="'+edReturn+'"]');if(b)b.focus();}}
 
 /* ================= build tab ================= */
-function renderBuild(){
+function renderBuild(){_renderBuild();showPlace();}
+function _renderBuild(){
   var s=state.settings,main=$('#main');
   function cb(key,label,small){return '<label><input type="checkbox" data-set="'+key+'"'+(s[key]?' checked':'')+'><span>'+label+(small?'<small>'+small+'</small>':'')+'</span></label>';}
   var banks=uniq('bank');
@@ -3631,29 +3694,32 @@ function renderBuild(){
     '<label style="max-width:220px"><span class="lbl">Space for notes</span><span style="display:flex;gap:6px;align-items:center"><input type="number" data-set="notesSpace" min="0" max="8" step=".25" value="'+esc(s.notesSpace)+'" style="width:80px"> inches</span></label>'+
     '<h3 style="margin:8px 0 0">Success Criteria</h3>'+ta('success','One per line','I can …\nI can …',3)+
     '<div><h3 style="margin:8px 0 0">Students need</h3><p class="hint" style="margin:2px 0 8px">Pictures in the top-left corner of the first page.</p><div class="checks">'+cb('toolCompass','Compass')+cb('toolRuler','Ruler')+cb('toolTrace','Tracing paper')+'</div></div>'+
-    '<p class="hint">Mark each question as Warm Up, Example or Practice in the list on the right.</p>';
-  main.innerHTML='<div class="grid2"><div class="card"><h2>Document</h2><div class="doctypes">'+Object.keys(DOC_TYPES).map(function(k){return '<button type="button" data-doctype="'+k+'" class="'+(k===dt?'on':'')+'">'+DOC_TYPES[k]+'</button>';}).join('')+'</div><div class="fields">'+
+    '<p class="hint">Mark each question as Warm Up, Example or Practice under 2 Arrange.</p>';
+  main.innerHTML='<div class="bgrid"><div class="bleft"><div class="card" data-show="format:doc"><h2>Document</h2><div class="doctypes">'+Object.keys(DOC_TYPES).map(function(k){return '<button type="button" data-doctype="'+k+'" class="'+(k===dt?'on':'')+'">'+DOC_TYPES[k]+'</button>';}).join('')+'</div><div class="fields">'+
     '<label><span class="lbl">Course name <span class="hint" style="font-weight:400">— centered above the bar on every page</span></span><input type="text" data-set="headerText" value="'+esc(s.headerText)+'" placeholder="'+esc(state.course)+'"></label>'+
     details+
-    '<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+
-    '</div>'+spacingSection()+accSection()+'<details class="fold" id="pageStyle"'+(ui.pageStyle?' open':'')+'><summary>Page style <span class="hint">font, size, answer labels, scrambling, layout</span></summary><div class="fields">'+
+    '</div></div>'+
+    '<div class="card" data-show="format:spacing"><h2>Spacing</h2>'+spacingSection()+'</div>'+
+    '<div class="card" data-show="format:acc"><h2>Accommodations</h2>'+accSection()+'</div>'+
+    '<div class="card" id="pageStyle" data-show="format:page"><h2>Page style</h2><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
-    '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions in the list on the right.</span></label>'+
+    '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions under 2 Arrange.</span></label>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
-    '</div><h3>Scrambling</h3><div class="checks">'+cb('shuffleQ','Shuffle question order',exam?'Within each part.':'Within each section.')+cb('shuffleC','Shuffle answer choices','“All/None of the above” stays last.')+cb('keepA','Keep Version A in the original order','Handy as your master copy.')+'</div>'+
+    '</div>'+
     '<h3>Layout</h3><div class="checks">'+
     (exam?cb('group','Group into parts','Part I, Part II… with directions and totals like [14].')+cb('computeBox','“Use this space for computations.” box','At the start of each multiple-choice part.')+cb('showCredits','Show credits like [2] under each open-response question')+cb('scoreBox','Score box at the end','Shows the total, like  /33. Bonus questions don’t count.'):'')+
     (dt==='review'?cb('showRef','Show the reference under each question','Source and exam, like “Regents June 2024 #12”, in small gray type.'):'')+
     cb('nameLine','Name and date line')+
-    (nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
-    cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></details></div>'+
-'<div style="display:grid;gap:18px;min-width:0"><div class="card savedcard" id="savedCard"></div><div class="card"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
+    cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></div>'+
+    '<div class="card" data-show="arrange:versions"><h2>Versions</h2><div class="fields">'+'<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+'</div>'+
+    '<h3>Scrambling</h3><div class="checks">'+cb('shuffleQ','Shuffle question order',exam?'Within each part.':'Within each section.')+cb('shuffleC','Shuffle answer choices','“All/None of the above” stays last.')+cb('keepA','Keep Version A in the original order','Handy as your master copy.')+(nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+'</div></div>'+
+'<div class="card savedcard" id="savedCard" data-show="print:saved"></div><div class="card" data-show="arrange:order"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
-    '<p class="note">Pick individual questions on the Question bank tab. Questions print in this order unless you shuffle or group them.</p></div>'+
-    (exam&&s.group?'<div class="card"><details><summary style="cursor:pointer;font-weight:600">Part directions</summary><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></details></div>':'')+
-    '<div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
+    '<p class="note">Pick individual questions under 1 Pick questions. Questions print in this order unless you shuffle or group them.</p></div>'+
+    (exam&&s.group?'<div class="card" data-show="arrange:parts"><h2>Part directions</h2><div><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></div></div>':'')+
+    '</div><div class="bright" data-show="arrange:* format:* print:preview"><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
     '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
@@ -3665,12 +3731,9 @@ function renderBuild(){
     var h=function(){s[k]=el.type==='checkbox'?el.checked:(k==='versions'?parseInt(el.value,10):k==='fontSize'?num(el.value,12):el.value);changed();if(k==='bmMode'){s.bmOverride={};drawSel();}if(k==='versions'||k==='calc'||k==='time'||k==='group'){if(ui.pv>=nVersions())ui.pv=0;renderBuild();}else{refreshAuto();drawPreviewSoon();}};
     if(el.type==='checkbox'||el.tagName==='SELECT')el.onchange=h;else el.oninput=h;
   });
-  $('#pageStyle').ontoggle=function(){ui.pageStyle=this.open;saveUi();};
-  $('#accFold').ontoggle=function(){ui.accFold=this.open;saveUi();};
-  $('#spaceFold').ontoggle=function(){ui.spaceFold=this.open;saveUi();};
   $$('[data-sp]',main).forEach(function(el){el.onchange=function(){var dt=docType(),sp=JSON.parse(JSON.stringify(s.spacing||{}));sp[dt]=sp[dt]||{};
     if(el.value==='')delete sp[dt][el.dataset.sp];else sp[dt][el.dataset.sp]=el.value;s.spacing=sp;changed();
-    var sm=$('#spaceFold summary .hint');if(sm)sm.textContent='room to answer, space between questions · for this '+DOC_TYPES[dt]+(Object.keys(sp[dt]).length?' · changed':'');drawPreviewSoon();};});
+    drawPreviewSoon();};});
   $$('[data-acc]',main).forEach(function(el){el.onchange=function(){var k=el.dataset.acc,v=el.type==='checkbox'?el.checked:(k==='perPage'||k==='version'?parseInt(el.value,10)||0:el.value);
     s.accom=Object.assign({},accom());s.accom[k]=v;changed();
     if(k==='on'){if(v)ui.pv='acc';renderBuild();var f=$('[data-acc="on"]');if(f)f.focus();}else{if(ui.pv!=='acc'){ui.pv='acc';saveUi();}drawPreview();drawPrintBar();}};});
@@ -3703,21 +3766,21 @@ function renderBuild(){
 }
 function spacingSection(){
   var dt=docType(),sp=spacing(),set=['es','sa','bm','gap'].some(function(k){return sp[k];});
-  return '<details class="fold" id="spaceFold"'+(ui.spaceFold?' open':'')+'><summary>Spacing <span class="hint">room to answer, space between questions · for this '+esc(DOC_TYPES[dt])+(set?' · changed':'')+'</span></summary><div class="fields">'+
-    '<p class="hint" style="margin:0">Room to answer, by question type. <b>Each question’s own</b> uses the size set in each question’s editor.</p>'+
-    '<div class="row3">'+['es','sa','bm'].map(function(k){return '<label><span class="lbl">'+SPACE_LABELS[k]+'</span><select data-sp="'+k+'">'+SPACE_OPTS[k].map(function(o){return '<option value="'+o[0]+'"'+(String(sp[k]==null?'':sp[k])===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>';}).join('')+'</div>'+
+  return '<div id="spaceFold"><div class="fields">'+
+    '<p class="hint" style="margin:0">For this '+esc(DOC_TYPES[dt])+'; each document type keeps its own. Room to answer, by question type. <b>Each question’s own</b> uses the size set in each question’s editor.</p>'+
+    '<div class="sp-grid">'+['es','sa','bm'].map(function(k){return '<label><span class="lbl">'+SPACE_LABELS[k]+'</span><select data-sp="'+k+'">'+SPACE_OPTS[k].map(function(o){return '<option value="'+o[0]+'"'+(String(sp[k]==null?'':sp[k])===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label>';}).join('')+'</div>'+
     '<div class="row"><label><span class="lbl">'+SPACE_LABELS.gap+'</span><select data-sp="gap">'+SPACE_OPTS.gap.map(function(o){return '<option value="'+o[0]+'"'+(String(sp.gap==null?'':sp.gap)===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label><span></span></div>'+
-    '</div></details>';
+    '</div></div>';
 }
 function accSection(){var a=accom(),n=nVersions(),dis=a.on?'':' disabled';
   function sel(k,label,opts,hint){return '<label><span class="lbl">'+label+'</span><select data-acc="'+k+'"'+dis+'>'+opts.map(function(o){return '<option value="'+o[0]+'"'+(String(a[k])===String(o[0])?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';}
-  return '<details class="fold" id="accFold"'+(a.on||ui.accFold?' open':'')+'><summary>Accommodations <span class="hint">dyslexia-friendly font, large print, spacing</span></summary>'+
+  return '<div id="accFold">'+
     '<div class="checks"><label><input type="checkbox" data-acc="on"'+(a.on?' checked':'')+'><span>Also print an accommodated copy<small>Same questions and answer order as its version, so that version’s answer key works for it. Nothing on the student’s copy says “accommodated”.</small></span></label></div>'+
     '<div class="fields acc-fields">'+
     '<div class="row">'+sel('font','Font',[['Atkinson Hyperlegible','Atkinson Hyperlegible'],['OpenDyslexic','OpenDyslexic'],['','Same as the test']])+sel('size','Text size',[['','Same as the test'],['l','Large (14 pt)'],['xl','Extra large (18 pt)']])+'</div>'+
     '<div class="row">'+sel('perPage','Questions per page',[[0,'As many as fit'],[1,'1 per page'],[2,'2 per page']],docType()==='lesson'?'Lessons keep their own layout.':'')+(n>1?sel('version','Make it from',Array.apply(null,Array(n)).map(function(_,v){return [v,'Version '+LETTERS[v]];})):'<span></span>')+'</div>'+
     '<div class="checks"><label><input type="checkbox" data-acc="spacing"'+(a.spacing?' checked':'')+dis+'><span>Extra spacing<small>More space between lines, answer choices and questions.</small></span></label></div>'+
-    '</div></details>';}
+    '</div></div>';}
 function drawSaved(){var box=$('#savedCard');if(!box)return;var s=state.settings,cur=savedById(s.savedId),mine=state.savedTests.filter(function(t){return t.course===state.course;});
   var q=(ui.svQ||'').toLowerCase(),list=mine.filter(function(t){return !q||t.name.toLowerCase().indexOf(q)>=0;});
   var status=cur?'<b>'+esc(cur.name)+'</b> · saved '+fmtDay(cur.savedAt)+(cur.printedAt?' · printed '+fmtDay(cur.printedAt):'')+(isDirty()?' · <span class="sv-dirty">changed since</span>':''):(state.selected.length?'Not saved yet. Printing saves it for you.':'Pick questions to start a test, or open a saved one.');
@@ -3821,20 +3884,20 @@ function restoreChoice(incoming,saved){
     toast('Added '+added.length+' question'+(added.length===1?'':'s')+' from the backup.',function(){state.questions=prevQ;state.courses=prevC;state.savedTests=prevT;changed();render();});};
   $('#rsReplace').focus();
 }
-function renderIO(){
+function renderIO(){_renderIO();showPlace();}
+function _renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
-  main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
-  '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
-  yourBanksCard(bnames,bc)+
-  fieldsCard()+
-  sharedCardHtml()+teamCardHtml()+
-  '</div><div style="display:grid;gap:18px;min-width:0">'+
-  '<div class="card"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
-  '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
-  '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
-  '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
-  '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: open its <b>⋯</b> menu under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
-  '</div></div>';
+  main.innerHTML='<div class="place-cards">'+
+  '<div class="card" data-show="io:backup"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
+  '<div data-show="io:banks">'+yourBanksCard(bnames,bc)+'</div>'+
+  '<div data-show="bank:fields">'+fieldsCard()+'</div>'+
+  '<div data-show="pick:shared">'+sharedCardHtml()+'</div><div data-show="pick:team io:team">'+teamCardHtml()+'</div>'+
+  '<div class="card" data-show="io:import"><h2>ExamView banks</h2><p class="note" style="margin-top:0">Choose one or more ExamView question bank files (<b>.bnk</b>). Questions, answer choices, correct answers, points, standards, topics, math and pictures come across.</p><div class="actions"><span class="filebtn"><button class="primary">Import .bnk files…</button><input type="file" id="bnkFile" accept=".bnk" multiple></span></div><div id="bnkRes" class="result"></div></div>'+
+  '<div class="card" data-show="io:import"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
+  '<div class="card" data-show="io:import"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
+  '<div class="card wide" data-show="io:import"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
+  '<div class="card" id="coursesCard" data-show="io:courses"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: open its <b>⋯</b> menu under <b>Your banks</b>.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
+  '</div>';
   wireToolCards();wireBanksCard();
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};
   $$('[data-usein]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){
@@ -4099,7 +4162,7 @@ function wordImport(file){
     var H=res.header||{},hdrDesc=[H.running,H.title,H.topic].filter(Boolean).join(' · ');
     $('#wBar').innerHTML='<label>Source<input type="text" id="wSrc" value="'+esc(src)+'" style="width:220px"></label><label>Bank<input type="text" id="wBank" list="wBanks" value="'+esc(src)+'" style="width:200px"><datalist id="wBanks">'+uniq('bank').map(function(b){return '<option value="'+esc(b)+'">';}).join('')+'</datalist></label><label>Unit<input type="text" id="wUnit" list="wUnits" style="width:110px"><datalist id="wUnits">'+uniq('unit').map(function(b){return '<option value="'+esc(b)+'">';}).join('')+'</datalist></label><label>Section<input type="text" id="wSec" style="width:80px"></label>'+
       '<label><input type="checkbox" id="wSel"'+(state.selected.length?'':' checked')+'> Put them on the test</label>'+
-      (hdrDesc?'<label title="Sets the Classic layout on Build &amp; print"><input type="checkbox" id="wHdr" checked> Use this file’s header for my printed tests: <b style="font-weight:600">'+esc(hdrDesc)+'</b></label>':'');
+      (hdrDesc?'<label title="Sets the Classic layout on 3 Format"><input type="checkbox" id="wHdr" checked> Use this file’s header for my printed tests: <b style="font-weight:600">'+esc(hdrDesc)+'</b></label>':'');
     $('#wSrc').oninput=function(){var b=$('#wBank');if(b.value===wimp.src)b.value=this.value;wimp.src=this.value;};
     drawWCards();
   }).catch(function(e){console.error(e);var l=$('#wList');if(l)l.innerHTML='<div class="imp-status" style="color:var(--danger)">Couldn’t read this file: '+esc(e&&e.message||e)+'</div>';});
@@ -4152,7 +4215,7 @@ function wCommit(){
   state.questions=state.questions.concat(added);
   if(sel)added.forEach(function(q){if(!isSel(q.id))state.selected.push(q.id);});
   if(hdr){var H=wimp.header||{},st=state.settings;st.style='classic';if(st.instructions==='Read each question carefully.')st.instructions='';if(H.running)st.headerText=H.running;if(H.title){st.title=H.title;var mq=H.title.match(/Quarter\s*(\d+)/i),mu=H.title.match(/Unit\s*(\d+)/i);if(mq)st.quarter=mq[1];if(mu)st.unitNum=mu[1];st.docType=/quiz/i.test(H.title)?'quiz':'test';if(st.title===autoTitle())st.title='';}if(H.topic)st.topic=H.topic;st.nameLine=!!H.nameLine||st.nameLine;st.group=true;if(st.labels==='num')st.labels='lowerdot';}
-  changed();$('#modal').innerHTML='';var nAdded=added.length;wimp=null;ui.tab=sel?'build':'bank';ui.source=sel?ui.source:src;render();
+  changed();$('#modal').innerHTML='';var nAdded=added.length;wimp=null;ui.tab=sel?'arrange':'bank';ui.source=sel?ui.source:src;render();
   toast('Added '+nAdded+' question'+(nAdded>1?'s':'')+' from “'+src+'”'+(sel?' and put them on the test':'')+'.');
 }
 
@@ -4257,11 +4320,12 @@ function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.cla
 /* ================= start ================= */
 /* Short in-app help; the full guide is the wiki. */
 var HELP_HTML='<h2 id="helpT">Help</h2>'+
-  '<h3>Bring in questions</h3><p>On <b>Import &amp; backup</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
-  '<h3>Find and pick questions</h3><p>On <b>Question bank</b>, search or filter by unit, section, topic and standard (<b>More filters</b> for the rest). Tick a question to put it on the test.</p>'+
-  '<h3>Build and print</h3><p>On <b>Build &amp; print</b>, choose Test, Quiz, Review or Lesson, fill in the details and pick how many <b>Versions</b>. Check the paper in the preview, then use the print bar under it. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>The rail on the left</h3><p>Making a test is four steps: <b>1 Pick questions</b>, <b>2 Arrange</b>, <b>3 Format</b>, <b>4 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>4</kbd> jump to the steps.</p>'+
+  '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
+  '<h3>Pick questions</h3><p>In <b>1 Pick questions</b>, search or filter by unit, section, topic and standard (<b>More filters</b> for the rest). Tick a question to put it on the test.</p>'+
+  '<h3>Arrange, format and print</h3><p><b>2 Arrange</b> has the order, the <b>Versions</b> and scrambling. <b>3 Format</b> has the document type (Test, Quiz, Review, Lesson), its details, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them. <b>4 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
-  '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
+  '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
   '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+
   '<div class="dlg-actions" style="margin-top:12px"><a href="https://github.com/ltcandalino/alittlecandle-test-builder/wiki" target="_blank" rel="noopener">Full user guide</a><span class="spacer"></span><button type="button" class="small primary" popovertarget="helpPop" popovertargetaction="hide">Done</button></div>';
 /* Personal display settings (this browser only; never change the printouts). */

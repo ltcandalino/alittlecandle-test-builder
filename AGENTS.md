@@ -278,6 +278,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       motion) with review fix 4; (C) saved tests (auto-save on print, frozen copies, ask when questions
       changed, synced and in backups).
 
+- [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs DONE (not released, 0.13.0); stage 2 bank browser next.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -389,3 +390,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   it on every document type; `gapHtml` adds an empty `.pt-gap` strip after each question, which Word/LaTeX already turn into
   space (generic empty-div-with-height rule). `migrateSettings` moves the old `reviewSpace` into `spacing.review`. 1479 checks.
 - **2026-11-17**: released v0.12.0 (CI, Release, `:latest` = 0.12.0; her local site updated). Public site still waits for James.
+- **2026-11-17**: Plan 4 stage 1 (her design, ideas 1 + 3): left rail (`RAIL`, `renderTabs`, `#shell`/`#tabs.rail`, `ui.railMin`,
+  Alt+1–4) with places `ui.tab` = pick/arrange/format/print/bank/io ('build' maps to arrange) and sub-tabs `ui.subs[place]`
+  (`subsOf`, `curSub`, `go(place,sub)`). Panels carry `data-show="place:sub"`; `renderBank/IO/Build` wrap `_render*` + `showPlace()`
+  (sub-tab row, hides other panels, one column when the preview isn't shown). Build page split into cards (Document, Versions,
+  Spacing, Accommodations, Page style, Saved, Order, Part directions | preview); folds removed. Tests: `goPlace`, `gotoTab(page,
+  tab, sub)` opens the first sub-tab by default ('build' = format:doc). Help, wiki, issue forms updated. 1480 checks.

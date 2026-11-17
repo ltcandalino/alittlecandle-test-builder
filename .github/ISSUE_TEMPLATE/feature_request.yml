@@ -22,7 +22,10 @@ body:
       multiple: true
       options:
         - Question bank
-        - Build & print
+        - 1 Pick questions
+        - 2 Arrange
+        - 3 Format
+        - 4 Print
         - Import & backup
         - Manage accounts (website admin)
         - Sharing / team banks (website)

@@ -51,7 +51,11 @@ function addQuestions(page, specs) {
 const select = (page, ids) => page.evaluate(ids => { window.__tb.state.selected = ids.slice(); }, ids);
 const settings = (page, s) => page.evaluate(s => Object.assign(window.__tb.state.settings, s), s);
 const fn = (page, name, ...args) => page.evaluate(([name, args]) => window.__tb.fn[name](...args), [name, args]);
-const gotoTab = (page, tab) => page.evaluate(tab => { window.__tb.ui().tab = tab; window.__tb.render(); }, tab);
+// Plan 4: places on the rail + sub-tabs. 'build' (the old Build & print tab) opens 3 Format › Document, where the
+// document settings and the preview with its print bar both show. goPlace opens any place and sub-tab.
+const goPlace = (page, place, sub) => page.evaluate(([p, s]) => window.__tb.fn.go(p, s), [place, sub || '']);
+const FIRST_SUB = { pick: 'search', arrange: 'order', format: 'doc', print: 'preview', bank: 'all', io: 'import' };
+const gotoTab = (page, tab, sub) => tab === 'build' ? goPlace(page, 'format', sub || 'doc') : goPlace(page, tab, sub || FIRST_SUB[tab]);
 const b64 = file => fs.readFileSync(file).toString('base64');
 const privateFixtures = (ext) => {
   const dir = path.join(FIX, 'private');
@@ -124,4 +128,4 @@ function api(base) {
   };
 }
 
-module.exports = { TEST_DB, freshDatabase, ROOT, APP, FIX, OUT, launch, openApp, addQuestions, select, settings, fn, gotoTab, b64, privateFixtures, freePort, startServer, api };
+module.exports = { TEST_DB, freshDatabase, ROOT, APP, FIX, OUT, launch, openApp, addQuestions, select, settings, fn, gotoTab, goPlace, b64, privateFixtures, freePort, startServer, api };

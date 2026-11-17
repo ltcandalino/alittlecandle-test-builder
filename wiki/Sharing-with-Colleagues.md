@@ -13,7 +13,7 @@ account on your website can use it.
 
 ## Making a bank public
 
-1. Open **Import & backup**.
+1. Open **Import & backup › Your banks**.
 2. Under **Your banks**, open the bank's **⋯** menu and click **Make public**.
 3. Click again to confirm (**Confirm: everyone on this site sees it**).
 
@@ -24,7 +24,7 @@ You can also change one question: **Edit → More details → Who can see it**.
 
 ## Using a colleague's bank
 
-1. Open **Import & backup** and find **Shared with you**. It lists every public bank, who shared it, and how many
+1. Open **1 Pick questions › Shared with you**. It lists every public bank, who shared it, and how many
    questions it has.
 2. Tick the courses where you want to use it.
 
@@ -45,7 +45,7 @@ A **team bank** is a list of questions shared with a **group**, like your Geomet
 **Groups** are made by the site admin: click your email at the top right → **Manage accounts** → **Groups**. Type a
 name, click **Add group**, and tick who is in it.
 
-**Make a team bank** (Import & backup → **Team banks**):
+**Make a team bank** (Import & backup → **Team banks**, or **1 Pick questions → Team banks**):
 
 1. Type a name and click **Make team bank**.
 2. Open **Your banks in it…** and tick every bank of yours to put in (from any course). Untick a bank to take it out
@@ -57,7 +57,7 @@ Your questions stay yours: they keep their bank, unit and courses in your questi
 team banks. The question bank shows a purple tag with the team bank's name, and the **Bank** filter (More filters) lists
 team banks too.
 
-**Using a team bank someone shared with you:** it appears under **Team banks** on Import & backup. Tick the courses where
+**Using a team bank someone shared with you:** it appears under **1 Pick questions → Team banks** (and Import & backup → Team banks). Tick the courses where
 you want to use it. If you're an editor, the questions have an **Edit** button; your fix reaches everyone, including the
 owner (their copy shows who changed it). Otherwise use **Copy to mine** to make your own version.
 

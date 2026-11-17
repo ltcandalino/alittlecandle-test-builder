@@ -1,6 +1,6 @@
 # Building Documents
 
-On **Build & print**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold on the first page.
+On **3 Format › Document**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold on the first page.
 
 Every document type (and its answer key) has **½-inch margins** on all four sides, when printed and in Word and LaTeX
 downloads. The header sits about ¼ inch from the top edge and the questions start just under it.
@@ -48,7 +48,7 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 **Students need:** tick **Compass**, **Ruler** and/or **Tracing paper** to show those pictures in the top-left corner of the first page.
 
-**Question roles:** in the list on the right, set each question to **Warm Up**, **Example** or **Practice**. Examples print as *Example 1, Example 2…* with the concept name you type under each one. Practice questions are numbered.
+**Question roles:** in **2 Arrange › Order**, set each question to **Warm Up**, **Example** or **Practice**. Examples print as *Example 1, Example 2…* with the concept name you type under each one. Practice questions are numbered.
 
 **Order on the page:** Warm Up! → Notes → Essential Concept → Examples → Success Criteria → Practice.
 
@@ -56,7 +56,7 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 ## Saved tests
 
-The **Saved tests** box at the top of **Build & print** keeps every test you make, per course.
+**4 Print › Saved tests** keeps every test you make, per course.
 
 - **Printing saves the test for you**, named from its title (like "Quarter 1 – Unit 3 Exam") with the date you printed it. **Save test** / **Save changes** saves without printing, and **Save as new** keeps the old one and starts a new one.
 - **All saved tests** lists them, newest first. **Open** one to look at it, change it or reprint it. **Rename**, **Duplicate** (handy for next year's version) and **Delete** (with Undo) are next to it. With more than five, a search box finds them by name.
@@ -69,7 +69,7 @@ Saved tests are in your backups, and on the website version they're on every com
 
 ### Spacing
 
-Open **Spacing** in the Document box. Each document type (Test, Quiz, Review, Lesson) keeps its own spacing, so a Review
+Open **3 Format › Spacing**. Each document type (Test, Quiz, Review, Lesson) keeps its own spacing, so a Review
 can have lots of work space while a Quiz stays compact.
 
 - **Open response**, **Short answer**, **Bimodal**: the room to answer under every question of that type. Pick blank space
@@ -80,7 +80,8 @@ can have lots of work space while a Quiz stays compact.
 Multiple choice and True/False questions have no answer room; the space after each question still applies to them.
 The spacing is the same when you print and in Word and LaTeX downloads.
 
-The settings you rarely change are folded under **Page style** at the bottom of the Document box. Click it to open it; it stays open or closed the way you left it.
+**3 Format** shows one panel at a time: **Document**, **Spacing**, **Accommodations** and **Page style** (font, size, answer labels,
+layout), with the preview beside it. **Versions** and scrambling are under **2 Arrange › Versions**.
 
 - **Font** and **Size** (Century Schoolbook 12 pt by default)
 - **Answer choice labels**: a. b. c. d., A. B. C. D., a) b) c) d), or (1) (2) (3) (4) Regents style

@@ -17,7 +17,7 @@ instead (see `SECURITY.md`).
 ## Try it
 
 Open **`ALittleCandleTestBuilder.html`** in Chrome or Edge. No setup needed.
-Your questions are saved in that browser on that computer. Use **Import & backup → Download backup**
+Your questions are saved in that browser on that computer. Use **Import & backup → Backup → Download backup**
 to keep a copy or move to another computer.
 
 ## What it does
