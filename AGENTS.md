@@ -220,8 +220,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.11.0 released 2026-11-16** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
-  Her local compose file still points at `:edge` (from trying step 2); switch it back to `:latest` when she says so.
+- **v0.11.1 released 2026-11-17** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Her local site runs it.
+  Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
   Before it, **v0.10.0** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
@@ -383,3 +383,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   (`data-bf`, saving none ticked = all), `#bankFind`, first `BANKS_SHOWN` (10) + **Show all** (`ui.allBanks`), row ⋯ menu
   `details.bmenu` (`ui.bOpen` keeps it open after a re-render) with Also use in / Make public / Rename / Delete. The Bank files card
   and `bankCoursesHtml` are gone. 1476 checks.
+- **2026-11-17**: released v0.11.1 (CI, Release, `:latest` = 0.11.1; her local site updated). Public site waits for James.
