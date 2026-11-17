@@ -305,7 +305,7 @@ Approved 2026-11-17 (her choices: ideas 1 + 3 from the mock-ups; one left rail; 
 
 1. The rail and sub-tabs everywhere (MINOR 0.13.0). **Done 2026-11-17.** Question bank's sub-tabs are All questions and Your fields (Needs
    attention stays a filter and the Check & clean up dialog, which already do that job).
-2. The bank browser in 1 Pick questions (MINOR 0.14.0).
+2. The bank browser in 1 Pick questions (MINOR 0.14.0). **Done 2026-11-17.**
 
 ## Open decisions (defaults unless you say otherwise)
 

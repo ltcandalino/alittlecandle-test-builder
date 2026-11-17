@@ -278,7 +278,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       motion) with review fix 4; (C) saved tests (auto-save on print, frozen copies, ask when questions
       changed, synced and in backups).
 
-- [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs DONE, released v0.13.0; stage 2 bank browser next.
+- [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser DONE (not released, 0.14.0).
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -397,3 +397,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   Spacing, Accommodations, Page style, Saved, Order, Part directions | preview); folds removed. Tests: `goPlace`, `gotoTab(page,
   tab, sub)` opens the first sub-tab by default ('build' = format:doc). Help, wiki, issue forms updated. 1480 checks.
 - **2026-11-17**: released v0.13.0 (CI, Release, `:latest` = 0.13.0; her local site updated). Public site still waits for James.
+- **2026-11-17**: Plan 4 stage 2: **Browse banks** (first sub-tab of 1 Pick questions): `renderBrowse`/`_renderBrowse`, `browseBanks()`
+  (banks by name + team banks as 'team:<id>'), `ui.brBank/brUnit/brSec` ('__none' = no unit/section, brSec '' = whole unit); at the
+  question level it reuses `drawList` (`browsing()` makes `filtered()` use the bank/unit/section instead of the Search filters).
+  Add N at random with Undo; banks without units skip the tree (`flat`). `.shell>main{width:100%}` (grid item shrank). 1481 checks.

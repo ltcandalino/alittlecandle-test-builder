@@ -342,6 +342,35 @@ describe('saving and backups', () => {
   });
 });
 
+describe('Browse banks (1 Pick questions)', () => {
+  test('bank cards → units and sections → questions; Add, Add at random with Undo, and the path back', async () => {
+    const qs = [];
+    for (const [u, sct] of [['2', '1'], ['2', '2'], ['3', '1']]) for (let k = 0; k < 3; k++) qs.push({ html: `U${u} S${sct} #${k}`, bank: 'Regents', unit: u, section: sct });
+    qs.push({ html: 'Plain one', bank: 'Warm ups', unit: '', section: '' });
+    await addQuestions(page, qs);
+    await goPlace(page, 'pick', 'browse');
+    assert.deepEqual(await page.$$eval('[data-brbank]', e => e.map(x => x.dataset.brbank)), ['Regents', 'Warm ups']);
+    await page.click('[data-brbank="Regents"]');
+    assert.equal(await page.$$eval('.br-u', e => e.length), 2, 'Unit 2 and Unit 3');
+    await page.click('[data-brunit="2"][data-brsec="2"]');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 3, 'only Unit 2 · Section 2');
+    assert.match(await page.textContent('.crumbs'), /All banks.*Regents.*Unit 2 · Section 2/);
+    await page.check('#qlist [data-pick]');
+    assert.equal(await page.evaluate(() => window.__tb.state.selected.length), 1);
+    await page.fill('#brN', '5'); await page.click('#brRand');
+    assert.equal(await page.evaluate(() => window.__tb.state.selected.length), 3, 'only the 2 left in the section are added');
+    await page.click('#toast button');
+    assert.equal(await page.evaluate(() => window.__tb.state.selected.length), 1, 'Undo takes the random ones off');
+    await page.click('[data-crumb="1"]');
+    assert.match(await page.textContent('.br-tree'), /1 on the test/);
+    await page.click('[data-crumb="0"]');
+    await page.click('[data-brbank="Warm ups"]');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 1, 'a bank without units opens straight to its questions');
+    // the Search filters are not touched by browsing
+    assert.equal(await page.evaluate(() => window.__tb.ui().unit), '');
+  });
+});
+
 describe('Your banks list', () => {
   test('long lists show 10 banks, Show all, find a bank, and save counts the ticked banks', async () => {
     await addQuestions(page, Array.from({ length: 15 }, (_, i) => ({ html: 'Q' + i, bank: 'Bank ' + String(i + 1).padStart(2, '0') })));

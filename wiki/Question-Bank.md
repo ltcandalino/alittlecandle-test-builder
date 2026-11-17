@@ -2,6 +2,17 @@
 
 **Question bank** (on the rail) lists every question in the current course; **1 Pick questions › Search** shows the same list for picking.
 
+## Browse banks
+
+**1 Pick questions › Browse banks** opens with one card per bank (your banks, banks colleagues shared, and team banks).
+
+1. Click a bank to see its **units** and **sections**, with how many questions each has and how many are already on the test.
+2. Click a unit (all of it) or a section. Its questions show with the usual tick box, **Edit** and **Copy**.
+3. Tick questions to put them on the test, or use **Add 5 at random** for that section (**Undo** takes them off again).
+4. The path at the top (**All banks › NY Regents Geometry › Unit 3 · Section 2**) goes back. **Arrange them** jumps to **2 Arrange**.
+
+A bank without units or sections opens straight to its questions. Browsing never changes your **Search** filters.
+
 ## Finding questions
 
 Search by words, or filter by **unit**, **section**, **topic** and **standard**. Click **More filters** for needs attention, bank, type, year, month, cluster, subtopic, source and your own fields; the button shows how many of those are in use.

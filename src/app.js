@@ -551,7 +551,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,placeOf:placeOf,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -622,7 +622,7 @@ var RAIL=[['pick','1','Pick questions','M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18
 var BUILD_PLACES={arrange:1,format:1,print:1};
 function placeOf(){var t=ui.tab==='build'?'arrange':ui.tab;return RAIL.some(function(r){return r&&r[0]===t;})?t:'bank';}
 function subsOf(p){var sh=sharing(),L={
-  pick:[['search','Search'],sh&&['team','Team banks'],sh&&['shared','Shared with you']],
+  pick:[['browse','Browse banks'],['search','Search'],sh&&['team','Team banks'],sh&&['shared','Shared with you']],
   arrange:[['order','Order'],['versions','Versions'],isExamDoc()&&state.settings.group&&['parts','Part directions']],
   format:[['doc','Document'],['spacing','Spacing'],['acc','Accommodations'],['page','Page style']],
   print:[['preview','Preview'],['saved','Saved tests']],
@@ -655,7 +655,7 @@ function showPlace(){
   main.dataset.place=p;
 }
 function render(){ui.tab=placeOf();renderTabs();var p=ui.tab,sb=curSub(p);
-  if(BUILD_PLACES[p])renderBuild();else if(p==='io'||(p==='pick'&&sb!=='search')||(p==='bank'&&sb==='fields'))renderIO();else renderBank();}
+  if(BUILD_PLACES[p])renderBuild();else if(p==='pick'&&sb==='browse')renderBrowse();else if(p==='io'||(p==='pick'&&sb!=='search')||(p==='bank'&&sb==='fields'))renderIO();else renderBank();}
 document.addEventListener('keydown',function(e){if(!e.altKey||e.ctrlKey||e.metaKey)return;var m=/^Digit([1-4])$/.exec(e.code||'');if(!m)return;e.preventDefault();go(RAIL[+m[1]-1][0]);});
 
 /* ================= bank tab ================= */
@@ -713,7 +713,8 @@ function matches(q,f){
   if(f.q){var hay=(plainQ(q).all+' '+q.topic+' '+q.standard+' '+(q.ref||'')+' '+(q.subtopic||'')+' '+(q.unit||'')+' '+(q.section||'')+' '+(q.notes||'')+' '+(q.cluster||'')+' '+examLabel(q)+' '+(q.source||'')+' '+(q.nyStd||'')+' '+Object.keys(q.extra||{}).map(function(k){return q.extra[k];}).join(' ')+' '+(q.searchText||'')).toLowerCase();var words=f.q.toLowerCase().split(/\s+/).filter(Boolean);for(var i=0;i<words.length;i++)if(hay.indexOf(words[i])<0)return false;}
   return true;
 }
-function filtered(){return cq().filter(function(q){return matches(q,ui);});}
+function browsing(){return placeOf()==='pick'&&curSub('pick')==='browse'&&!!ui.brBank&&!!ui.brUnit;}
+function filtered(){var f=browsing()?{bank:ui.brBank,unit:ui.brUnit,section:ui.brSec||''}:ui;return cq().filter(function(q){return matches(q,f);});}
 function qCard(q){
   var body='<div class="qbody">'+q.html+'</div>';
   if(q.inImage)body+='<div class="keyline">Choices are in the picture · Answer: <b>'+(q.answer>=0?esc(plain(q.choices[q.answer])):'not set')+'</b></div>';
@@ -725,6 +726,53 @@ function qCard(q){
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
 function renderBank(){_renderBank();showPlace();}
+/* Plan 4 stage 2: Browse banks. Bank cards → the bank's units and sections → that section's questions (the usual list,
+   with + Add). ui.brBank ('team:<id>' for a team bank), ui.brUnit ('__none' = no unit), ui.brSec ('' = all of the unit). */
+function renderBrowse(){_renderBrowse();showPlace();}
+function unitName(u){return u==='__none'?'No unit':/^\d/.test(u)?'Unit '+u:u;}
+function secName(x){return x==='__none'?'No section':/^\d/.test(x)?'Section '+x:x;}
+function natSort(a){return a.sort(function(x,y){return x==='__none'?1:y==='__none'?-1:String(x).localeCompare(String(y),undefined,{numeric:true});});}
+function browseBanks(){
+  var by={};cq().forEach(function(q){var b=q.bank||'My questions';(by[b]=by[b]||[]).push(q);});
+  var out=natSort(Object.keys(by)).map(function(b){return {key:b,name:b,qs:by[b],who:by[b].every(function(q){return q.owner;})?(by[b][0].ownerName||'a colleague'):''};});
+  if(sharing())teams().forEach(function(t){var qs=teamQs(t).filter(function(q){return inCourse(q,state.course);});if(qs.length)out.push({key:'team:'+t.id,name:t.name,qs:qs,team:true});});
+  return out;
+}
+function _renderBrowse(){
+  var main=$('#main');if(!cq().length)return _renderBank();
+  var all=browseBanks(),bk=all.filter(function(b){return b.key===ui.brBank;})[0];
+  if(ui.brBank&&!bk){ui.brBank='';ui.brUnit='';ui.brSec='';}
+  var units={};if(bk)bk.qs.forEach(function(q){var u=q.unit||'__none',x=q.section||'__none';units[u]=units[u]||{};(units[u][x]=units[u][x]||[]).push(q);});
+  var flat=bk&&Object.keys(units).join()==='__none'&&Object.keys(units.__none).join()==='__none'; // no units or sections: straight to the questions
+  if(flat){ui.brUnit='__none';ui.brSec='';}
+  var onN=state.selected.length,onLine='<span class="br-on"><b>'+onN+'</b> on this '+esc(DOC_TYPES[docType()].toLowerCase())+(onN?' · <button class="linkbtn" id="brArr">Arrange them</button>':'')+'</span>';
+  var crumbs=function(parts){return '<nav class="crumbs" aria-label="Where you are">'+parts.map(function(x,i){return i<parts.length-1?'<button class="linkbtn" data-crumb="'+i+'">'+esc(x)+'</button><span aria-hidden="true">›</span>':'<b>'+esc(x)+'</b>';}).join('')+'</nav>';};
+  var inSel=function(qs){return qs.filter(function(q){return isSel(q.id);}).length;};
+  if(!bk){
+    main.innerHTML='<div class="br-top">'+crumbs(['All banks'])+'<span class="spacer"></span>'+onLine+'</div><div class="br-cards">'+all.map(function(b){var n=inSel(b.qs);
+      return '<button class="br-card'+(b.team?' team':'')+'" data-brbank="'+esc(b.key)+'"><span class="br-kind">'+(b.team?'Team bank':b.who?'Shared by '+esc(b.who):'Your bank')+'</span><b>'+esc(b.name)+'</b><span>'+plural(b.qs.length,'question')+(n?' · <em>'+n+' on the test</em>':'')+'</span></button>';}).join('')+'</div>';
+  }else if(!ui.brUnit&&!flat){
+    main.innerHTML='<div class="br-top">'+crumbs(['All banks',bk.name])+'<span class="spacer"></span>'+onLine+'</div><div class="card br-tree">'+natSort(Object.keys(units)).map(function(u){
+      var secs=natSort(Object.keys(units[u])),uq=[].concat.apply([],secs.map(function(x){return units[u][x];})),n=inSel(uq);
+      return '<div class="br-unit"><button class="br-u" data-brunit="'+esc(u)+'" data-brsec=""><b>'+esc(unitName(u))+'</b><span class="hint">'+plural(uq.length,'question')+(n?' · '+n+' on the test':'')+'</span></button>'+
+        (secs.length>1||secs[0]!=='__none'?'<div class="br-secs">'+secs.map(function(x){var m=inSel(units[u][x]);return '<button class="br-s" data-brunit="'+esc(u)+'" data-brsec="'+esc(x)+'">'+esc(secName(x))+' <span class="hint">'+units[u][x].length+(m?' · '+m+' on':'')+'</span></button>';}).join('')+'</div>':'')+'</div>';}).join('')+'</div>';
+  }else{
+    var where=[unitName(ui.brUnit)].concat(ui.brSec?[secName(ui.brSec)]:[]).join(' · ');
+    main.innerHTML='<div class="br-top">'+crumbs(flat?['All banks',bk.name]:['All banks',bk.name,where])+'<span class="spacer"></span>'+onLine+'</div>'+
+      '<div class="pickrow br-rand"><span>Add</span><input type="number" id="brN" min="1" max="200" value="'+esc(ui.pickN)+'" aria-label="How many"><span>at random from '+esc(flat?'this bank':ui.brSec?'this section':'this unit')+'</span><button class="small" id="brRand">Add</button></div>'+
+      '<div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+    $('#brN').onchange=function(){ui.pickN=Math.max(1,parseInt(this.value,10)||1);saveUi();};
+    $('#brRand').onclick=function(){var pool=filtered().filter(function(q){return !isSel(q.id);});ui.pickN=Math.max(1,parseInt($('#brN').value,10)||1);saveUi();
+      if(!pool.length){toast('Every question here is already on the test.');return;}
+      var take=shuffle(pool,Math.random).slice(0,ui.pickN);take.forEach(function(q){state.selected.push(q.id);});changed();renderTabs();renderBrowse();
+      toast('Added '+plural(take.length,'question')+(take.length<ui.pickN?' (that’s all that were left)':'')+'.',function(){var ids={};take.forEach(function(q){ids[q.id]=1;});state.selected=state.selected.filter(function(id){return !ids[id];});changed();render();});};
+    drawList();
+  }
+  $$('[data-brbank]',main).forEach(function(b){b.onclick=function(){ui.brBank=b.dataset.brbank;ui.brUnit='';ui.brSec='';saveUi();renderBrowse();window.scrollTo(0,0);};});
+  $$('[data-brunit]',main).forEach(function(b){b.onclick=function(){ui.brUnit=b.dataset.brunit;ui.brSec=b.dataset.brsec;ui.limit=40;saveUi();renderBrowse();window.scrollTo(0,0);};});
+  $$('[data-crumb]',main).forEach(function(b){b.onclick=function(){var i=+b.dataset.crumb;if(i===0)ui.brBank='';ui.brUnit='';ui.brSec='';saveUi();renderBrowse();};});
+  var ar=$('#brArr');if(ar)ar.onclick=function(){go('arrange','order');};
+}
 function _renderBank(){
   var main=$('#main');
   if(!cq().length){
@@ -754,7 +802,7 @@ function drawList(){
     $$('[data-unf]',ch).forEach(function(b){b.onclick=function(){ui[b.dataset.unf]='';ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};});
     if($('#clearF'))$('#clearF').onclick=function(){activeFilters().forEach(function(k){ui[k]='';});ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};
     var mb=$('#moreF'),mc=moreCount();if(mb)mb.innerHTML='More filters'+(mc?' <span class="count">'+mc+'</span>':'');}
-  $('#subbar').innerHTML='<span>Showing '+list.length+' of '+cq().length+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
+  $('#subbar').innerHTML='<span>Showing '+list.length+(browsing()?'':' of '+cq().length)+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span><span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span><button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
   $('#fsort').onchange=function(){ui.sort=this.value;ui.limit=40;saveUi();drawList();};
   var su=$('#setUnit');if(su)su.onclick=function(){bulkBox(list);};
   var as=$('#addShown');if(as)as.onclick=function(){
@@ -1939,7 +1987,7 @@ function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.cla
 var HELP_HTML='<h2 id="helpT">Help</h2>'+
   '<h3>The rail on the left</h3><p>Making a test is four steps: <b>1 Pick questions</b>, <b>2 Arrange</b>, <b>3 Format</b>, <b>4 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>4</kbd> jump to the steps.</p>'+
   '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
-  '<h3>Pick questions</h3><p>In <b>1 Pick questions</b>, search or filter by unit, section, topic and standard (<b>More filters</b> for the rest). Tick a question to put it on the test.</p>'+
+  '<h3>Pick questions</h3><p>In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and tick questions (or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
   '<h3>Arrange, format and print</h3><p><b>2 Arrange</b> has the order, the <b>Versions</b> and scrambling. <b>3 Format</b> has the document type (Test, Quiz, Review, Lesson), its details, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them. <b>4 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
   '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
