@@ -412,3 +412,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `data-rc="place:sub"` → `go`), warnings = `printCheck()` + backup (`downloadBackup()` now shared with Import & backup), receipt
   `.rc-done` when the saved test was printed in the last 12 h and isn't dirty (`whenPrinted`); `drawPrintBar` calls `drawRecap`;
   empty test → **Go to 1 Pick questions**; on Print the print-bar warning and the empty-preview button are hidden (recap says it).
+  CI flake in the team-banks sync test was a real race: `saveTeam` re-rendered from stale `state.teamBanks` when `CLOUD.sync()` only
+  queued (busy); now it applies the saved bank locally before syncing.

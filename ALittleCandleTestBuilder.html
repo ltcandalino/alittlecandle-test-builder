@@ -2504,7 +2504,10 @@ function canAddTo(b){return b.role===2||b.manage;}
 function teamQs(b){var k={};(b.items||[]).forEach(function(it){k[it.o+'|'+it.id]=1;});return state.questions.filter(function(q){return k[qKey(q)];});}
 function saveTeam(b,msg){
   var body={name:b.name,groups:b.groups||[],editors:b.editors||[],items:b.items||[]};
-  return CLOUD.request('PUT','/team/v1/banks/'+encodeURIComponent(b.id),body).then(function(){if(msg)toast(msg);return CLOUD.sync();}).then(function(){render();},function(e){toast(e.message||'Couldn’t save the team bank.');});
+  return CLOUD.request('PUT','/team/v1/banks/'+encodeURIComponent(b.id),body).then(function(){if(msg)toast(msg);
+    // show the change now: if a sync is already running, CLOUD.sync() only queues another one, and the card would redraw from the old copy
+    var have=false;state.teamBanks=teams().map(function(t){if(t.id!==b.id)return t;have=true;return Object.assign({},t,body);});if(!have)state.teamBanks.push(Object.assign({id:b.id,owner:myId(),manage:true,role:2},body));render();
+    return CLOUD.sync();}).then(function(){render();},function(e){toast(e.message||'Couldn’t save the team bank.');});
 }
 function cq(){return state.questions.filter(function(q){return inCourse(q,state.course);});}
 function calcLabel(){var s=state.settings;return s.calc==='other'?String(s.calcOther||'').trim():s.calc;}

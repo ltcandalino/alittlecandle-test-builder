@@ -12,6 +12,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Settings that belong together sit together:** Part directions are under Page style with Group into parts; Time accommodation is under Accommodations; both bimodal choices are under Spacing.
 - **Next** at the bottom of each panel moves you through Set up and on to Print. **Alt+1** to **Alt+3** jump to the steps, and no longer jump while you're typing in a box.
 
+### Fixed
+- A change to a team bank (groups, editors, banks in it) now shows right away, even when a sync was already running.
+
 ## [0.14.0] - 2026-11-16
 
 ### Added
