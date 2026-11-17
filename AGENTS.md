@@ -220,8 +220,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.14.0 released 2026-11-17** (Plan 4 stage 2: Browse banks). Her local site runs it. Plan 4 complete.
-  Before it, **v0.13.0** (left rail, sub-tabs). Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
+- **v0.15.0 released 2026-11-17** (design review 2026-11-17 steps 1–4: three steps, Print recap, picking only picks, polish). Her local site runs it.
+  Before it, **v0.14.0** (Plan 4 stage 2: Browse banks). Before it, **v0.13.0** (left rail, sub-tabs). Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
   Before it, **v0.10.0** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
@@ -420,3 +420,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `.rdot` (no recent backup, `backupStale`) shown when folded; bank cards lose the stripe/eyebrow (tags for shared/team); section counts
   spelled out; red Delete for courses/banks/team banks/fields/groups; `.pv-h` keeps Show answers out of the h2; every `.filebtn` button is
   `tabindex=-1 aria-hidden` and its file input carries the name (was a dead tab stop). All four review steps done; re-run critique next.
+- **2026-11-17**: released v0.15.0 (CI, Release, `:latest` = 0.15.0; her local site updated). Public site still waits for James.
