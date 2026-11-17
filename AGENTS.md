@@ -220,8 +220,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.12.0 released 2026-11-17** (Spacing per document type and question type). Her local site runs it.
-  Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
+- **v0.13.0 released 2026-11-17** (Plan 4 stage 1: left rail, sub-tabs). Her local site runs it.
+  Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
   Before it, **v0.10.0** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
@@ -278,7 +278,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       motion) with review fix 4; (C) saved tests (auto-save on print, frozen copies, ask when questions
       changed, synced and in backups).
 
-- [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs DONE (not released, 0.13.0); stage 2 bank browser next.
+- [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs DONE, released v0.13.0; stage 2 bank browser next.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -396,3 +396,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   (sub-tab row, hides other panels, one column when the preview isn't shown). Build page split into cards (Document, Versions,
   Spacing, Accommodations, Page style, Saved, Order, Part directions | preview); folds removed. Tests: `goPlace`, `gotoTab(page,
   tab, sub)` opens the first sub-tab by default ('build' = format:doc). Help, wiki, issue forms updated. 1480 checks.
+- **2026-11-17**: released v0.13.0 (CI, Release, `:latest` = 0.13.0; her local site updated). Public site still waits for James.
