@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T11:19:21+00:00",
+  "title": "Design System: ALittleCandleTestBuilder",
+  "extensions": {
+    "colorMeta": {
+      "candle-purple": {
+        "role": "primary",
+        "displayName": "Candle Purple",
+        "canonical": "#7851a9",
+        "tonalRamp": [
+          "#251e2e",
+          "#3e304f",
+          "#563f73",
+          "#6e4d99",
+          "#9579b9",
+          "#bdb0cf",
+          "#e0dbe6",
+          "#f2f0f4"
+        ]
+      },
+      "candle-purple-deep": {
+        "role": "primary",
+        "displayName": "Candle Purple Deep",
+        "canonical": "#623f8e",
+        "tonalRamp": [
+          "#251e2f",
+          "#3e2f51",
+          "#563d75",
+          "#6e499c",
+          "#9576bc",
+          "#bdaed0",
+          "#e0dae7",
+          "#f2f0f5"
+        ]
+      },
+      "candle-purple-soft": {
+        "role": "primary",
+        "displayName": "Candle Purple Soft",
+        "canonical": "#efe8f6",
+        "tonalRamp": [
+          "#261d30",
+          "#402c53",
+          "#593979",
+          "#7344a2",
+          "#9972c0",
+          "#bfacd3",
+          "#e0d9e8",
+          "#f2f0f5"
+        ]
+      },
+      "desk-cream": {
+        "role": "neutral",
+        "displayName": "Desk Cream",
+        "canonical": "#f6f4ef",
+        "tonalRamp": [
+          "#2c2920",
+          "#4c4533",
+          "#6e6245",
+          "#918055",
+          "#b2a480",
+          "#ccc5b3",
+          "#e5e2dc",
+          "#f4f3f1"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#999999",
+          "#bfbfbf",
+          "#e0e0e0",
+          "#f2f2f2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1d2125",
+        "tonalRamp": [
+          "#242629",
+          "#3a4045",
+          "#505962",
+          "#667380",
+          "#8e99a4",
+          "#babfc5",
+          "#dee0e2",
+          "#f2f2f3"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#4a5058",
+        "tonalRamp": [
+          "#242628",
+          "#3c3f44",
+          "#535860",
+          "#69717c",
+          "#9198a1",
+          "#bbbfc3",
+          "#dfe0e2",
+          "#f2f2f3"
+        ]
+      },
+      "pencil-gray": {
+        "role": "neutral",
+        "displayName": "Pencil Gray",
+        "canonical": "#5f656c",
+        "tonalRamp": [
+          "#252628",
+          "#3d4043",
+          "#55595e",
+          "#6c727a",
+          "#93999f",
+          "#bcbfc2",
+          "#dfe0e1",
+          "#f2f2f3"
+        ]
+      },
+      "rule-line": {
+        "role": "neutral",
+        "displayName": "Rule Line",
+        "canonical": "#e3e0d8",
+        "tonalRamp": [
+          "#2a2823",
+          "#474338",
+          "#655f4d",
+          "#847b61",
+          "#a8a08a",
+          "#c7c3b8",
+          "#e3e2de",
+          "#f3f3f1"
+        ]
+      },
+      "rule-line-strong": {
+        "role": "neutral",
+        "displayName": "Rule Line Strong",
+        "canonical": "#d3cfc4",
+        "tonalRamp": [
+          "#292823",
+          "#464339",
+          "#645e4f",
+          "#827a63",
+          "#a69f8c",
+          "#c6c2b9",
+          "#e3e2de",
+          "#f3f3f1"
+        ]
+      },
+      "danger-red": {
+        "role": "semantic",
+        "displayName": "Danger Red",
+        "canonical": "#b3261e",
+        "tonalRamp": [
+          "#361816",
+          "#602320",
+          "#8d2b25",
+          "#c02e26",
+          "#d96059",
+          "#dfa39f",
+          "#ecd6d5",
+          "#f6efee"
+        ]
+      },
+      "danger-soft": {
+        "role": "semantic",
+        "displayName": "Danger Soft",
+        "canonical": "#fbe9e7",
+        "tonalRamp": [
+          "#361a16",
+          "#602620",
+          "#8e2f25",
+          "#c03526",
+          "#d96659",
+          "#dfa69f",
+          "#ecd7d5",
+          "#f6efee"
+        ]
+      },
+      "caution-amber": {
+        "role": "semantic",
+        "displayName": "Caution Amber",
+        "canonical": "#d08a12",
+        "tonalRamp": [
+          "#392b14",
+          "#654a1a",
+          "#97691c",
+          "#cd8b18",
+          "#e4ad4e",
+          "#e5c99a",
+          "#eee4d2",
+          "#f7f4ed"
+        ]
+      },
+      "caution-soft": {
+        "role": "semantic",
+        "displayName": "Caution Soft",
+        "canonical": "#fff4dc",
+        "tonalRamp": [
+          "#3c2e10",
+          "#6c5013",
+          "#a27410",
+          "#df9b07",
+          "#f3ba3f",
+          "#ecd093",
+          "#f1e7d0",
+          "#f8f4ec"
+        ]
+      },
+      "type-mc-blue": {
+        "role": "semantic",
+        "displayName": "Multiple choice blue",
+        "canonical": "#2f5d9e",
+        "tonalRamp": [
+          "#1a2432",
+          "#283c58",
+          "#325281",
+          "#3869ad",
+          "#6891ca",
+          "#a7bbd7",
+          "#d7dfe9",
+          "#eff2f5"
+        ]
+      },
+      "type-tf-plum": {
+        "role": "semantic",
+        "displayName": "True/false plum",
+        "canonical": "#9b3b77",
+        "tonalRamp": [
+          "#301c29",
+          "#542c45",
+          "#7a3861",
+          "#a3427f",
+          "#c171a3",
+          "#d3abc4",
+          "#e8d9e2",
+          "#f5f0f3"
+        ]
+      },
+      "type-sa-brown": {
+        "role": "semantic",
+        "displayName": "Short answer brown",
+        "canonical": "#8a5214",
+        "tonalRamp": [
+          "#372716",
+          "#61411e",
+          "#905c23",
+          "#c37722",
+          "#dc9c56",
+          "#e1c19e",
+          "#ede1d4",
+          "#f7f2ee"
+        ]
+      },
+      "type-es-violet": {
+        "role": "semantic",
+        "displayName": "Extended response violet",
+        "canonical": "#4e2f78",
+        "tonalRamp": [
+          "#251d30",
+          "#3d2c53",
+          "#543979",
+          "#6c44a2",
+          "#9372c0",
+          "#bcacd3",
+          "#dfd9e8",
+          "#f2f0f5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "brand": {
+        "displayName": "Brand",
+        "purpose": "App name in the header."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Card and dialog titles (paper voice)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All UI text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field names above inputs."
+      },
+      "overline": {
+        "displayName": "Overline",
+        "purpose": "Small uppercase section heads inside cards."
+      }
+    },
+    "shadows": [
+      {
+        "name": "paper",
+        "value": "0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04)",
+        "purpose": "Cards and the active rail item."
+      },
+      {
+        "name": "sticky-edge",
+        "value": "0 -6px 12px -8px rgba(0,0,0,.12)",
+        "purpose": "Print bar pinned to the preview's bottom."
+      },
+      {
+        "name": "floating",
+        "value": "0 20px 50px rgba(0,0,0,.25)",
+        "purpose": "Dialogs."
+      },
+      {
+        "name": "focus",
+        "value": "0 0 0 3px rgba(120,81,169,.18)",
+        "purpose": "Focused fields."
+      }
+    ],
+    "motion": [
+      {
+        "name": "toast",
+        "value": "all .2s",
+        "purpose": "Toast slides up and fades in; reduced-motion and Calm display turn motion off."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "640px"
+      },
+      {
+        "name": "rail-top",
+        "value": "760px"
+      },
+      {
+        "name": "preview-below",
+        "value": "1000px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Everyday actions.",
+      "html": "<button class=\"ds-btn\">Download backup</button>",
+      "css": ".ds-btn{font:500 14px system-ui,sans-serif;background:#fff;color:#1d2125;border:1px solid #d3cfc4;border-radius:8px;padding:7px 12px;cursor:pointer}.ds-btn:hover{background:#f3f1ec}.ds-btn:focus-visible{outline:2px solid #7851a9;outline-offset:2px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main next step per view.",
+      "html": "<button class=\"ds-btn-primary\">Print tests + answer keys</button>",
+      "css": ".ds-btn-primary{font:500 14px system-ui,sans-serif;background:#7851a9;color:#fff;border:1px solid #7851a9;border-radius:8px;padding:7px 12px;cursor:pointer}.ds-btn-primary:hover{background:#623f8e}.ds-btn-primary:focus-visible{outline:2px solid #7851a9;outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Every Delete; asks for a second Confirm click.",
+      "html": "<button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger{font:500 12.5px system-ui,sans-serif;background:#fbe9e7;color:#b3261e;border:1px solid #f0c4bf;border-radius:8px;padding:4px 9px;cursor:pointer}.ds-btn-danger:focus-visible{outline:2px solid #7851a9;outline-offset:2px}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above, hint below.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-lbl\">Unit title</span><input class=\"ds-input\" placeholder=\"e.g. Parallel &amp; Perpendicular Lines\"><span class=\"ds-hint\">Right side, in italics.</span></label>",
+      "css": ".ds-field{display:grid;gap:4px;font:14px system-ui,sans-serif;color:#1d2125;max-width:320px}.ds-lbl{font-size:12px;font-weight:600;color:#4a5058}.ds-hint{font-size:12px;color:#5f656c}.ds-input{font:inherit;border:1px solid #d3cfc4;border-radius:8px;padding:7px 10px;background:#fff;outline:none}.ds-input:focus{border-color:#7851a9;box-shadow:0 0 0 3px rgba(120,81,169,.18)}"
+    },
+    {
+      "name": "Sub-tabs",
+      "kind": "nav",
+      "refersTo": "subtab",
+      "description": "One panel at a time within a place.",
+      "html": "<div class=\"ds-tabs\"><button>Questions</button><button class=\"on\">Document</button><button>Versions</button></div>",
+      "css": ".ds-tabs{display:flex;gap:6px;font:13.5px system-ui,sans-serif}.ds-tabs button{font:inherit;border:1px solid #d3cfc4;background:#fff;color:#4a5058;padding:6px 14px;border-radius:999px;cursor:pointer}.ds-tabs button.on{background:#7851a9;border-color:#7851a9;color:#fff;font-weight:600}.ds-tabs button:focus-visible{outline:2px solid #7851a9;outline-offset:2px}"
+    },
+    {
+      "name": "Rail",
+      "kind": "nav",
+      "description": "Three numbered steps plus the bank and import places.",
+      "html": "<nav class=\"ds-rail\"><button>1 Pick questions</button><button class=\"on\">2 Set up <span>7</span></button><button>3 Print</button></nav>",
+      "css": ".ds-rail{display:grid;gap:2px;width:200px;padding:10px;background:#f6f4ef;font:14px system-ui,sans-serif}.ds-rail button{display:flex;justify-content:space-between;font:inherit;border:none;background:transparent;color:#4a5058;padding:9px 10px;border-radius:9px;text-align:left;cursor:pointer}.ds-rail button:hover{background:#efe8f6}.ds-rail button.on{background:#fff;color:#7851a9;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04)}.ds-rail span{background:#e7e4dc;color:#4a5058;border-radius:10px;padding:0 6px;font-size:11.5px}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A sheet of paper on the desk.",
+      "html": "<div class=\"ds-desk\"><section class=\"ds-card\"><h2>Document</h2><p>Test · Quarter 1 – Unit 3 Exam</p></section></div>",
+      "css": ".ds-desk{background:#f6f4ef;padding:22px}.ds-card{background:#fff;border:1px solid #e3e0d8;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);padding:18px;font:14px/1.45 system-ui,sans-serif;color:#1d2125}.ds-card h2{font:600 18px Georgia,serif;margin:0 0 12px}.ds-card p{margin:0}"
+    },
+    {
+      "name": "Chip and badge",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Active filters and question-type badges.",
+      "html": "<span class=\"ds-chip\">Unit 3 ×</span> <span class=\"ds-badge\">Multiple choice</span>",
+      "css": ".ds-chip{display:inline-flex;padding:3px 10px;border-radius:999px;font:12.5px system-ui,sans-serif;background:#efe8f6;border:1px solid #d5c6e8;color:#1d2125}.ds-badge{font:600 11px system-ui,sans-serif;padding:2px 8px;border-radius:20px;background:#eef1f6;color:#2f5d9e}"
+    },
+    {
+      "name": "Warning banner",
+      "kind": "custom",
+      "description": "Amber warning with a fix button.",
+      "html": "<div class=\"ds-warn\"><b>No backup yet.</b> Keep a copy of your banks somewhere safe. <button>Download backup</button></div>",
+      "css": ".ds-warn{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;border:1px solid #f0d9a6;background:#fff4dc;color:#6b4e12;border-radius:8px;font:13px system-ui,sans-serif}.ds-warn button{font:500 12.5px system-ui,sans-serif;background:#fff;border:1px solid #d3cfc4;border-radius:8px;padding:4px 9px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Teacher's Desk",
+    "overview": "The app is a warm desk with sheets of paper on it. The cream page is the desk, and white cards are the sheets. The printed test, shown in the preview, is the most important sheet. Everything on screen exists to get that paper right on the first try. The interface stays calm and lets the work lead. The feel is friendly, personal and crafted: it should read as Leigh's own tool, not a generic test generator.",
+    "keyCharacteristics": [
+      "Warm cream desk (#f6f4ef), white paper cards, one purple accent.",
+      "Serif for headings (paper voice), system sans for controls (tool voice).",
+      "Nearly flat: hairline borders and a faint shadow; real shadows only for things that float above (dialogs, toasts).",
+      "Plain teacher language; every setting has a one-line hint under it.",
+      "The printed-paper styles (Arial headings, #8064A2 lesson purple, #E5DFEC review shading) belong to the printouts and follow her Word templates, not this system."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "Candle Purple is the only accent. If something needs attention and isn't a choice or a next step, it gets amber (caution) or red (danger), never a second accent color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Desk Isn't Beige Rule",
+        "body": "The cream background is part of the identity. Don't \"fix\" it to gray or white.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Voice Rule",
+        "body": "Serif is for headings only: titles of cards, dialogs and the brand. Controls, labels and body text stay sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Readable Floor Rule",
+        "body": "Nothing on screen is smaller than 11px. The 8pt \"Use this space for computations\" lives only on the paper.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Panel Rule",
+        "body": "A place shows one sub-tab's panel at a time. Related settings live together in that panel, not spread across tabs.",
+        "section": "layout"
+      },
+      {
+        "name": "The Paper-On-Desk Rule",
+        "body": "At rest, cards only get the Paper shadow. A bigger shadow means \"this floats above your work and will go away\".",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use Candle Purple (#7851a9) only for selection, focus and the main next step.",
+      "**Do** give every setting a label above and a one-line Pencil Gray hint in teacher language.",
+      "**Do** use a Georgia headline for each card title, and system sans for everything inside.",
+      "**Do** make every Delete red (#b3261e) and require a second click.",
+      "**Do** show warnings as amber banners with a button that fixes the problem.",
+      "**Do** keep the cream desk (#f6f4ef) behind white cards."
+    ],
+    "donts": [
+      "**Don't** add a second accent color. Green was removed on purpose (2026-11-14).",
+      "**Don't** use colored side stripes or top stripes on cards (removed in the design review).",
+      "**Don't** bring printout styles (Arial headings, lesson purple #8064A2, review shading #E5DFEC) into the app's screens.",
+      "**Don't** put on-screen text under 11px.",
+      "**Don't** use big shadows on cards. Big shadows are only for dialogs.",
+      "**Don't** use technical words (JSON, sync conflict, CSV) in labels or messages."
+    ]
+  }
+}

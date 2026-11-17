@@ -70,6 +70,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `supabase/` | Alternative hosting: GitHub Pages + Supabase (`setup.sql`, `config.example.js`). Not in active use. |
 | `PLAN.md` | Approved feature plan: accommodations, display settings, saved tests. |
 | `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
+| `DESIGN.md` | App screen design system ("The Teacher's Desk": tokens, Candle Purple, rules), from `/impeccable document`; sidecar `.impeccable/design.json`. Printout styles follow her Word templates instead. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
@@ -421,3 +422,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   spelled out; red Delete for courses/banks/team banks/fields/groups; `.pv-h` keeps Show answers out of the h2; every `.filebtn` button is
   `tabindex=-1 aria-hidden` and its file input carries the name (was a dead tab stop). All four review steps done; re-run critique next.
 - **2026-11-17**: released v0.15.0 (CI, Release, `:latest` = 0.15.0; her local site updated). Public site still waits for James.
+- **2026-11-17**: re-ran critique (27/40; her picks pending). `/impeccable document` wrote `DESIGN.md` + `.impeccable/design.json` with her choices: North Star "The Teacher's Desk", friendly/personal/crafted, Candle Purple, nearly flat.
