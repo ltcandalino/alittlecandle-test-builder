@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Import & backup**: **ExamView banks** and **Courses** moved to the right column, so the two columns are closer in length.
+
 ## [0.11.0] - 2026-11-16
 
 ### Added
