@@ -318,7 +318,7 @@ Her choices: put related settings together and add Next first; three steps (Pick
 
 1. Three steps, related settings together, Next links. **Done 2026-11-17.**
 2. 3 Print as the finish line: a recap of what will print (each line links to its setting), warnings there, a receipt after printing,
-   and a way back to picking when the test is empty.
+   and a way back to picking when the test is empty. **Done 2026-11-17.**
 3. Picking only picks: 1 Pick questions › Search keeps the tick box, search, filters, sort and Edit; Delete, Copy, Change these…,
    Check & clean up and + New question stay in Question bank.
 4. Polish: folded rail keeps numbers and the count, a backup dot on Import & backup, and the small fixes from the review.

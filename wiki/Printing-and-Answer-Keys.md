@@ -11,6 +11,12 @@ Choose 1 to 8 **Versions** (A–H) on **2 Set up › Versions**, with the scramb
 
 ## Printing
 
+**3 Print** starts with **What will print**: the document and its title, how many questions and points, the versions and
+scrambling, the answer keys, the accommodated copy, spacing, paper (font, size, choice labels), the format, and whether it's
+saved. Click any line to change that setting. Warnings show there too: questions without a correct answer, and an old or
+missing backup (with a **Download backup** button). After printing it says **Printed today at …** and the name it was saved
+under. With no questions yet, it offers **Go to 1 Pick questions**.
+
 - **Print … + answer keys**, **… only** or **Answer keys only**
 - The browser's print window opens. To make a PDF, choose **Save as PDF** as the printer.
 - **Print each version separately**: each version starts at page 1 with its own first-page header. The browser opens one print window per version.

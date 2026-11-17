@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- **3 Print is the finish line:** **What will print** lists the document, questions, versions and scrambling, answer keys, accommodated copy, spacing, paper and format, each line a link to its setting; the missing-answer and backup warnings sit there (with **Download backup**); after printing it says **Printed today at …** and the saved name; an empty test offers a way back to 1 Pick questions.
 - **Three steps instead of four** (from the design review): **1 Pick questions → 2 Set up → 3 Print**. **Set up** holds what was in Arrange and Format: Questions (the order), Document, Versions, Spacing, Accommodations and Page style, with the preview beside them. Anything you had open in Arrange or Format opens in the matching Set up panel.
 - **Settings that belong together sit together:** Part directions are under Page style with Group into parts; Time accommodation is under Accommodations; both bimodal choices are under Spacing.
 - **Next** at the bottom of each panel moves you through Set up and on to Print. **Alt+1** to **Alt+3** jump to the steps, and no longer jump while you're typing in a box.

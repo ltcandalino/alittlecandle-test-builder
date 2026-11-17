@@ -408,3 +408,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   card shows with page; time select moved to the Accommodations card (`.acc-time`), bmMode to Spacing (`.sp-bm`); `.nextbar` Next
   button added by `showPlace` (next Set up sub, then 3 Print; Pick → Set up); Alt+1–3 ignored in inputs. Next: Print finish line
   (clarify), picking-only Search (distill), polish.
+- **2026-11-17**: review step 2: 3 Print recap card `#recap` (data-show print:preview) drawn by `drawRecap()` from `recapRows()` (each row
+  `data-rc="place:sub"` → `go`), warnings = `printCheck()` + backup (`downloadBackup()` now shared with Import & backup), receipt
+  `.rc-done` when the saved test was printed in the last 12 h and isn't dirty (`whenPrinted`); `drawPrintBar` calls `drawRecap`;
+  empty test → **Go to 1 Pick questions**; on Print the print-bar warning and the empty-preview button are hidden (recap says it).

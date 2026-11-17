@@ -635,6 +635,31 @@ describe('accommodations', () => {
   });
 });
 
+describe('3 Print: what will print', () => {
+  test('a recap with links to each setting, warnings, a receipt after printing, and a way back when empty', async () => {
+    await place('print', 'preview');
+    assert.match(await page.textContent('#recap'), /Nothing to print yet/);
+    await page.click('#rcPick');
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'pick');
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', answer: -1 }]);
+    await select(page, ids); await settings(page, { versions: 2, shuffleQ: true, unitNum: '3', quarter: '1' });
+    await place('print', 'preview');
+    const rc = await page.textContent('#recap');
+    assert.match(rc, /2 versions \(A, B\), questions shuffled/);
+    assert.match(rc, /2 answer keys/);
+    assert.match(rc, /Accommodated copy\s*Off/);
+    assert.match(rc, /no correct answer/, 'the missing-answer warning is in the recap');
+    assert.match(rc, /No backup downloaded/);
+    await page.click('[data-rc="setup:versions"]');
+    assert.equal(await page.evaluate(() => window.__tb.fn.curSub('setup')), 'versions', 'each line opens its setting');
+    await place('print', 'preview');
+    await page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
+    await page.click('[data-print="tests"]');
+    await page.waitForSelector('#recap .rc-done');
+    assert.match(await page.textContent('#recap .rc-done'), /Printed today at .* saved as “Quarter 1 – Unit 3 Exam”/);
+  });
+});
+
 describe('saved tests', () => {
   const stubPrint = () => page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
   test('printing saves the test; save, rename, duplicate, delete and undo', async () => {

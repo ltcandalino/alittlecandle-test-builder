@@ -580,3 +580,19 @@ details.fold[open]>summary{margin-bottom:12px}
 .nextbar button{font-weight:600;color:var(--accent);border-color:var(--accent)}
 .acc-time{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .sp-bm{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+
+/* 3 Print: what will print */
+.recap h2{margin-top:0}
+.rc-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 24px;margin:0}
+.rc-list>div{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:start}
+.rc-list dt{padding-top:1px}
+.rc-list dt{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.rc-list dd{margin:0;min-width:0}
+.rc-list .linkbtn{text-align:left;color:var(--ink);text-decoration-color:var(--line2);overflow-wrap:anywhere}
+.rc-list .linkbtn:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.rc-warn{display:grid;gap:8px;margin-top:14px}
+.rc-done{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:var(--accent-soft);color:var(--ink);font-size:14px}
+.pv-empty{text-align:center;color:var(--muted);font-family:system-ui,sans-serif;padding:40px 0}
+.pv-empty p{margin:0 0 10px}
+@media (max-width:760px){.rc-list{grid-template-columns:minmax(0,1fr)}}
+main[data-place=print] .pv-empty button,main[data-place=print] #pbWarn{display:none} /* the recap above already says it */

@@ -593,6 +593,22 @@ details.fold[open]>summary{margin-bottom:12px}
 .nextbar button{font-weight:600;color:var(--accent);border-color:var(--accent)}
 .acc-time{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 .sp-bm{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+
+/* 3 Print: what will print */
+.recap h2{margin-top:0}
+.rc-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:2px 24px;margin:0}
+.rc-list>div{display:grid;grid-template-columns:9.5em minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:start}
+.rc-list dt{padding-top:1px}
+.rc-list dt{font-size:12.5px;font-weight:600;color:var(--ink2)}
+.rc-list dd{margin:0;min-width:0}
+.rc-list .linkbtn{text-align:left;color:var(--ink);text-decoration-color:var(--line2);overflow-wrap:anywhere}
+.rc-list .linkbtn:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.rc-warn{display:grid;gap:8px;margin-top:14px}
+.rc-done{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:var(--accent-soft);color:var(--ink);font-size:14px}
+.pv-empty{text-align:center;color:var(--muted);font-family:system-ui,sans-serif;padding:40px 0}
+.pv-empty p{margin:0 0 10px}
+@media (max-width:760px){.rc-list{grid-template-columns:minmax(0,1fr)}}
+main[data-place=print] .pv-empty button,main[data-place=print] #pbWarn{display:none} /* the recap above already says it */
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -2955,7 +2971,7 @@ function fmtNote(){var f=outFmt();
   return 'Opens your browser’s print window. With several versions, one window opens after another.';}
 function printNow(kind){
   if(!state.selected.length){toast('Add some questions to the test first.');return;}
-  saveTest({printed:true});drawSaved();
+  saveTest({printed:true});drawSaved();drawPrintBar();
   var f=outFmt(),what={docx:'Word file',tex:'LaTeX file'}[f];
   if(what){toast('Making the '+what+'…');
     return EXP.download(f,kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
@@ -2964,7 +2980,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3805,7 +3821,7 @@ function _renderBuild(){
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions under 1 Pick questions. Questions print in this order unless you shuffle or group them.</p></div>'+
     (exam&&s.group?'<div class="card" data-show="setup:page"><h2>Part directions</h2><div><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></div></div>':'')+
-    '</div><div class="bright" data-show="setup:* print:preview"><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
+    '</div><div class="bright" data-show="setup:* print:preview"><div class="card recap" id="recap" data-show="print:preview"></div><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
     '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
@@ -3918,7 +3934,39 @@ function drawSel(){
 function noAnswer(){return selectedQs().filter(function(q){return (isMC(q.type)&&!q.inImage&&(q.answer<0||q.answer>=q.choices.length))||(q.inImage&&q.answer<0)||(q.type==='tf'&&q.answer!=='T'&&q.answer!=='F');});}
 function printCheck(){var m=noAnswer();if(!m.length)return '';return '<span class="pb-warn" role="status"><b>'+m.length+' question'+(m.length>1?'s have':' has')+' no correct answer,</b> so the answer key will be blank there. <button type="button" class="small" id="fixAns" data-fix="'+m[0].id+'">Fix'+(m.length>1?' the first one':'')+'</button></span>';}
 function drawPrintBar(){var b=$('#pbSum');if(!b)return;var svs=$('#svStatus');if(svs&&savedById(state.settings.savedId)){var c=savedById(state.settings.savedId);svs.innerHTML='<b>'+esc(c.name)+'</b> · saved '+fmtDay(c.savedAt)+(c.printedAt?' · printed '+fmtDay(c.printedAt):'')+(isDirty()?' · <span class="sv-dirty">changed since</span>':'');}b.textContent=printSummary();var w=$('#pbWarn');w.innerHTML=printCheck();var f=$('#fixAns');if(f)f.onclick=function(){var q=byId(f.dataset.fix);if(q)openEditor(q);else toast('That question was deleted from the bank. Use the latest versions to take it off the test.');};
-  var none=!state.selected.length;$$('[data-print]').forEach(function(x){x.disabled=none;});var nm=$('#pbNone');if(nm)nm.hidden=!none;}
+  var none=!state.selected.length;$$('[data-print]').forEach(function(x){x.disabled=none;});var nm=$('#pbNone');if(nm)nm.hidden=!none;drawRecap();}
+/* 3 Print is the finish line: what will come out, each line a link to its setting, the warnings, and a receipt once printed. */
+function whenPrinted(iso){var t=Date.parse(iso);if(isNaN(t))return '';var d=new Date(t),today=new Date().toDateString()===d.toDateString();
+  return (today?'today at ':fmtDay(iso)+' at ')+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});}
+function recapRows(){
+  var s=state.settings,n=nVersions(),q=state.selected.length,p=totalPts(),dt=docType(),a=accom(),sp=spacing(),cur=savedById(s.savedId),f=outFmt();
+  var vers=n===1?'1 version (no scrambling)':n+' versions ('+LETTERS.slice(0,n).split('').join(', ')+')'+([s.shuffleQ&&'questions shuffled',s.shuffleC&&'choices shuffled',s.keepA&&'A in the original order'].filter(Boolean).map(function(x){return ', '+x;}).join(''));
+  var spc=['es','sa','bm','gap'].filter(function(k){return sp[k];}).map(function(k){var o=SPACE_OPTS[k].filter(function(x){return x[0]===String(sp[k]);})[0];return SPACE_LABELS[k]+': '+(o?o[1]:sp[k]);});
+  var acc=!accOn()?'Off':'From Version '+LETTERS[accVersion()]+', '+(a.font||s.font||'same font')+' '+accSize()+' pt'+(a.perPage?', '+a.perPage+' per page':'')+(a.spacing?', extra spacing':'');
+  var key=(n===1?'1 answer key':n+' answer keys')+(s.keyStd?', with unit and standards':'')+(s.keyNotes?', with your notes':'');
+  return [
+    ['setup','doc','Document',DOC_TYPES[dt]+' · “'+docTitle()+'”'],
+    ['setup','questions','Questions',plural(q,'question')+' · '+plural(p,'point')],
+    ['setup','versions','Versions',vers],
+    ['setup','versions','Answer keys',key],
+    ['setup','acc','Accommodated copy',acc],
+    ['setup','spacing','Spacing',spc.length?spc.join(' · '):'Each question’s own'],
+    ['setup','page','Paper',(s.font||'Century Schoolbook')+', '+num(s.fontSize,12)+' pt · choices '+[0,1,2,3].map(letterOf).join(' ')],
+    ['print','preview','Format',{pdf:'PDF (print window → Save as PDF)',docx:'Word file (.docx)',tex:'LaTeX (.zip)',print:'Print'}[f]||f],
+    ['print','saved','Saved',cur?'“'+cur.name+'”'+(cur.printedAt?' · printed '+whenPrinted(cur.printedAt):'')+(isDirty()?' · changed since':''):'Not yet. Printing saves it for you.']];
+}
+function drawRecap(){
+  var box=$('#recap');if(!box)return;
+  if(!state.selected.length){box.innerHTML='<h2>Nothing to print yet</h2><p class="note" style="margin:0 0 12px">Pick questions for this '+esc(DOC_TYPES[docType()].toLowerCase())+' first.</p><button class="primary" id="rcPick">Go to 1 Pick questions</button>';$('#rcPick').onclick=function(){go('pick');};return;}
+  var cur=savedById(state.settings.savedId),fresh=cur&&cur.printedAt&&Date.now()-Date.parse(cur.printedAt)<12*3600e3&&!isDirty();
+  var warn=printCheck()+(backupStale()?'<span class="pb-warn" role="status"><b>'+esc(lastBackupText())+'</b> Keep a copy of your banks somewhere safe. <button type="button" class="small" id="rcBackup">Download backup</button></span>':'');
+  box.innerHTML=(fresh?'<p class="rc-done" role="status"><b>Printed '+esc(whenPrinted(cur.printedAt))+'</b> and saved as “'+esc(cur.name)+'”. You can print again any time; the versions and keys stay the same until you press New scramble.</p>':'')+
+    '<h2>What will print</h2><dl class="rc-list">'+recapRows().map(function(r){return '<div><dt>'+esc(r[2])+'</dt><dd><button class="linkbtn" data-rc="'+r[0]+':'+r[1]+'" title="Change: '+esc(r[2])+'">'+esc(r[3])+'</button></dd></div>';}).join('')+'</dl>'+
+    (warn?'<div class="rc-warn">'+warn+'</div>':'');
+  $$('[data-rc]',box).forEach(function(b){b.onclick=function(){var x=b.dataset.rc.split(':');if(x[0]==='print'&&x[1]==='preview'){var f=$('#fmtSel');if(f){f.focus();f.scrollIntoView({block:'center'});}return;}go(x[0],x[1]);};});
+  var fx=$('#fixAns',box);if(fx)fx.onclick=function(){var q=byId(fx.dataset.fix);if(q)openEditor(q);};
+  var bk=$('#rcBackup');if(bk)bk.onclick=function(){downloadBackup();drawRecap();toast('Backup downloaded. Keep it on your NAS or Google Drive.');};
+}
 function printSummary(){var n=nVersions(),q=state.selected.length,p=totalPts();return n+' version'+(n===1?'':'s')+(accOn()?' + accommodated copy':'')+' · '+q+' question'+(q===1?'':'s')+' · '+p+' point'+(p===1?'':'s');}
 var pvT;function drawPreviewSoon(){clearTimeout(pvT);pvT=setTimeout(drawPreview,250);}
 function drawPreview(){
@@ -3927,7 +3975,7 @@ function drawPreview(){
     (acc?'<button class="'+(ui.pv==='acc'?'on':'')+'" data-v="acc" title="The accommodated copy">Accommodated</button>':'');
   $$('[data-v]',vt).forEach(function(b){b.onclick=function(){ui.pv=b.dataset.v==='acc'?'acc':+b.dataset.v;saveUi();drawPreview();};});
   var isAcc=ui.pv==='acc',pv=isAcc?accVersion():ui.pv,items=buildVersion(pv),p=$('#paper');p.setAttribute('style',isAcc?accStyle():ptStyle());
-  p.className='sheet pt pt-classic pt-'+docType()+(isAcc?accClass():'');p.innerHTML=items.length?(isAcc?accHtml({answers:ui.showAns,preview:true}):testHtml(items,ui.pv,{answers:ui.showAns,preview:true})):'<p style="color:#888;text-align:center;font-family:system-ui,sans-serif">Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p>';
+  p.className='sheet pt pt-classic pt-'+docType()+(isAcc?accClass():'');p.innerHTML=items.length?(isAcc?accHtml({answers:ui.showAns,preview:true}):testHtml(items,ui.pv,{answers:ui.showAns,preview:true})):'<div class="pv-empty"><p>Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p><button class="small" id="pvPick">Pick questions</button></div>';var pk=$('#pvPick');if(pk)pk.onclick=function(){go('pick');};
 }
 
 /* ================= import / backup tab ================= */
@@ -3945,6 +3993,7 @@ function sharedCardHtml(){if(!sharing())return '';var sb=sharedBanks();
 function bankCounts(){var c={};cq().filter(own).forEach(function(q){c[q.bank]=(c[q.bank]||0)+1;});return c;}
 function daysAgo(iso){var t=Date.parse(iso);return isNaN(t)?null:Math.floor((Date.now()-t)/864e5);}
 function lastBackupText(){var n=daysAgo(ui.lastBackup);if(n==null)return 'No backup downloaded from this browser yet.';return 'Last backup: '+(n<1?'today':n===1?'yesterday':n+' days ago')+'.';}
+function downloadBackup(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');ui.lastBackup=d.toISOString();saveUi();}
 function backupStale(){var n=daysAgo(ui.lastBackup);return n==null||n>=14;}
 /* Restoring into a bank that already has questions asks: replace everything, or add only what's missing. */
 function restoreChoice(incoming,saved){
@@ -4031,7 +4080,7 @@ function _renderIO(){
     state.questions=state.questions.filter(function(q){return !inCourse(q,name)||!dropCourse(q,name);});state.courses=state.courses.filter(function(c){return c!==name;});delete state.courseTests[name];state.savedTests=state.savedTests.filter(function(t){return t.course!==name;});
     changed();render();toast('Deleted '+name+'.',function(){state.questions=prev.questions;state.courses=prev.courses;state.courseTests=prev.courseTests;state.savedTests=prev.savedTests;changed();render();});
   };});
-  $('#bkOut').onclick=function(){var d=new Date(),stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');saveFile('ALittleCandleTestBuilder backup '+stamp+'.json',JSON.stringify({app:'test-builder',version:1,saved:d.toISOString(),state:state}),'application/json');ui.lastBackup=d.toISOString();saveUi();renderIO();};
+  $('#bkOut').onclick=function(){downloadBackup();renderIO();};
   $('#bkIn').onchange=function(){
     var f=this.files&&this.files[0],res=$('#bkRes'),inp=this;if(!f)return;
     var rd=new FileReader();rd.onload=function(){
