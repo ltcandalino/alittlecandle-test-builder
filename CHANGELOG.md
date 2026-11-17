@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-16
+
 ### Added
 - **Spacing** on Build & print, for every document type: room to answer for open response, short answer and bimodal questions (blank space or answer lines, or each question's own size), and extra space after each question. Each document type remembers its own spacing, in print and in Word and LaTeX downloads.
 
