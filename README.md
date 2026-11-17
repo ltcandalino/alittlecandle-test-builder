@@ -91,10 +91,10 @@ The tests are in `tests/`:
 
 | File | Covers |
 |---|---|
-| `core.test.cjs` | References (MMYYQQ), clusters, cleaning question HTML, CSV, pasted text, settings from older versions |
+| `core.test.cjs` | References (MMYYQQ), clusters, cleaning question HTML, pasted text, settings from older versions |
 | `documents.test.cjs` | Versions and scrambling, parts, bonus, Test/Quiz/Review/Lesson layouts, headers, answer keys, print jobs, courses |
 | `imports.test.cjs` | Word, PDF and ExamView importers |
-| `ui.test.cjs` | Clicking through the app: editor, delete/undo, building, printing, imports, backups, CSV, courses |
+| `ui.test.cjs` | Clicking through the app: editor, delete/undo, building, printing, imports, backups, courses |
 | `server.test.cjs` | Sign-in, passwords, questions, settings, pictures, Manage accounts, restarts |
 | `sync.test.cjs` | The website version in two browsers, syncing questions, settings, pictures and deletes |
 | `print.test.cjs` | Prints every document type to PDF in `tests/out/` to look at |

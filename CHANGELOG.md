@@ -9,6 +9,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Changed
 - **Import & backup**: **ExamView banks** and **Courses** moved to the right column, so the two columns are closer in length.
 
+### Removed
+- The **Spreadsheet (CSV)** card (Import CSV, Export CSV, Blank template). Spreadsheets couldn't hold math or pictures; use **Download backup** or **Bank files** to keep or share banks.
+
 ## [0.11.0] - 2026-11-16
 
 ### Added

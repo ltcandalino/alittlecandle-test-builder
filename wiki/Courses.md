@@ -22,4 +22,3 @@ You can also tick courses for a single question: open it with **Edit**, then **M
 
 **Deleting:** **Delete** on a shared question only takes it out of the course you're in; the other courses keep it. The same goes for deleting a bank or a whole course. A question is only gone for good when no course uses it any more. **Undo** works as usual.
 
-In a spreadsheet (CSV), several courses go in the Course column separated by semicolons, like `Algebra 1; Algebra 2`.

@@ -1,4 +1,4 @@
-// Core helpers: references, clusters, cleaning question HTML, CSV, pasted text, settings migration.
+// Core helpers: references, clusters, cleaning question HTML, pasted text, settings migration.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { launch, openApp, fn, settings } = require('./helpers.cjs');
@@ -133,27 +133,6 @@ describe('pasted questions', () => {
   });
 });
 
-describe('CSV', () => {
-  test('quotes, commas and doubled quotes', async () => {
-    assert.deepEqual(await fn(page, 'parseCSV', 'a,b\n"x, y","he said ""hi"""\n'), [['a', 'b'], ['x, y', 'he said "hi"']]);
-  });
-  test('export then import keeps the question details', async () => {
-    const r = await page.evaluate(() => {
-      const f = window.__tb.fn;
-      const q = { id: 'a1', course: 'Geometry', type: 'mc', bank: 'B', source: 'S', unit: '3', section: '2', topic: 'T', subtopic: 'ST',
-        standard: 'G.CO.A.1', points: 2, html: 'What is 2+2?', choices: ['3', '4', '5', '6'], answer: 1, ref: '062412', notes: 'note, with comma' };
-      return f.fromCSV(f.toCSV([q]), 'Default');
-    });
-    const q = (r.qs || r)[0];
-    assert.equal(q.html, 'What is 2+2?');
-    assert.deepEqual(q.choices, ['3', '4', '5', '6']);
-    assert.equal(q.answer, 1);
-    for (const k of ['bank', 'source', 'unit', 'section', 'topic', 'subtopic', 'standard', 'ref', 'notes']) assert.ok(String(q[k]).length, k + ' missing');
-    assert.equal(q.notes, 'note, with comma');
-    assert.equal(Number(q.points), 2);
-  });
-});
-
 describe('random numbers', () => {
   test('the same seed always gives the same shuffle', async () => {
     const r = await page.evaluate(() => {
@@ -212,10 +191,6 @@ describe('saved settings from older versions', () => {
     assert.deepEqual(st.questions[1].courses, ['Algebra 1', 'Math Lab'], 'duplicates dropped');
     assert.equal(st.questions[1].course, 'Algebra 1', 'course mirrors the first one for older copies of the app');
     assert.ok(st.courses.includes('Math Lab'));
-  });
-  test('CSV keeps several courses, separated by semicolons', async () => {
-    const out = await page.evaluate(() => { const f = window.__tb.fn; return f.toCSV([{ id: 'x', type: 'tf', html: 'Q', courses: ['Algebra 1', 'Algebra 2'], course: 'Algebra 1', bank: 'B', topic: '', standard: '', points: 1, answer: 'T' }]); });
-    assert.match(out, /Algebra 1; Algebra 2/);
   });
 });
 

@@ -63,7 +63,7 @@ Add details the banks don't have, like DOK or difficulty, under **Import & backu
 
 - fill them in under **More details**, or for many questions at once with **Change these …**
 - filter by them under **More filters**
-- they're columns in CSV files, and they're in backups and bank files
+- they're in backups and bank files
 
 Rename or delete a field on **Import & backup**. Deleting removes it from every question (with Undo).
 

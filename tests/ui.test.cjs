@@ -339,19 +339,6 @@ describe('saving and backups', () => {
     assert.deepEqual(await other.page.evaluate(() => window.__tb.state.questions.map(q => q.html).sort()), ['Already here', 'From backup 1', 'From backup 2']);
     await other.context.close();
   });
-  test('CSV export and import', async () => {
-    await addQuestions(page, [{ html: 'CSV question', unit: '5' }]);
-    await gotoTab(page, 'io');
-    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#csvOut')]);
-    const file = path.join(OUT, 'bank.csv'); await dl.saveAs(file);
-    assert.match(fs.readFileSync(file, 'utf8'), /CSV question/);
-    const other = await openApp(browser);
-    await gotoTab(other.page, 'io');
-    await other.page.setInputFiles('#csvFile', file);
-    await other.page.waitForFunction(() => window.__tb.state.questions.length === 1, null, { timeout: 5000 });
-    assert.equal(await other.page.evaluate(() => window.__tb.state.questions[0].unit), '5');
-    await other.context.close();
-  });
 });
 
 describe('courses', () => {

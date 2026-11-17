@@ -14,7 +14,6 @@ body:
         - ExamView bank (.bnk)
         - Word (.docx)
         - PDF
-        - Spreadsheet (CSV)
         - Bank file / backup (.json)
     validations:
       required: true

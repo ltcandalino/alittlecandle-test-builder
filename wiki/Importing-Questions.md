@@ -46,10 +46,6 @@ Answer: True
 3. Prove that the diagonals of a parallelogram bisect each other.
 ```
 
-## Spreadsheet (CSV)
-
-Use **Blank template** to get the column headings, fill them in, then **Import CSV**. Columns for **Old NY standard** and your own fields (by their name) come in too. **Export CSV** saves your bank as a spreadsheet. Math and pictures don't fit in a CSV, so use a backup file to keep everything.
-
 ## Bank files (.json)
 
 **Import & backup → Bank files** saves banks as files, one `.json` file per bank, with everything: math, pictures, answers, all the details and your own fields. Use them to keep your banks on a NAS, or to give a bank to another teacher.

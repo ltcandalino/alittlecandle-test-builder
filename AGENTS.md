@@ -202,7 +202,7 @@ npm run test:docker    # real image on a machine with Docker (scripts/docker-tes
 npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL LTS in Docker (TEST_DATABASE_URL)
 ```
 - `core` pure helpers; `documents` buildVersion/layouts/keys/printJobs/courses; `imports` DOCX/PDF/BNK;
-  `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup/CSV downloads, print
+  `ui` real clicks (editor, delete needs a second "Confirm" click, imports, backup downloads, print
   with `window.print` stubbed); `server` API incl. isolation, lockout, admin, restart, ADMIN_RESET;
   `sync` app served by the server, two browser contexts; `print` PDFs in `tests/out/`; `tools` Change these…, clean-up,
   her own fields, bank files (field sync end to end in `sync`; public/team banks in `server` and `sync`).
@@ -377,3 +377,5 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-16**: feature request form gained Where / Which documents / Done when / Example / Leave alone. MySQL CI race in the
   team bank test fixed (wait for the redraw). Nightly CI failed once on a Trivy DB download 404 (mirror.gcr.io), not our code.
   Released v0.11.0 (CI, Release, `:latest` = 0.11.0 checked).
+- **2026-11-16**: Import & backup: ExamView banks and Courses moved to the right column; the Spreadsheet (CSV) card and
+  `parseCSV`/`toCSV`/`fromCSV` removed at her request (backups and bank files keep math and pictures; CSV couldn't).

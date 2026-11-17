@@ -47,7 +47,7 @@ file with no setup, or as a self-hosted website the teacher controls.
 ## Capabilities and Constraints
 
 - Imports: ExamView `.bnk` (with math and pictures), PDF (text or pictures), Word `.docx`, pasted
-  text, CSV.
+  text.
 - Question details: course, bank, source, unit, section, part, topic, subtopic, standard, cluster,
   reference (MMYYQQ → month, year, question number), points, notes.
 - Question types: multiple choice, bimodal, true/false, short answer, extended response.

@@ -2886,61 +2886,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseCSV:parseCSV,toCSV:toCSV,fromCSV:fromCSV,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
-
-/* ================= CSV ================= */
-function parseCSV(text){
-  text=text.replace(/^\uFEFF/,'');var rows=[],row=[],f='',q=false;
-  for(var i=0;i<text.length;i++){var c=text[i];
-    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
-    else if(c==='"')q=true;else if(c===','){row.push(f);f='';}else if(c==='\n'){row.push(f);rows.push(row);row=[];f='';}else if(c!=='\r')f+=c;}
-  if(f!==''||row.length){row.push(f);rows.push(row);}
-  return rows.filter(function(r){return r.some(function(x){return x.trim();});});
-}
-var CSV_HEAD=['Course','Type','Bank','Source','Unit','Section','Topic','Subtopic','Cluster','Month','Year','Question #','Reference','Standard','Points','Question','Answer','Choice A','Choice B','Choice C','Choice D','Choice E','Choice F','Lines','Keep choice order','Notes','Old NY standard'];
-function csvCell(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
-function toCSV(qs){
-  var xf=myFields(),out=[CSV_HEAD.concat(xf.map(function(f){return f.label;})).map(csvCell).join(',')];
-  qs.forEach(function(q){
-    var ans=isMC(q.type)?(q.answer>=0?LETTERS[q.answer]:''):q.type==='tf'?(q.answer==='T'?'True':q.answer==='F'?'False':''):(q.answer||'');
-    var ch=isMC(q.type)?q.choices.slice(0,6).map(plain):[];while(ch.length<6)ch.push('');
-    out.push([coursesOf(q).join('; ')].concat([{mc:'MC',bm:'Bimodal',tf:'TF',sa:'SA',es:'Open'}[q.type],q.bank,q.source||'',q.unit||'',q.section||'',q.topic,q.subtopic||'',q.cluster||'',q.month||'',q.year||'',q.qnum||'',q.ref||'',q.standard,q.points,plain(q.html),ans].concat(ch).concat([q.type==='sa'||q.type==='es'?(q.lines||''):'',q.lockChoices?'Yes':'',q.notes||'',q.nyStd||'']).concat(xf.map(function(f){return xval(q,f.id);}))).map(csvCell).join(','));
-  });
-  return '\uFEFF'+out.join('\r\n')+'\r\n';
-}
-function typeFrom(v){v=String(v||'').trim().toLowerCase().replace(/[^a-z]/g,'');
-  if(/^(mc|multiplechoice|multiple|m)$/.test(v))return 'mc';if(/^(bm|bimodal|bi)$/.test(v))return 'bm';if(/^(tf|truefalse|true|t)$/.test(v))return 'tf';
-  if(/^(sa|shortanswer|short|fillin|fillintheblank|fib|completion|s)$/.test(v))return 'sa';
-  if(/^(es|essay|e|open|openresponse|longanswer|extendedresponse|constructedresponse|cr)$/.test(v))return 'es';return null;}
-function fromCSV(text,defBank){
-  var rows=parseCSV(text);if(!rows.length)return{qs:[],errors:['The file is empty.']};
-  var head=rows[0].map(function(h){return h.trim().toLowerCase();});
-  function col(names){for(var i=0;i<names.length;i++){var k=head.indexOf(names[i]);if(k>=0)return k;}return -1;}
-  var C={type:col(['type','question type']),bank:col(['bank']),topic:col(['topic','chapter','category','tag']),unit:col(['unit']),section:col(['section']),source:col(['source']),course:col(['course']),notes:col(['notes','note','my notes']),sub:col(['subtopic']),cl:col(['cluster']),mo:col(['month']),yr:col(['year']),qn:col(['question #','question number','qnum','q#']),ref:col(['reference','ref']),std:col(['standard','standards']),points:col(['points','pts']),text:col(['question','question text','text','prompt']),answer:col(['answer','correct answer','correct','key']),lines:col(['lines','answer lines']),lock:col(['keep choice order','lock']),ny:col(['old ny standard','ny standard'])};
-  var XC=myFields().map(function(f){return [f.id,col([f.label.toLowerCase()])];}).filter(function(p){return p[1]>=0;});
-  var chCols=[];'abcdef'.split('').forEach(function(l){var k=col(['choice '+l,'option '+l,'answer '+l,l]);if(k>=0)chCols.push(k);});
-  if(C.text<0)return{qs:[],errors:['Couldn’t find a “Question” column. Download the template to see the expected columns.']};
-  var qs=[],errors=[];
-  rows.slice(1).forEach(function(r,ri){
-    function g(k){return k>=0&&r[k]!=null?String(r[k]).trim():'';}
-    var text=g(C.text);if(!text)return;
-    var choices=chCols.map(g).filter(Boolean),type=typeFrom(g(C.type)),ans=g(C.answer);
-    if(!type)type=choices.length>=2?'mc':/^(t|f|true|false)$/i.test(ans)?'tf':ans?'sa':'es';
-    var q={id:uid(),source:g(C.source),course:g(C.course),type:type,unit:g(C.unit),section:g(C.section),notes:g(C.notes),subtopic:g(C.sub),cluster:g(C.cl),ref:g(C.ref),month:g(C.mo)?String(g(C.mo)).padStart(2,'0'):undefined,year:g(C.yr)?(parseInt(g(C.yr),10)<100?2000+parseInt(g(C.yr),10):parseInt(g(C.yr),10)):undefined,qnum:g(C.qn)?parseInt(g(C.qn),10):undefined,bank:g(C.bank)||defBank,topic:g(C.topic),standard:g(C.std),nyStd:g(C.ny),points:num(g(C.points),1),html:textToHtml(text)};
-    XC.forEach(function(p){var v=g(p[1]);if(v){q.extra=q.extra||{};q.extra[p[0]]=v;}});
-    if(isMC(type)){
-      q.choices=choices.map(textToHtml);var a=-1;
-      if(/^[A-Ha-h]$/.test(ans))a=ans.toUpperCase().charCodeAt(0)-65;else if(/^\d+$/.test(ans))a=parseInt(ans,10)-1;
-      else if(ans)a=choices.findIndex(function(c){return c.toLowerCase()===ans.toLowerCase();});
-      if(a>=choices.length)a=-1;q.answer=a;if(type==='bm')q.space=2;q.lockChoices=/^(y|yes|true|1|x)$/i.test(g(C.lock));
-      if(choices.length<2)errors.push('Row '+(ri+2)+': multiple choice needs at least 2 choices.');
-      if(a<0)errors.push('Row '+(ri+2)+': no correct answer recognized.');
-    }else if(type==='tf'){q.answer=/^t/i.test(ans)?'T':/^f/i.test(ans)?'F':'';if(!q.answer)errors.push('Row '+(ri+2)+': answer should be True or False.');}
-    else{q.answer=ans;q.lines=Math.max(1,Math.min(40,parseInt(g(C.lines),10)||(type==='sa'?1:8)));if(type==='es')q.answerArea='lines';}
-    fillMeta(q);qs.push(q);
-  });
-  return{qs:qs,errors:errors};
-}
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3420,7 +3366,7 @@ function bankFilesCard(bnames,bc){
 }
 function fieldsCard(){
   var fs=myFields();
-  return '<div class="card" id="fieldsCard"><h2>Your own fields</h2><p class="note" style="margin-top:0">Add details the banks don’t have, like DOK or difficulty. They show up when you edit a question (under <b>More details</b>), in <b>More filters</b>, in <b>Change these…</b>, and as columns in CSV files.</p>'+
+  return '<div class="card" id="fieldsCard"><h2>Your own fields</h2><p class="note" style="margin-top:0">Add details the banks don’t have, like DOK or difficulty. They show up when you edit a question (under <b>More details</b>), in <b>More filters</b>, in <b>Change these…</b>, and in backups and bank files.</p>'+
     (fs.length?'<ul class="banks">'+fs.map(function(f){var n=state.questions.filter(function(q){return xval(q,f.id);}).length;return '<li><span>'+esc(f.label)+' <small>· filled in on '+plural(n,'question')+'</small></span><button class="small ghost" data-frename="'+esc(f.id)+'">Rename</button><button class="small ghost" data-fdel="'+esc(f.id)+'">Delete</button></li>';}).join('')+'</ul>':'')+
     '<div class="pickrow"><input type="text" id="newField" placeholder="New field, e.g. DOK" style="flex:1" aria-label="New field name"><button class="small" id="addField">Add field</button></div></div>';
 }
@@ -3827,7 +3773,6 @@ function renderIO(){
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
   '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
   '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
-  '<div class="card"><h2>Spreadsheet (CSV)</h2><p class="note" style="margin-top:0">Columns: Course, Type (MC, Bimodal, TF, SA, Open), Bank, Source, Unit, Section, Topic, Subtopic, Cluster, Month, Year, Question #, Reference, Standard, Points, Question, Answer (a letter for MC), Choice A–F, Lines, Notes. Math and pictures don’t go into a CSV, so use the backup file to keep everything.</p><div class="actions"><span class="filebtn"><button>Import CSV…</button><input type="file" id="csvFile" accept=".csv,text/csv"></span><button id="csvOut"'+(state.questions.length?'':' disabled')+'>Export CSV</button><button class="ghost" id="csvTpl">Blank template</button></div><div id="csvRes" class="result"></div></div>'+
   '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: see <b>Courses…</b> under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div></div>';
   wireToolCards();
@@ -3894,17 +3839,6 @@ function renderIO(){
     r.qs.forEach(function(q){q.course=state.course;});state.questions=state.questions.concat(r.qs);changed();renderTabs();$('#pasteBox').value='';
     res.className='result ok';res.innerHTML='Imported '+r.qs.length+' question'+(r.qs.length>1?'s':'')+'. Find them on the Question bank tab.'+(r.errors.length?'<div style="color:var(--danger);margin-top:6px">Check: '+r.errors.slice(0,6).map(esc).join(' · ')+'</div>':'');
   };
-  $('#csvFile').onchange=function(){
-    var f=this.files&&this.files[0],inp=this;if(!f)return;
-    var rd=new FileReader();rd.onload=function(){
-      inp.value='';var r=fromCSV(String(rd.result||''),f.name.replace(/\.csv$/i,'')),res=$('#csvRes');
-      if(!r.qs.length){res.className='result bad';res.textContent=r.errors[0]||'No questions found in that file.';return;}
-      r.qs.forEach(function(q){var cs=String(q.course||'').split(/\s*;\s*/).filter(Boolean);if(!cs.length)cs=[state.course];cs.forEach(function(c){if(state.courses.indexOf(c)<0)state.courses.push(c);});setCourses(q,cs);});state.questions=state.questions.concat(r.qs);changed();renderTabs();
-      res.className='result ok';res.innerHTML='Imported '+r.qs.length+' question'+(r.qs.length>1?'s':'')+'.'+(r.errors.length?'<div style="color:var(--danger);margin-top:6px">'+r.errors.slice(0,6).map(esc).join(' · ')+'</div>':'');
-    };rd.readAsText(f);
-  };
-  $('#csvOut').onclick=function(){saveFile(fileBase(state.course)+' question bank.csv',toCSV(cq()),'text/csv');};
-  $('#csvTpl').onclick=function(){saveFile('Question bank template.csv','\uFEFF'+CSV_HEAD.join(',')+'\r\n'+state.course+',MC,My questions,,Unit 1,1.1,Chapter 1,,,,,,,,1,Which planet is closest to the sun?,A,Mercury,Venus,Earth,Mars,,,,\r\n'+state.course+',TF,My questions,,Unit 1,1.1,Chapter 1,,,,,,,,1,The moon makes its own light.,False,,,,,,,,\r\n'+state.course+',Open,My questions,,Unit 1,1.1,Chapter 1,,,,,,,,4,Explain why we have seasons.,Tilt of Earth\'s axis,,,,,,,8,\r\n','text/csv');};
 }
 function importBnks(files){
   var res=$('#bnkRes');res.className='result';res.textContent='Reading '+files.length+' file'+(files.length>1?'s':'')+'…';
@@ -4263,7 +4197,7 @@ function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.cla
 /* ================= start ================= */
 /* Short in-app help; the full guide is the wiki. */
 var HELP_HTML='<h2 id="helpT">Help</h2>'+
-  '<h3>Bring in questions</h3><p>On <b>Import &amp; backup</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, a spreadsheet (CSV), or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
+  '<h3>Bring in questions</h3><p>On <b>Import &amp; backup</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
   '<h3>Find and pick questions</h3><p>On <b>Question bank</b>, search or filter by unit, section, topic and standard (<b>More filters</b> for the rest). Tick a question to put it on the test.</p>'+
   '<h3>Build and print</h3><p>On <b>Build &amp; print</b>, choose Test, Quiz, Review or Lesson, fill in the details and pick how many <b>Versions</b>. Check the paper in the preview, then use the print bar under it. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+

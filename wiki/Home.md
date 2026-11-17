@@ -5,7 +5,7 @@ Build printed **tests, quizzes, reviews and lessons** for high school math from 
 ## Start here
 
 1. [[Getting Started]]: open the app and import your first bank
-2. [[Importing Questions]]: `.bnk`, PDF, Word, paste and CSV
+2. [[Importing Questions]]: `.bnk`, PDF, Word and paste
 3. [[Question Bank]]: editing questions and their details
 4. [[Building Documents]]: Test, Quiz, Review and Lesson
 5. [[Printing and Answer Keys]]: versions, scrambling, PDFs

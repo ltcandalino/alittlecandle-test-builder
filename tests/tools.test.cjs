@@ -1,5 +1,5 @@
 // Bank tools: old NY codes, needs-attention checks, Change these…, Check & clean up, her own fields,
-// bank files (save / open) and CSV columns for her fields.
+// bank files (save / open).
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -145,7 +145,7 @@ describe('Check & clean up', () => {
 });
 
 describe('her own fields', () => {
-  test('add on Import & backup, fill in the editor, filter, CSV, delete with undo', async () => {
+  test('add on Import & backup, fill in the editor, filter, delete with undo', async () => {
     await reset();
     await add([{ html: 'First' }, { html: 'Second' }]);
     await gotoTab(page, 'io');
@@ -170,11 +170,6 @@ describe('her own fields', () => {
     await page.click('#setUnit'); await page.selectOption('#bkF', 'x:' + f[0].id); await page.fill('#bkV', '3'); await page.click('#bkGo');
     list = await qs();
     assert.deepEqual(list.map(q => q.extra[f[0].id]), ['3', '3']);
-    // CSV out and back in
-    const csv = await fn(page, 'toCSV', list);
-    assert.match(csv.split('\r\n')[0], /Old NY standard,DOK$/);
-    const back = await fn(page, 'fromCSV', csv, 'x');
-    assert.equal(back.qs[0].extra[f[0].id], '3'); assert.equal(back.qs[0].nyStd, 'A.A.7');
     // delete the field
     await gotoTab(page, 'io');
     await page.click('[data-fdel]'); await page.click('[data-fdel]');
