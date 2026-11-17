@@ -27,7 +27,7 @@ For example, `062412` means June 2024, question 12, shown as "June 2024 #12".
 
 ## From Word (.docx)
 
-Choose a Word file. Questions, choices, math, pictures, tables, **Part I/II/III** labels and credits like **[2]** come in. If the file is one of your exams, the header, title and quarter/unit numbers fill in the **3 Format › Document** settings too.
+Choose a Word file. Questions, choices, math, pictures, tables, **Part I/II/III** labels and credits like **[2]** come in. If the file is one of your exams, the header, title and quarter/unit numbers fill in the **2 Set up › Document** settings too.
 
 ## Paste questions
 

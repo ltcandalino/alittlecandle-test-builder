@@ -574,3 +574,9 @@ details.fold[open]>summary{margin-bottom:12px}
 .br-secs{display:flex;flex-wrap:wrap;gap:4px 6px;padding:2px 0 4px 26px}
 .br-s{border:0;background:none;padding:4px 8px;border-radius:8px;color:var(--accent);font-size:14px}
 .br-rand{margin:0 0 10px}
+
+/* three steps: Next button, grouped settings */
+.nextbar{display:flex;justify-content:flex-end;margin-top:4px}
+.nextbar button{font-weight:600;color:var(--accent);border-color:var(--accent)}
+.acc-time{margin:0 0 14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.sp-bm{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}

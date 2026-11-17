@@ -311,3 +311,15 @@ Approved 2026-11-17 (her choices: ideas 1 + 3 from the mock-ups; one left rail; 
 
 - The rail can fold to icons only, for a wider preview.
 - Keyboard: Alt+1…4 jump to the steps.
+
+## Follow-up from the design review (2026-11-17, 26/40)
+
+Her choices: put related settings together and add Next first; three steps (Pick → Set up → Print); all five priority issues.
+
+1. Three steps, related settings together, Next links. **Done 2026-11-17.**
+2. 3 Print as the finish line: a recap of what will print (each line links to its setting), warnings there, a receipt after printing,
+   and a way back to picking when the test is empty.
+3. Picking only picks: 1 Pick questions › Search keeps the tick box, search, filters, sort and Edit; Delete, Copy, Change these…,
+   Check & clean up and + New question stay in Question bank.
+4. Polish: folded rail keeps numbers and the count, a backup dot on Import & backup, and the small fixes from the review.
+

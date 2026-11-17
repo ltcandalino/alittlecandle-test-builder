@@ -2,7 +2,7 @@
 
 ## Versions and scrambling
 
-Choose 1 to 8 **Versions** (A–H) on **2 Arrange › Versions**, with the scrambling choices.
+Choose 1 to 8 **Versions** (A–H) on **2 Set up › Versions**, with the scrambling choices.
 
 - **Shuffle question order**: within each part or section
 - **Shuffle answer choices**: "All of the above" and "None of the above" stay last
@@ -36,7 +36,7 @@ Downloading saves the test in **Saved tests** too, just like printing.
 
 ## Accommodated copies
 
-For a student with an IEP or 504 plan, open **3 Format › Accommodations** and tick **Also print an
+For a student with an IEP or 504 plan, open **2 Set up › Accommodations** and tick **Also print an
 accommodated copy**. Then choose:
 
 - **Font**: **Atkinson Hyperlegible** (very clear letters) or **OpenDyslexic**, or the same as the test. Both fonts are built in, so they print the same on any computer.
@@ -52,6 +52,6 @@ start). **Print tests + answer keys** includes it; **Accommodated only** prints 
 
 ## Preview
 
-The preview shows beside **2 Arrange** and **3 Format**, and full width on **4 Print**, and updates as you change settings. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.
+The preview shows beside **2 Set up** and full width on **3 Print**, and updates as you change settings. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.
 
 The print buttons are in a bar at the bottom of the preview. It stays in view while you scroll through the paper and shows what you're about to print, like "3 versions · 12 questions · 26 points". Check the paper, then print.

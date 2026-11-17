@@ -402,3 +402,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   question level it reuses `drawList` (`browsing()` makes `filtered()` use the bank/unit/section instead of the Search filters).
   Add N at random with Undo; banks without units skip the tree (`flat`). `.shell>main{width:100%}` (grid item shrank). 1481 checks.
 - **2026-11-17**: released v0.14.0 (CI, Release, `:latest` = 0.14.0; her local site updated). Public site still waits for James.
+- **2026-11-17**: design review (`/impeccable critique`, 26/40, snapshot 2026-11-17T03-01-23Z). Her picks: related settings + Next
+  first, three steps, all five priority issues. Step 1 done: places pick/setup/print (+bank/io); `OLD_PLACE`/`OLD_SUB` + `oldPlace()`
+  map saved 'build'/'arrange'/'format' tabs and subs into setup; setup subs questions/doc/versions/spacing/acc/page; Part directions
+  card shows with page; time select moved to the Accommodations card (`.acc-time`), bmMode to Spacing (`.sp-bm`); `.nextbar` Next
+  button added by `showPlace` (next Set up sub, then 3 Print; Pick → Set up); Alt+1–3 ignored in inputs. Next: Print finish line
+  (clarify), picking-only Search (distill), polish.

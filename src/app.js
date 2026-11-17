@@ -616,24 +616,26 @@ function switchCourse(name){
 /* Plan 4: one thing at a time. The rail on the left holds the four steps of making a test, then Question bank and
    Import & backup (ui.tab = the place). Each place has sub-tabs (ui.subs[place]); every panel carries data-show="place:sub"
    and only the current one shows. Old ui.tab values ('build') still open in the right place. */
-var RAIL=[['pick','1','Pick questions','M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11'],['arrange','2','Arrange','M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3'],
-  ['format','3','Format','M4 6h16M4 12h16M4 18h16M9 4v4M15 10v4M7 16v4'],['print','4','Print','M7 9V4h10v5M7 17H5V10h14v7h-2M7 14h10v6H7z'],null,
+var RAIL=[['pick','1','Pick questions','M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11'],['setup','2','Set up','M4 6h16M4 12h16M4 18h16M9 4v4M15 10v4M7 16v4'],
+  ['print','3','Print','M7 9V4h10v5M7 17H5V10h14v7h-2M7 14h10v6H7z'],null,
   ['bank','','Question bank','M5 4h14v16H5zM9 8h6M9 12h6M9 16h4'],['io','','Import & backup','M12 4v11M8 8l4-4 4 4M5 15v4h14v-4']];
-var BUILD_PLACES={arrange:1,format:1,print:1};
-function placeOf(){var t=ui.tab==='build'?'arrange':ui.tab;return RAIL.some(function(r){return r&&r[0]===t;})?t:'bank';}
+var BUILD_PLACES={setup:1,print:1};
+// older places (Plan 4 had Arrange and Format steps; before that one Build & print tab) open the matching Set up panel
+var OLD_PLACE={build:['setup','questions'],arrange:['setup','questions'],format:['setup','doc']},OLD_SUB={order:'questions',parts:'page'};
+function oldPlace(){var o=OLD_PLACE[ui.tab];if(!o)return;var sub=(ui.subs||{})[ui.tab];ui.tab=o[0];ui.subs=Object.assign({},ui.subs);if(sub&&ui.tab===o[0])ui.subs.setup=OLD_SUB[sub]||sub;else if(!ui.subs.setup)ui.subs.setup=o[1];}
+function placeOf(){oldPlace();var t=ui.tab;return RAIL.some(function(r){return r&&r[0]===t;})?t:'bank';}
 function subsOf(p){var sh=sharing(),L={
   pick:[['browse','Browse banks'],['search','Search'],sh&&['team','Team banks'],sh&&['shared','Shared with you']],
-  arrange:[['order','Order'],['versions','Versions'],isExamDoc()&&state.settings.group&&['parts','Part directions']],
-  format:[['doc','Document'],['spacing','Spacing'],['acc','Accommodations'],['page','Page style']],
+  setup:[['questions','Questions'],['doc','Document'],['versions','Versions'],['spacing','Spacing'],['acc','Accommodations'],['page','Page style']],
   print:[['preview','Preview'],['saved','Saved tests']],
   bank:[['all','All questions'],['fields','Your fields']],
   io:[['import','Import'],['banks','Your banks'],sh&&['team','Team banks'],['backup','Backup'],['courses','Courses']]}[p]||[];
   return L.filter(Boolean);}
 function curSub(p){var L=subsOf(p),v=(ui.subs||{})[p];return L.some(function(x){return x[0]===v;})?v:(L[0]?L[0][0]:'');}
-function go(place,sub){ui.tab=place;if(sub){ui.subs=Object.assign({},ui.subs);ui.subs[place]=sub;}ui.limit=40;saveUi();render();window.scrollTo(0,0);}
+function go(place,sub){var o=OLD_PLACE[place];if(o){sub=OLD_SUB[sub]||sub||o[1];place=o[0];}ui.tab=place;if(sub){ui.subs=Object.assign({},ui.subs);ui.subs[place]=sub;}ui.limit=40;saveUi();render();window.scrollTo(0,0);}
 function renderTabs(){
   renderCourses();
-  var p=placeOf(),cnt={arrange:state.selected.length,bank:cq().length};
+  var p=placeOf(),cnt={setup:state.selected.length,bank:cq().length};
   $('#tabs').innerHTML=(ui.railMin?'':'<div class="rail-h">Make a test</div>')+RAIL.map(function(r){if(!r)return '<hr>';
     var on=r[0]===p;return '<button data-tab="'+r[0]+'" class="'+(on?'on':'')+'"'+(on?' aria-current="page"':'')+' title="'+esc(r[2])+(r[1]?' (Alt+'+r[1]+')':'')+'">'+
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+r[3]+'"/></svg><span class="rl">'+(r[1]?r[1]+' ':'')+esc(r[2])+'</span>'+(cnt[r[0]]!=null?'<span class="count">'+cnt[r[0]]+'</span>':'')+'</button>';}).join('')+
@@ -653,10 +655,18 @@ function showPlace(){
   if(bl&&br){var lv=$$('.bleft>[data-show]',main).some(function(e){return !e.hidden;});main.classList.toggle('one-col',!lv||br.hidden);bl.hidden=!lv;}
   else main.classList.remove('one-col');
   main.dataset.place=p;
+  // Next: the following sub-tab of Set up, or the next step on the rail
+  var nx=null,steps=['pick','setup','print'],si=steps.indexOf(p);
+  if(p==='setup'){var k=L.map(function(x){return x[0];}).indexOf(sb);nx=k>=0&&k<L.length-1?{p:'setup',s:L[k+1][0],t:L[k+1][1]}:{p:'print',s:'preview',t:'3 Print'};}
+  else if(p==='pick')nx={p:'setup',s:'questions',t:'2 Set up'};
+  var old=$('.nextbar',main);if(old)old.remove();
+  if(nx&&si>=0&&state.selected.length){var host=$('.bleft',main)&&!$('.bleft',main).hidden?$('.bleft',main):main;
+    host.insertAdjacentHTML('beforeend','<div class="nextbar"><button class="small" id="nextStep">Next: '+esc(nx.t)+' <span aria-hidden="true">→</span></button></div>');
+    $('#nextStep').onclick=function(){go(nx.p,nx.s);};}
 }
 function render(){ui.tab=placeOf();renderTabs();var p=ui.tab,sb=curSub(p);
   if(BUILD_PLACES[p])renderBuild();else if(p==='pick'&&sb==='browse')renderBrowse();else if(p==='io'||(p==='pick'&&sb!=='search')||(p==='bank'&&sb==='fields'))renderIO();else renderBank();}
-document.addEventListener('keydown',function(e){if(!e.altKey||e.ctrlKey||e.metaKey)return;var m=/^Digit([1-4])$/.exec(e.code||'');if(!m)return;e.preventDefault();go(RAIL[+m[1]-1][0]);});
+document.addEventListener('keydown',function(e){if(!e.altKey||e.ctrlKey||e.metaKey)return;var t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;var m=/^Digit([1-3])$/.exec(e.code||'');if(!m)return;e.preventDefault();go(RAIL[+m[1]-1][0]);});
 
 /* ================= bank tab ================= */
 function opts(list,sel,allLabel){return '<option value="">'+esc(allLabel)+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
@@ -745,7 +755,7 @@ function _renderBrowse(){
   var units={};if(bk)bk.qs.forEach(function(q){var u=q.unit||'__none',x=q.section||'__none';units[u]=units[u]||{};(units[u][x]=units[u][x]||[]).push(q);});
   var flat=bk&&Object.keys(units).join()==='__none'&&Object.keys(units.__none).join()==='__none'; // no units or sections: straight to the questions
   if(flat){ui.brUnit='__none';ui.brSec='';}
-  var onN=state.selected.length,onLine='<span class="br-on"><b>'+onN+'</b> on this '+esc(DOC_TYPES[docType()].toLowerCase())+(onN?' · <button class="linkbtn" id="brArr">Arrange them</button>':'')+'</span>';
+  var onN=state.selected.length,onLine='<span class="br-on"><b>'+onN+'</b> on this '+esc(DOC_TYPES[docType()].toLowerCase())+(onN?' · <button class="linkbtn" id="brArr">Set them up</button>':'')+'</span>';
   var crumbs=function(parts){return '<nav class="crumbs" aria-label="Where you are">'+parts.map(function(x,i){return i<parts.length-1?'<button class="linkbtn" data-crumb="'+i+'">'+esc(x)+'</button><span aria-hidden="true">›</span>':'<b>'+esc(x)+'</b>';}).join('')+'</nav>';};
   var inSel=function(qs){return qs.filter(function(q){return isSel(q.id);}).length;};
   if(!bk){
@@ -771,7 +781,7 @@ function _renderBrowse(){
   $$('[data-brbank]',main).forEach(function(b){b.onclick=function(){ui.brBank=b.dataset.brbank;ui.brUnit='';ui.brSec='';saveUi();renderBrowse();window.scrollTo(0,0);};});
   $$('[data-brunit]',main).forEach(function(b){b.onclick=function(){ui.brUnit=b.dataset.brunit;ui.brSec=b.dataset.brsec;ui.limit=40;saveUi();renderBrowse();window.scrollTo(0,0);};});
   $$('[data-crumb]',main).forEach(function(b){b.onclick=function(){var i=+b.dataset.crumb;if(i===0)ui.brBank='';ui.brUnit='';ui.brSec='';saveUi();renderBrowse();};});
-  var ar=$('#brArr');if(ar)ar.onclick=function(){go('arrange','order');};
+  var ar=$('#brArr');if(ar)ar.onclick=function(){go('setup','questions');};
 }
 function _renderBank(){
   var main=$('#main');
@@ -1277,7 +1287,7 @@ function collect(){
 function drawSpec(){
   var sp=$('#e-spec'),h='';
   if(isMC(ed.type)){
-    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<p class="hint" style="margin:10px 0 0">Bimodal: prints with these choices, or as an open question without them. Choose on 3 Format › Page style.</p><label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
+    h='<span class="lbl">Answer choices <span class="hint" style="font-weight:400">— click the circle next to the correct one</span></span>'+symbar()+'<div id="chs">'+ed.choices.map(function(c,i){return '<div class="chrow'+(i===ed.answer?' correct':'')+'"><input type="radio" name="corr" data-ci="'+i+'"'+(i===ed.answer?' checked':'')+' aria-label="Correct answer '+LETTERS[i]+'"><span class="letter">'+LETTERS[i]+'.</span><div class="rich" contenteditable="true" data-ct="'+i+'" data-ph="Choice '+LETTERS[i]+'">'+(c||'')+'</div><button class="small ghost" data-cr="'+i+'" title="Remove choice"'+(ed.choices.length<=2?' disabled':'')+'>✕</button></div>';}).join('')+'</div>'+(ed.choices.length<8?'<button class="small" id="addCh">+ Add choice</button>':'')+'<div class="checks" style="margin-top:12px"><label><input type="checkbox" id="e-inimg"'+(ed.inImage?' checked':'')+'><span>The choices are part of the question picture<small>They won’t be printed again or shuffled. Keep the labels above matching the picture, like (1) (2) (3) (4).</small></span></label><label><input type="checkbox" id="e-lock"'+(ed.lockChoices?' checked':'')+'><span>Keep these choices in this order<small>For choices like “1, 2, 3, 4” or “I and II”. “All/None of the above” always stays last automatically.</small></span></label></div>'+(ed.type==='bm'?'<p class="hint" style="margin:10px 0 0">Bimodal: prints with these choices, or as an open question without them. Choose on Set up › Spacing.</p><label style="margin-top:12px"><span class="lbl">Space for the student’s work</span><span style="display:flex;gap:6px;align-items:center"><input type="number" id="e-space" min="0.5" max="9" step="0.25" value="'+esc(ed.space||2)+'" style="width:80px"> inches</span></label>':'');
   }else if(ed.type==='tf'){
     h='<span class="lbl">Correct answer</span><div class="tfpick"><label class="'+(ed.answer==='T'?'on':'')+'"><input type="radio" name="tf" value="T"'+(ed.answer==='T'?' checked':'')+'>True</label><label class="'+(ed.answer==='F'?'on':'')+'"><input type="radio" name="tf" value="F"'+(ed.answer==='F'?' checked':'')+'>False</label></div>';
   }else if(ed.type==='sa'){
@@ -1335,14 +1345,13 @@ function _renderBuild(){
   function tf(key,label,ph,w){return '<label'+(w?' style="max-width:'+w+'"':'')+'><span class="lbl">'+label+'</span><input type="text" data-set="'+key+'" value="'+esc(s[key])+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>';}
   function ta(key,label,ph,rows,hint){return '<label><span class="lbl">'+label+(hint?' <span class="hint" style="font-weight:400">— '+hint+'</span>':'')+'</span><textarea data-set="'+key+'" rows="'+(rows||2)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'>'+esc(s[key])+'</textarea></label>';}
   var calcSel='<label><span class="lbl">Calculator</span><select data-set="calc">'+[['','(don’t show)'],['Desmos','Desmos'],['TI-84','TI-84'],['No calculator','No calculator'],['Scientific calculator','Scientific calculator'],['other','Other…']].map(function(o){return '<option value="'+esc(o[0])+'"'+(s.calc===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.calc==='other'?'<input type="text" data-set="calcOther" value="'+esc(s.calcOther)+'" placeholder="e.g. TI-30XS" style="margin-top:6px;width:100%">':'')+'</label>';
-  var timeSel='<label><span class="lbl">Time accommodation</span><select data-set="time">'+[['','(don’t show)'],['1.5','1.5× extended time'],['2','2.0× extended time'],['min','Number of minutes…']].map(function(o){return '<option value="'+o[0]+'"'+(s.time===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.time==='min'?'<span style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="number" data-set="timeMin" min="1" max="600" value="'+esc(s.timeMin)+'" style="width:90px"> minutes</span>':'')+'</label>';
+  var timeSel='<label><span class="lbl">Time accommodation <span class="hint" style="font-weight:400">— printed on every copy</span></span><select data-set="time">'+[['','(don’t show)'],['1.5','1.5× extended time'],['2','2.0× extended time'],['min','Number of minutes…']].map(function(o){return '<option value="'+o[0]+'"'+(s.time===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.time==='min'?'<span style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="number" data-set="timeMin" min="1" max="600" value="'+esc(s.timeMin)+'" style="width:90px"> minutes</span>':'')+'</label>';
   var details='';
   if(exam)details=
     '<div class="row3">'+tf('quarter','Quarter #','1')+tf('unitNum','Unit #','3')+'</div>'+
     tf('topic','Unit title <span class="hint" style="font-weight:400">— right side, in italics</span>','e.g. Parallel & Perpendicular Lines')+
     tf('title','Title line','auto: '+autoTitle())+
     '<div class="row">'+tf('teacher','Teacher','e.g. Ms. Candalino')+calcSel+'</div>'+
-    '<div class="row">'+timeSel+'<span></span></div>'+
     ta('instructions','Instructions','optional',2,'printed above Part I');
   else if(dt==='review')details=
     '<div class="row3">'+tf('unitNum','Unit #','3')+'</div>'+
@@ -1359,16 +1368,15 @@ function _renderBuild(){
     '<label style="max-width:220px"><span class="lbl">Space for notes</span><span style="display:flex;gap:6px;align-items:center"><input type="number" data-set="notesSpace" min="0" max="8" step=".25" value="'+esc(s.notesSpace)+'" style="width:80px"> inches</span></label>'+
     '<h3 style="margin:8px 0 0">Success Criteria</h3>'+ta('success','One per line','I can …\nI can …',3)+
     '<div><h3 style="margin:8px 0 0">Students need</h3><p class="hint" style="margin:2px 0 8px">Pictures in the top-left corner of the first page.</p><div class="checks">'+cb('toolCompass','Compass')+cb('toolRuler','Ruler')+cb('toolTrace','Tracing paper')+'</div></div>'+
-    '<p class="hint">Mark each question as Warm Up, Example or Practice under 2 Arrange.</p>';
-  main.innerHTML='<div class="bgrid"><div class="bleft"><div class="card" data-show="format:doc"><h2>Document</h2><div class="doctypes">'+Object.keys(DOC_TYPES).map(function(k){return '<button type="button" data-doctype="'+k+'" class="'+(k===dt?'on':'')+'">'+DOC_TYPES[k]+'</button>';}).join('')+'</div><div class="fields">'+
+    '<p class="hint">Mark each question as Warm Up, Example or Practice under Set up › Questions.</p>';
+  main.innerHTML='<div class="bgrid"><div class="bleft"><div class="card" data-show="setup:doc"><h2>Document</h2><div class="doctypes">'+Object.keys(DOC_TYPES).map(function(k){return '<button type="button" data-doctype="'+k+'" class="'+(k===dt?'on':'')+'">'+DOC_TYPES[k]+'</button>';}).join('')+'</div><div class="fields">'+
     '<label><span class="lbl">Course name <span class="hint" style="font-weight:400">— centered above the bar on every page</span></span><input type="text" data-set="headerText" value="'+esc(s.headerText)+'" placeholder="'+esc(state.course)+'"></label>'+
     details+
     '</div></div>'+
-    '<div class="card" data-show="format:spacing"><h2>Spacing</h2>'+spacingSection()+'</div>'+
-    '<div class="card" data-show="format:acc"><h2>Accommodations</h2>'+accSection()+'</div>'+
-    '<div class="card" id="pageStyle" data-show="format:page"><h2>Page style</h2><div class="fields">'+
+    '<div class="card" data-show="setup:spacing"><h2>Spacing</h2>'+spacingSection()+'<div class="fields sp-bm">'+'<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">Switch single questions under Set up › Questions.</span></label>'+'</div></div>'+
+    '<div class="card" data-show="setup:acc"><h2>Accommodations</h2>'+(exam?'<div class="fields acc-time">'+timeSel+'</div>':'')+accSection()+'</div>'+
+    '<div class="card" id="pageStyle" data-show="setup:page"><h2>Page style</h2><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
-    '<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">You can switch single questions under 2 Arrange.</span></label>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
     '</div>'+
     '<h3>Layout</h3><div class="checks">'+
@@ -1377,14 +1385,14 @@ function _renderBuild(){
     cb('nameLine','Name and date line')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
     cb('keyStd','Show unit and standards on the answer key')+cb('keyNotes','Show my notes on the answer key','Never on the student copies.')+'</div></div>'+
-    '<div class="card" data-show="arrange:versions"><h2>Versions</h2><div class="fields">'+'<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+'</div>'+
+    '<div class="card" data-show="setup:versions"><h2>Versions</h2><div class="fields">'+'<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+'</div>'+
     '<h3>Scrambling</h3><div class="checks">'+cb('shuffleQ','Shuffle question order',exam?'Within each part.':'Within each section.')+cb('shuffleC','Shuffle answer choices','“All/None of the above” stays last.')+cb('keepA','Keep Version A in the original order','Handy as your master copy.')+(nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+'</div></div>'+
-'<div class="card savedcard" id="savedCard" data-show="print:saved"></div><div class="card" data-show="arrange:order"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
+'<div class="card savedcard" id="savedCard" data-show="print:saved"></div><div class="card" data-show="setup:questions"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions under 1 Pick questions. Questions print in this order unless you shuffle or group them.</p></div>'+
-    (exam&&s.group?'<div class="card" data-show="arrange:parts"><h2>Part directions</h2><div><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></div></div>':'')+
-    '</div><div class="bright" data-show="arrange:* format:* print:preview"><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
+    (exam&&s.group?'<div class="card" data-show="setup:page"><h2>Part directions</h2><div><p class="note">Printed under each part heading. {credits} becomes “2 credits”, “2 or 3 credits”… from the questions in that part. The part total like [14] is added at the end.</p><div class="fields">'+[['short','Short-answer parts (1 credit each)'],['choice','Multiple-choice parts'],['open','Open-response parts']].map(function(p){return '<label><span class="lbl">'+p[1]+'</span><textarea rows="3" data-pdir="'+p[0]+'">'+esc(partDir(p[0]))+'</textarea></label>';}).join('')+'<div><button class="small ghost" id="pdirReset">Reset to the original wording</button></div></div></div></div>':'')+
+    '</div><div class="bright" data-show="setup:* print:preview"><div class="card pvcard"><h2 style="display:flex;align-items:center;gap:10px">Preview<span class="spacer"></span><label class="checks" style="font-size:13px;font-family:system-ui,sans-serif;font-weight:400"><span style="display:flex;gap:7px;align-items:center"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</span></label></h2>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
     '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
@@ -1827,7 +1835,7 @@ function wordImport(file){
     var H=res.header||{},hdrDesc=[H.running,H.title,H.topic].filter(Boolean).join(' · ');
     $('#wBar').innerHTML='<label>Source<input type="text" id="wSrc" value="'+esc(src)+'" style="width:220px"></label><label>Bank<input type="text" id="wBank" list="wBanks" value="'+esc(src)+'" style="width:200px"><datalist id="wBanks">'+uniq('bank').map(function(b){return '<option value="'+esc(b)+'">';}).join('')+'</datalist></label><label>Unit<input type="text" id="wUnit" list="wUnits" style="width:110px"><datalist id="wUnits">'+uniq('unit').map(function(b){return '<option value="'+esc(b)+'">';}).join('')+'</datalist></label><label>Section<input type="text" id="wSec" style="width:80px"></label>'+
       '<label><input type="checkbox" id="wSel"'+(state.selected.length?'':' checked')+'> Put them on the test</label>'+
-      (hdrDesc?'<label title="Sets the Classic layout on 3 Format"><input type="checkbox" id="wHdr" checked> Use this file’s header for my printed tests: <b style="font-weight:600">'+esc(hdrDesc)+'</b></label>':'');
+      (hdrDesc?'<label title="Sets the Classic layout on Set up"><input type="checkbox" id="wHdr" checked> Use this file’s header for my printed tests: <b style="font-weight:600">'+esc(hdrDesc)+'</b></label>':'');
     $('#wSrc').oninput=function(){var b=$('#wBank');if(b.value===wimp.src)b.value=this.value;wimp.src=this.value;};
     drawWCards();
   }).catch(function(e){console.error(e);var l=$('#wList');if(l)l.innerHTML='<div class="imp-status" style="color:var(--danger)">Couldn’t read this file: '+esc(e&&e.message||e)+'</div>';});
@@ -1880,7 +1888,7 @@ function wCommit(){
   state.questions=state.questions.concat(added);
   if(sel)added.forEach(function(q){if(!isSel(q.id))state.selected.push(q.id);});
   if(hdr){var H=wimp.header||{},st=state.settings;st.style='classic';if(st.instructions==='Read each question carefully.')st.instructions='';if(H.running)st.headerText=H.running;if(H.title){st.title=H.title;var mq=H.title.match(/Quarter\s*(\d+)/i),mu=H.title.match(/Unit\s*(\d+)/i);if(mq)st.quarter=mq[1];if(mu)st.unitNum=mu[1];st.docType=/quiz/i.test(H.title)?'quiz':'test';if(st.title===autoTitle())st.title='';}if(H.topic)st.topic=H.topic;st.nameLine=!!H.nameLine||st.nameLine;st.group=true;if(st.labels==='num')st.labels='lowerdot';}
-  changed();$('#modal').innerHTML='';var nAdded=added.length;wimp=null;ui.tab=sel?'arrange':'bank';ui.source=sel?ui.source:src;render();
+  changed();$('#modal').innerHTML='';var nAdded=added.length;wimp=null;ui.tab=sel?'setup':'bank';if(sel){ui.subs=Object.assign({},ui.subs,{setup:'questions'});}ui.source=sel?ui.source:src;render();
   toast('Added '+nAdded+' question'+(nAdded>1?'s':'')+' from “'+src+'”'+(sel?' and put them on the test':'')+'.');
 }
 
@@ -1985,10 +1993,10 @@ function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.cla
 /* ================= start ================= */
 /* Short in-app help; the full guide is the wiki. */
 var HELP_HTML='<h2 id="helpT">Help</h2>'+
-  '<h3>The rail on the left</h3><p>Making a test is four steps: <b>1 Pick questions</b>, <b>2 Arrange</b>, <b>3 Format</b>, <b>4 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>4</kbd> jump to the steps.</p>'+
+  '<h3>The rail on the left</h3><p>Making a test is three steps: <b>1 Pick questions</b>, <b>2 Set up</b>, <b>3 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>3</kbd> jump to the steps; <b>Next</b> at the bottom moves you along.</p>'+
   '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
   '<h3>Pick questions</h3><p>In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and tick questions (or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
-  '<h3>Arrange, format and print</h3><p><b>2 Arrange</b> has the order, the <b>Versions</b> and scrambling. <b>3 Format</b> has the document type (Test, Quiz, Review, Lesson), its details, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them. <b>4 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them. <b>3 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
   '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
   '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+

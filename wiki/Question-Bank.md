@@ -9,7 +9,7 @@
 1. Click a bank to see its **units** and **sections**, with how many questions each has and how many are already on the test.
 2. Click a unit (all of it) or a section. Its questions show with the usual tick box, **Edit** and **Copy**.
 3. Tick questions to put them on the test, or use **Add 5 at random** for that section (**Undo** takes them off again).
-4. The path at the top (**All banks › NY Regents Geometry › Unit 3 · Section 2**) goes back. **Arrange them** jumps to **2 Arrange**.
+4. The path at the top (**All banks › NY Regents Geometry › Unit 3 · Section 2**) goes back. **Set them up** jumps to **2 Set up**.
 
 A bank without units or sections opens straight to its questions. Browsing never changes your **Search** filters.
 
@@ -19,7 +19,7 @@ Search by words, or filter by **unit**, **section**, **topic** and **standard**.
 
 Every filter you're using shows as a chip under the filters, like **Unit: 3 ✕**. Click a chip to remove that filter, or **Clear filters** to remove them all. **Sort** (next to "Showing … of …") puts the list in bank order, newest added first, by exam date (newest or oldest first), by standard, or by unit and section.
 
-Tick the questions you want in your document. They're added to the list on **2 Arrange** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
+Tick the questions you want in your document. They're added to the list on **2 Set up › Questions** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
 
 ## Editing a question
 
@@ -88,7 +88,7 @@ Rename or delete a field on **Question bank → Your fields**. Deleting removes 
 | Short answer | Answer lines |
 | Extended response | Lines or blank work space (you choose how much) |
 
-**Bimodal:** on **3 Format › Page style**, choose whether bimodal questions print *with* their choices or *without* them (as open-ended questions with work space). You can switch single questions in the list on the right.
+**Bimodal:** on **2 Set up › Spacing**, choose whether bimodal questions print *with* their choices or *without* them (as open-ended questions with work space). You can switch single questions in the list on the right.
 
 ## Deleting
 

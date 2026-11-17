@@ -9,12 +9,12 @@ Your work is saved automatically in that browser on that computer. Opening the f
 ## The three tabs
 
 - **Question bank**: every question for the current course. Search, filter, edit and pick questions.
-- **1 Pick questions → 2 Arrange → 3 Format → 4 Print**: the four steps of making a test, on the rail at the left.
+- **1 Pick questions → 2 Set up → 3 Print**: the three steps of making a test, on the rail at the left.
 - **Question bank**: every question in the course, to edit, and **Your fields**.
 - **Import & backup**: bring questions in, your banks, backups and courses.
 
 The buttons across the top of each place (like **Spacing** or **Backup**) show one panel at a time.
-**Alt+1** to **Alt+4** jump to the four steps; **« Icons only** at the bottom of the rail makes it narrow.
+**Next** at the bottom of each step moves you along, **Alt+1** to **Alt+3** jump to the steps; **« Icons only** at the bottom of the rail makes it narrow.
 
 The **Course** menu at the top switches between courses. Each course has its own questions and settings.
 
@@ -44,5 +44,5 @@ These settings are just for you, in that browser. They don't change your printed
 1. Pick your course from the **Course** menu.
 2. On **Import & backup › Import**, under **ExamView banks**, choose a `.bnk` file.
 3. In **1 Pick questions › Browse banks**, open a bank and a section, and tick the questions you want.
-4. On **3 Format › Document**, choose **Test**, **Quiz**, **Review** or **Lesson** and fill in the numbers (quarter, unit and so on).
+4. On **2 Set up › Document**, choose **Test**, **Quiz**, **Review** or **Lesson** and fill in the numbers (quarter, unit and so on).
 5. Click **Print**. To make a PDF, choose **Save as PDF** as the printer.

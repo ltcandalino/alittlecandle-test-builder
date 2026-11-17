@@ -28,7 +28,7 @@ describe('tabs', () => {
   test('all three tabs open', async () => {
     await addQuestions(page, [{}, { type: 'es' }]);
     await gotoTab(page, 'bank');
-    for (const t of ['pick', 'arrange', 'format', 'print', 'io', 'bank']) {
+    for (const t of ['pick', 'setup', 'print', 'io', 'bank']) {
       await tab(t);
       assert.ok(await page.$(`#tabs [data-tab="${t}"].on`), t + ' is highlighted');
     }
@@ -163,7 +163,7 @@ describe('building', () => {
     await gotoTab(page, 'bank');
     for (const id of ids) await page.check(`[data-pick="${id}"]`);
     assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), ids);
-    await tab('arrange');
+    await tab('setup'); await page.click('.subtabs [data-sub="questions"]');
     assert.equal(await page.$$eval('#selList li', x => x.length), 3);
     await page.click(`#selList [data-rm="${ids[1]}"]`);
     assert.deepEqual(await page.evaluate(() => window.__tb.state.selected), [ids[0], ids[2]]);
@@ -188,10 +188,10 @@ describe('building', () => {
   test('lesson roles and bonus buttons', async () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
     await select(page, ids);
-    await place('arrange', 'order');
+    await place('setup', 'questions');
     await page.click(`[data-bonus="${ids[1]}"]`);
     assert.equal(await page.evaluate(id => window.__tb.state.settings.bonus[id], ids[1]), true);
-    await settings(page, { docType: 'lesson' }); await place('arrange', 'order');
+    await settings(page, { docType: 'lesson' }); await place('setup', 'questions');
     await page.selectOption(`[data-role="${ids[0]}"]`, 'example');
     await page.fill(`[data-exc="${ids[0]}"]`, 'SAS');
     const s = await page.evaluate(() => window.__tb.state.settings);
@@ -264,14 +264,14 @@ describe('build and print layout', () => {
   test('the preview comes before the Print buttons, with a live summary', async () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
     await select(page, ids.slice(0, 1)); await settings(page, { versions: 3 });
-    await place('arrange', 'order');
+    await place('setup', 'questions');
     const order = await page.evaluate(() => {
       const y = el => el.getBoundingClientRect().top + window.scrollY;
       return { paper: y(document.querySelector('#paper')), print: y(document.querySelector('[data-print="both"]')) };
     });
     assert.ok(order.paper < order.print, 'paper preview is above the Print buttons');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 1 question · 2 points');
-    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await place('arrange', 'order');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await place('setup', 'questions');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 2 questions · 6 points');
     await page.click('#selList [data-rm]');
     assert.match(await page.textContent('#pbSum'), /1 question ·/);
@@ -551,31 +551,54 @@ describe('simpler screens', () => {
     await gotoTab(page, 'bank');
     assert.equal(await page.textContent('.tag.unit'), 'Unit 3 · Sec 2');
   });
-  test('Format has one panel per sub-tab, and the app reopens where you were', async () => {
-    await place('format', 'doc');
-    assert.ok(!(await page.isVisible('[data-set="shuffleQ"]')), 'scrambling is under 2 Arrange › Versions');
+  test('Set up has one panel per sub-tab, and the app reopens where you were', async () => {
+    await place('setup', 'doc');
+    assert.ok(!(await page.isVisible('[data-set="shuffleQ"]')), 'scrambling is under Set up › Versions');
     assert.ok(!(await page.isVisible('[data-set="font"]')), 'one panel at a time');
     await page.click('.subtabs [data-sub="page"]');
     assert.ok(await page.isVisible('[data-set="font"]'));
     assert.ok(await page.isVisible('#paper'), 'the preview stays beside the settings');
-    await page.waitForFunction(() => window.__tb.ui().subs.format === 'page');
+    await page.waitForFunction(() => window.__tb.ui().subs.setup === 'page');
     await page.evaluate(() => window.__tb.fn.persist());
     await page.reload(); await page.waitForFunction(() => window.__tb);
     await page.waitForSelector('.subtabs [data-sub="page"].on');
     assert.ok(await page.isVisible('[data-set="font"]'), 'still on Page style after reload');
-    await place('arrange', 'versions');
+    await place('setup', 'versions');
     assert.ok(await page.isVisible('[data-set="shuffleQ"]'));
   });
-  test('the rail: Alt+1–4 jump to the steps, icons only, and old saved tabs still open', async () => {
+  test('related settings sit together, and Next walks through Set up to Print', async () => {
+    const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
+    await select(page, ids); await settings(page, { docType: 'test', group: true });
+    await place('setup', 'acc');
+    assert.ok(await page.isVisible('[data-set="time"]'), 'Time accommodation is under Accommodations');
+    await place('setup', 'doc');
+    assert.ok(!(await page.isVisible('[data-set="time"]')), 'and no longer under Document');
+    await place('setup', 'spacing');
+    assert.ok(await page.isVisible('[data-set="bmMode"]'), 'both bimodal settings are under Spacing');
+    await place('setup', 'page');
+    assert.ok(await page.isVisible('[data-set="group"]') && await page.isVisible('#pdirReset'), 'Part directions sit with Group into parts');
+    await place('setup', 'questions');
+    const seen = [];
+    for (let i = 0; i < 6; i++) { seen.push(await page.textContent('#nextStep')); await page.click('#nextStep'); }
+    assert.deepEqual(seen.map(t => t.replace(/\s*→/, '').trim()), ['Next: Document', 'Next: Versions', 'Next: Spacing', 'Next: Accommodations', 'Next: Page style', 'Next: 3 Print']);
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'print');
+  });
+  test('the rail: Alt+1–3 jump to the steps (not while typing), icons only, and old saved tabs still open', async () => {
+    await addQuestions(page, [{ html: 'One' }]);
     await place('bank');
-    await page.keyboard.press('Alt+Digit3');
-    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'format');
+    await page.keyboard.press('Alt+Digit2');
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'setup');
+    await place('pick', 'search');
+    await page.focus('#fq'); await page.keyboard.press('Alt+Digit3');
+    assert.equal(await page.evaluate(() => window.__tb.ui().tab), 'pick', 'Alt+3 in the search box types, it doesn’t jump');
     await page.click('#railMin');
     assert.ok(await page.$('#shell.rmin'));
     assert.ok(!(await page.isVisible('#tabs .rl')), 'labels hidden');
     await page.click('#railMin');
-    await page.evaluate(() => { window.__tb.ui().tab = 'build'; window.__tb.render(); });
-    assert.ok(await page.$('#tabs [data-tab="arrange"].on'), 'the old Build & print tab opens 2 Arrange');
+    for (const old of ['build', 'arrange', 'format']) {
+      await page.evaluate(t => { window.__tb.ui().tab = t; window.__tb.render(); }, old);
+      assert.ok(await page.$('#tabs [data-tab="setup"].on'), old + ' (saved by an older version) opens 2 Set up');
+    }
   });
 });
 
@@ -594,7 +617,7 @@ describe('accommodations', () => {
   test('turning on an accommodated copy shows its preview and print button', async () => {
     const ids = await addQuestions(page, [{ html: 'Slope?' }, { html: 'Area?' }]);
     await select(page, ids); await settings(page, { versions: 2 });
-    await place('format', 'acc');
+    await place('setup', 'acc');
     assert.ok(await page.isDisabled('[data-acc="font"]'), 'choices wait until it is turned on');
     await page.check('[data-acc="on"]');
     assert.equal(await page.textContent('#vtabs button.on'), 'Accommodated');

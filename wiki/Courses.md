@@ -2,7 +2,7 @@
 
 Each course (Geometry, Algebra 1, Algebra 2, Pre-Calculus, or any you add) has:
 - its own questions
-- its own test settings (**2 Arrange**, **3 Format**): document type, numbers, fonts, selected questions
+- its own test settings (**2 Set up**): document type, numbers, fonts, selected questions
 
 Switch courses with the **Course** menu at the top. Add, rename or delete courses on **Import & backup › Courses** (**Add course**, **Rename**, **Delete**).
 

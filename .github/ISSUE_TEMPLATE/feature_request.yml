@@ -23,9 +23,8 @@ body:
       options:
         - Question bank
         - 1 Pick questions
-        - 2 Arrange
-        - 3 Format
-        - 4 Print
+        - 2 Set up
+        - 3 Print
         - Import & backup
         - Manage accounts (website admin)
         - Sharing / team banks (website)
