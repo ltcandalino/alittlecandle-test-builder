@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-16
+
 ### Changed
 - **One thing at a time** (Plan 4, stage 1): a **rail on the left** replaces the three top tabs. Making a test is four steps: **1 Pick questions**, **2 Arrange**, **3 Format**, **4 Print**, then **Question bank** and **Import & backup**. Each place has buttons across the top that show one panel at a time: for example **3 Format** has Document, Spacing, Accommodations and Page style, with the preview beside them; **2 Arrange** has Order, Versions (with scrambling) and Part directions; **4 Print** has the preview with the print buttons, and Saved tests. **Alt+1** to **Alt+4** jump to the steps, and **« Icons only** makes the rail narrow. On a phone the rail is a row across the top. Nothing about your questions, settings or printouts changes.
 
