@@ -14,10 +14,10 @@ account on your website can use it.
 ## Making a bank public
 
 1. Open **Import & backup**.
-2. Under **Your banks**, click **Make public** next to the bank.
+2. Under **Your banks**, open the bank's **⋯** menu and click **Make public**.
 3. Click again to confirm (**Confirm: everyone on this site sees it**).
 
-The bank's questions get a **Public** tag in the question bank. To stop sharing, click **Public · make private**.
+The bank's questions get a **Public** tag in the question bank. To stop sharing, click **Public · make private** in the same menu.
 Your colleagues' copies disappear the next time their app syncs. **Undo** works right after either change.
 
 You can also change one question: **Edit → More details → Who can see it**.

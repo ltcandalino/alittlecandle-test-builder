@@ -13,8 +13,8 @@ When you import, questions go into the course that's currently chosen.
 A bank can be shared by several courses (for example an Algebra 1 bank you also use in Algebra 2) without making a copy:
 
 1. Import the bank into one course as usual.
-2. On **Import & backup**, under **Your banks**, click **Courses…** next to the bank.
-3. Tick the other courses that should use it.
+2. On **Import & backup**, under **Your banks**, click the bank's **⋯** menu.
+3. Under **Also use in**, tick the other courses that should use it.
 
 The questions now show up in each ticked course. There's still only one copy, so fixing a typo or an answer in one course fixes it everywhere. Shared questions show an **Also in …** tag in the question bank. Each course still keeps its own tests and settings.
 

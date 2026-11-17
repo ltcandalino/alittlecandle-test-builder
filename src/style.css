@@ -459,14 +459,7 @@ details.fold[open]>summary{margin-bottom:12px}
 /* shared banks */
 .e-courses{border:0;margin:0;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 12px}
 .e-courses legend{padding:0;margin-bottom:4px}
-.e-courses label,.usein-pop label{display:flex;gap:6px;align-items:center;font-weight:400}
-.usein{position:relative}
-.usein>summary{list-style:none;cursor:pointer;padding:4px 10px;border-radius:8px;font-size:13px;color:var(--ink)}
-.usein>summary::-webkit-details-marker{display:none}
-.usein>summary:hover{background:var(--accent-soft)}
-.usein>summary small{color:var(--muted)}
-.usein-pop{position:absolute;right:0;top:100%;z-index:20;min-width:240px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;gap:6px}
-.usein-pop .hint{margin:0 0 4px}
+.e-courses label{display:flex;gap:6px;align-items:center;font-weight:400}
 .tag.also{border-style:dashed}
 /* Change these… (bulk edit), Check & clean up, her own fields, bank files */
 .bulkbox{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--ink,#222)}
@@ -483,9 +476,28 @@ details.fold[open]>summary{margin-bottom:12px}
 .dialog .row4.xfields{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .xf-add{align-self:end;display:flex;gap:6px}
 .xf-add input{min-width:0}
-.bf-banks{border:0;margin:0 0 4px;padding:0;min-width:0;display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px}
-.bf-banks legend{padding:0;margin-bottom:4px}
-.bf-banks label{display:flex;gap:6px;align-items:center}
+/* Your banks: plain rows, ⋯ menu */
+.b-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 6px}
+.b-tools input[type=search]{flex:1 1 160px;min-width:0}
+.b-all{display:flex;gap:6px;align-items:center;font-weight:400;font-size:13px}
+.blist{list-style:none;margin:0;padding:0}
+.blist li{display:flex;gap:8px;align-items:center;padding:4px 4px 4px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+.blist li:last-child{border-bottom:0}
+.blist li:hover{background:var(--accent-soft)}
+.blist .b-name{display:flex;gap:8px;align-items:center;font-weight:400;min-width:0;cursor:pointer}
+.blist .b-name span{overflow-wrap:anywhere}
+.blist li>small{color:var(--muted);flex:1}
+.bmenu{position:relative;margin-left:auto}
+.bmenu>summary{list-style:none;cursor:pointer;padding:0 8px;border-radius:6px;font-size:18px;line-height:24px;color:var(--muted)}
+.bmenu>summary::-webkit-details-marker{display:none}
+.bmenu>summary:hover,.bmenu[open]>summary{background:var(--panel);color:var(--ink)}
+.bm-pop{position:absolute;right:0;top:100%;z-index:20;min-width:220px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.12);display:grid;gap:8px}
+.bm-sec{display:grid;gap:4px}
+.bm-sec label{display:flex;gap:6px;align-items:center;font-weight:400}
+.bm-sec .hint{margin:0}
+.bm-row{display:flex;gap:6px}
+#bankMore{margin-top:6px}
+.blist li[hidden],#bankMore[hidden]{display:none}
 .tag.mine{background:var(--accent-soft);color:var(--accent)}
 
 /* sharing with colleagues */

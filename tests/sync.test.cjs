@@ -174,6 +174,7 @@ describe('public banks shared with colleagues (website version)', () => {
       T.state = T.normalize(st); T.ui().tab = 'io'; T.render();
     });
     // Make public asks for a second click
+    await a.page.click('[data-bmenu="Regents bank"] > summary');
     await a.page.click('[data-pub="Regents bank"]');
     assert.match(await a.page.textContent('[data-pub="Regents bank"]'), /Confirm/);
     await a.page.click('[data-pub="Regents bank"]');
@@ -211,6 +212,7 @@ describe('public banks shared with colleagues (website version)', () => {
     await b2.context.close();
     // the owner makes it private again: it disappears for the colleague (her copy stays)
     await a.page.evaluate(() => { window.__tb.ui().tab = 'io'; window.__tb.render(); });
+    await a.page.evaluate(() => { document.querySelector('[data-bmenu="Regents bank"]').open = true; }); // may still be open from before
     await a.page.click('[data-pub="Regents bank"][data-to="private"]');
     await a.page.evaluate(() => window.__tb.fn.persist());
     await syncNow(a.page);

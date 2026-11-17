@@ -1012,10 +1012,41 @@ function saveBankFiles(names,res){
 }
 
 /* ---- Import & backup cards: bank files, her own fields ---- */
-function bankFilesCard(bnames,bc){
-  return '<div class="card" id="bankFilesCard"><h2>Bank files</h2><p class="note" style="margin-top:0">Save banks as files (<b>.json</b>, one per bank) to keep in a folder on your NAS, or to give to another teacher. They keep everything: math, pictures, answers and all the details, including your own fields. Opening a bank file adds its questions, and updates the ones you already have from that file.</p>'+
-    (bnames.length?'<fieldset class="bf-banks"><legend class="lbl">Banks to save</legend>'+bnames.map(function(b){return '<label><input type="checkbox" data-bf value="'+esc(b)+'" checked><span>'+esc(b)+' <small>('+bc[b]+')</small></span></label>';}).join('')+'</fieldset>':'')+
-    '<div class="actions"><button class="primary" id="bfSave"'+(bnames.length?'':' disabled')+'>Save to a folder…</button><span class="filebtn"><button>Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div><div id="bfRes" class="result"></div></div>';
+/* Your banks: one list. Tick banks to save them as files; each row's ⋯ menu has Courses, Make public, Rename, Delete. */
+var BANKS_SHOWN=10;
+function yourBanksCard(bnames,bc){
+  if(!bnames.length)return '<div class="card" id="banksCard"><h2>Your banks</h2><p class="note" style="margin:0">No questions yet.</p><div class="actions"><span class="filebtn"><button>Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div><div id="bfRes" class="result"></div></div>';
+  var many=bnames.length>BANKS_SHOWN+2;
+  return '<div class="card" id="banksCard"><h2>Your banks <small class="hint">'+bnames.length+'</small></h2>'+
+    '<div class="b-tools">'+(many?'<input type="search" id="bankFind" placeholder="Find a bank" aria-label="Find a bank">':'')+
+      '<label class="b-all"><input type="checkbox" id="bfAll"> All</label><span class="spacer"></span>'+
+      '<button class="small" id="bfSave" title="Bank files (.json) keep everything: math, pictures, answers and your own fields. Keep them on your NAS or give them to another teacher.">Save all as files…</button>'+
+      '<span class="filebtn"><button class="small">Open bank files…</button><input type="file" id="bfIn" accept=".json,application/json" multiple></span></div>'+
+    '<div id="bfRes" class="result"></div>'+
+    '<ul class="blist">'+bnames.map(function(b,i){
+      var qs=cq().filter(function(q){return q.bank===b&&own(q);}),pub=sharing()&&qs.length&&qs.every(function(q){return q.visibility==='public';});
+      var also=state.courses.filter(function(c){return c!==state.course&&qs.some(function(q){return inCourse(q,c);});});
+      var crs=state.courses.length>1?'<div class="bm-sec"><span class="lbl">Also use in</span>'+state.courses.filter(function(c){return c!==state.course;}).map(function(c){var n=qs.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-usein="'+esc(b)+'" value="'+esc(c)+'"'+(n===qs.length?' checked':'')+(n&&n<qs.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'<p class="hint">Still one copy: an edit shows up in every course.</p></div>':'';
+      return '<li data-bname="'+esc(b.toLowerCase())+'"'+(many&&!ui.allBanks&&i>=BANKS_SHOWN?' hidden':'')+'><label class="b-name"><input type="checkbox" data-bf value="'+esc(b)+'"><span>'+esc(b)+'</span></label>'+
+        '<small>'+plural(bc[b],'question')+(also.length?' · also in '+esc(also.join(', ')):'')+'</small>'+(pub?'<span class="tag pub">Public</span>':'')+
+        '<details class="bmenu" data-bmenu="'+esc(b)+'"'+(ui.bOpen===b?' open':'')+'><summary aria-label="More for '+esc(b)+'">⋯</summary><div class="bm-pop">'+crs+
+        (sharing()?'<div class="bm-sec">'+bankPubHtml(b)+'</div>':'')+
+        '<div class="bm-sec bm-row"><button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></div></div></details></li>';
+    }).join('')+'</ul>'+
+    (many?'<button class="small ghost" id="bankMore"'+(ui.allBanks?' hidden':'')+'>Show all '+bnames.length+' banks</button>':'')+'</div>';
+}
+function wireBanksCard(){
+  var list=$('.blist');if(!list)return;
+  var lis=$$('li',list),find=$('#bankFind'),more=$('#bankMore'),all=$('#bfAll'),save=$('#bfSave');
+  function view(){var t=find?find.value.trim().toLowerCase():'';
+    lis.forEach(function(li,i){li.hidden=t?li.dataset.bname.indexOf(t)<0:(more&&!ui.allBanks&&i>=BANKS_SHOWN);});
+    if(more)more.hidden=!!t||ui.allBanks;}
+  function count(){var n=$$('[data-bf]:checked',list).length;save.textContent=n?'Save '+n+' as files…':'Save all as files…';all.checked=n===lis.length;all.indeterminate=n>0&&n<lis.length;}
+  if(find)find.oninput=view;
+  if(more)more.onclick=function(){ui.allBanks=true;view();};
+  all.onchange=function(){$$('[data-bf]',list).forEach(function(c){c.checked=all.checked;});count();};
+  $$('[data-bf]',list).forEach(function(c){c.onchange=count;});
+  $$('[data-bmenu]',list).forEach(function(d){d.ontoggle=function(){if(d.open){ui.bOpen=d.dataset.bmenu;$$('[data-bmenu]',list).forEach(function(o){if(o!==d)o.open=false;});}else if(ui.bOpen===d.dataset.bmenu)ui.bOpen='';};});
 }
 function fieldsCard(){
   var fs=myFields();
@@ -1024,7 +1055,7 @@ function fieldsCard(){
     '<div class="pickrow"><input type="text" id="newField" placeholder="New field, e.g. DOK" style="flex:1" aria-label="New field name"><button class="small" id="addField">Add field</button></div></div>';
 }
 function wireToolCards(){
-  var save=$('#bfSave');if(save)save.onclick=function(){var names=$$('[data-bf]:checked').map(function(x){return x.value;});if(!names.length){toast('Tick at least one bank to save.');return;}saveBankFiles(names,$('#bfRes'));};
+  var save=$('#bfSave');if(save)save.onclick=function(){var names=$$('[data-bf]:checked').map(function(x){return x.value;});if(!names.length)names=$$('[data-bf]').map(function(x){return x.value;});saveBankFiles(names,$('#bfRes'));};
   var bin=$('#bfIn');if(bin)bin.onchange=function(){
     var files=Array.prototype.slice.call(this.files||[]);this.value='';if(!files.length)return;
     Promise.all(files.map(function(f){return f.text().then(function(t){var d=null;try{d=JSON.parse(t);}catch(e){}return {name:f.name,data:d};});})).then(function(list){
@@ -1370,11 +1401,6 @@ function drawPreview(){
 
 /* ================= import / backup tab ================= */
 // courses a bank (as seen from this course) is also in: on = every question, mixed = some
-function bankCoursesHtml(b){if(state.courses.length<2)return '';var qs=cq().filter(function(q){return q.bank===b&&own(q);}),others=state.courses.filter(function(c){return c!==state.course;});
-  var also=others.filter(function(c){return qs.some(function(q){return inCourse(q,c);});});
-  return '<details class="usein"><summary class="small ghost">Courses…'+(also.length?' <small>also in '+esc(also.join(', '))+'</small>':'')+'</summary><div class="usein-pop"><p class="hint">Use these questions in other courses too. There’s still one copy, so an edit shows up everywhere.</p>'+
-    others.map(function(c){var n=qs.filter(function(q){return inCourse(q,c);}).length;return '<label><input type="checkbox" data-usein="'+esc(b)+'" value="'+esc(c)+'"'+(n===qs.length?' checked':'')+(n&&n<qs.length?' data-mixed':'')+'> '+esc(c)+'</label>';}).join('')+'</div></details>';}
-// Public / Private for a whole bank of your own (website only)
 function bankPubHtml(b){if(!sharing())return '';var qs=cq().filter(function(q){return q.bank===b&&own(q);}),np=qs.filter(function(q){return q.visibility==='public';}).length;
   var regents=qs.filter(function(q){return q.ref;}).length>=qs.length*0.8;
   return np===qs.length?'<button class="small ghost" data-pub="'+esc(b)+'" data-to="private" title="Only you will see these questions again">Public · make private</button>':
@@ -1417,8 +1443,7 @@ function renderIO(){
   var main=$('#main'),bc=bankCounts(),bnames=Object.keys(bc).sort();
   main.innerHTML='<div class="import-grid"><div style="display:grid;gap:18px;min-width:0">'+
   '<div class="card"><h2>Backup</h2><p class="note" style="margin-top:0">Everything is saved in this browser on this computer. Download a backup now and then — it’s one file with all your banks, pictures and test settings, and it’s how you move your work to another computer or browser.</p>'+(state.questions.length?'<p class="last-bk'+(backupStale()?' stale':'')+'">'+esc(lastBackupText())+'</p>':'')+'<div class="actions"><button class="primary" id="bkOut"'+(state.questions.length?'':' disabled')+'>Download backup</button><span class="filebtn"><button>Restore a backup…</button><input type="file" id="bkIn" accept=".json,application/json"></span></div><div id="bkRes" class="result"></div></div>'+
-  bankFilesCard(bnames,bc)+
-  '<div class="card"><h2>Your banks</h2>'+(bnames.length?'<ul class="banks">'+bnames.map(function(b){return '<li><span>'+esc(b)+' <small>· '+bc[b]+' question'+(bc[b]>1?'s':'')+'</small></span>'+bankCoursesHtml(b)+bankPubHtml(b)+'<button class="small ghost" data-rename="'+esc(b)+'">Rename</button><button class="small ghost" data-delbank="'+esc(b)+'">Delete</button></li>';}).join('')+'</ul>':'<p class="note" style="margin:0">No questions yet.</p>')+'</div>'+
+  yourBanksCard(bnames,bc)+
   fieldsCard()+
   sharedCardHtml()+teamCardHtml()+
   '</div><div style="display:grid;gap:18px;min-width:0">'+
@@ -1426,14 +1451,14 @@ function renderIO(){
   '<div class="card"><h2>From Word</h2><p class="note" style="margin-top:0">Choose a Word test (.docx). Numbered questions, lettered answer choices, equations, pictures, proof tables, parts and credits like [2] come across. You can also use the file’s page header for your printed tests.</p><div class="actions"><span class="filebtn"><button class="primary">Import a Word file…</button><input type="file" id="docxFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></span></div></div>'+
   '<div class="card"><h2>From a PDF</h2><p class="note" style="margin-top:0">Choose a PDF of a test or worksheet. Numbered questions and their answer choices are found for you; each one comes in as text you can edit, or as a picture when it has diagrams or math that text can’t hold. Anything missed, you can draw a box around.</p><div class="actions"><span class="filebtn"><button class="primary">Import a PDF…</button><input type="file" id="pdfFile" accept=".pdf,application/pdf"></span></div><div id="pdfRes" class="result"></div></div>'+
   '<div class="card"><h2>Paste questions</h2><p class="note" style="margin-top:0">Copy questions from a Word document or old test and paste them here. Leave a blank line between questions and put a <b>*</b> before the correct choice.</p><pre class="fmt">1. What is the slope of the line y = 3x − 5?\nA. −5\n*B. 3\nC. 5\nD. −3\n\n2. Every square is a rectangle.\nAnswer: True\n\n3. Explain why the triangles are congruent.</pre><textarea id="pasteBox" rows="8" placeholder="Paste your questions here…"></textarea><div class="pickrow"><label style="display:flex;gap:6px;align-items:center">Bank <input type="text" id="pasteBank" list="bankList2" value="My questions" style="width:150px"><datalist id="bankList2">'+bnames.map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label><label style="display:flex;gap:6px;align-items:center">Topic <input type="text" id="pasteTopic" placeholder="optional" style="width:140px"></label><span class="spacer"></span><button class="primary" id="pasteGo">Import</button></div><div id="pasteRes" class="result"></div></div>'+
-  '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: see <b>Courses…</b> under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
+  '<div class="card" id="coursesCard"><h2>Courses</h2><p class="note" style="margin-top:0">Each course has its own banks and its own test. Switch courses with the menu at the top. A bank can be used in several courses: open its <b>⋯</b> menu under Your banks.</p><ul class="banks">'+state.courses.map(function(c){var n=state.questions.filter(function(q){return inCourse(q,c);}).length;return '<li><span>'+esc(c)+(c===state.course?' <small>· current</small>':'')+' <small>· '+n+' question'+(n!==1?'s':'')+'</small></span><button class="small ghost" data-crename="'+esc(c)+'">Rename</button>'+(state.courses.length>1?'<button class="small ghost" data-cdel="'+esc(c)+'">Delete</button>':'')+'</li>';}).join('')+'</ul><div class="pickrow"><input type="text" id="newCourse" placeholder="New course, e.g. AP Statistics" style="flex:1"><button class="small" id="addCourse">Add course</button></div></div>'+
   '</div></div>';
-  wireToolCards();
+  wireToolCards();wireBanksCard();
   $('#bnkFile').onchange=function(){var files=Array.prototype.slice.call(this.files||[]);this.value='';if(files.length)importBnks(files);};
   $$('[data-usein]').forEach(function(cb){if(cb.hasAttribute('data-mixed'))cb.indeterminate=true;cb.onchange=function(){
     var name=cb.dataset.usein,c=cb.value,qs=cq().filter(function(q){return q.bank===name&&own(q);});
     qs.forEach(function(q){if(cb.checked)setCourses(q,coursesOf(q).concat([c]));else dropCourse(q,c);});
-    changed();renderIO();var d=$('details.usein [data-usein="'+CSS.escape(name)+'"]');if(d)d.closest('details').open=true;
+    ui.bOpen=name;changed();renderIO();
     toast(cb.checked?'“'+name+'” is now in '+c+' too.':'“'+name+'” is no longer in '+c+'.');};});
   $$('[data-pub]').forEach(function(b){b.onclick=function(){
     var name=b.dataset.pub,to=b.dataset.to,qs=cq().filter(function(q){return q.bank===name&&own(q);});

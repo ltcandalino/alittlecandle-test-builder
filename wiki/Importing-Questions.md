@@ -48,12 +48,20 @@ Answer: True
 
 ## Bank files (.json)
 
-**Import & backup → Bank files** saves banks as files, one `.json` file per bank, with everything: math, pictures, answers, all the details and your own fields. Use them to keep your banks on a NAS, or to give a bank to another teacher.
+**Import & backup → Your banks** saves banks as files, one `.json` file per bank, with everything: math, pictures, answers, all the details and your own fields. Use them to keep your banks on a NAS, or to give a bank to another teacher.
 
-- **Save to a folder…**: tick the banks, click the button, and choose the folder (for example your NAS folder). Chrome and Edge save straight into it, replacing older copies of the same banks. Other browsers put the files in Downloads.
+- **Save all as files…**: tick the banks you want (or none, for all of them; **All** ticks every one), click the button (it
+  then says **Save 3 as files…**), and choose the folder (for example your NAS folder). Chrome and Edge save straight into it, replacing older copies of the same banks. Other browsers put the files in Downloads.
 - **Open bank files…**: choose one or more bank files. New questions are added; questions you already have from that file are updated to the file's version. Your own fields are matched by name, so another teacher's "DOK" goes into your "DOK".
 
 A full backup is a different file (everything at once): open it with **Restore a backup…**.
+
+## Your banks
+
+**Import & backup → Your banks** lists your banks in the course you're in, one line each with how many questions it has.
+With many banks, the first 10 show: type in **Find a bank** or click **Show all** to see the rest. Each bank's **⋯** menu
+has **Also use in** (other courses, see [[Courses]]), **Make public** on the website (see [[Sharing with Colleagues]]),
+**Rename** and **Delete** (click twice; Undo brings it back).
 
 ## Keeping the original files
 

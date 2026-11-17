@@ -11,7 +11,7 @@ Your work lives in the browser on that computer. To keep it safe:
 
 Clearing the browser's site data deletes your work, so download a backup first.
 
-To keep each bank as its own file (for example in a NAS folder), use **Bank files → Save to a folder…** on the same tab. See [[Importing Questions]].
+To keep each bank as its own file (for example in a NAS folder), use **Your banks → Save all as files…** on the same tab. See [[Importing Questions]].
 
 ## Website version
 

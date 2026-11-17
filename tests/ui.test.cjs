@@ -341,6 +341,26 @@ describe('saving and backups', () => {
   });
 });
 
+describe('Your banks list', () => {
+  test('long lists show 10 banks, Show all, find a bank, and save counts the ticked banks', async () => {
+    await addQuestions(page, Array.from({ length: 15 }, (_, i) => ({ html: 'Q' + i, bank: 'Bank ' + String(i + 1).padStart(2, '0') })));
+    await gotoTab(page, 'io');
+    const shown = () => page.$$eval('.blist li', els => els.filter(e => !e.hidden).length);
+    assert.equal(await shown(), 10);
+    await page.fill('#bankFind', 'bank 14');
+    assert.equal(await shown(), 1);
+    assert.ok(await page.isHidden('#bankMore'));
+    await page.fill('#bankFind', '');
+    await page.click('#bankMore');
+    assert.equal(await shown(), 15);
+    assert.equal(await page.textContent('#bfSave'), 'Save all as files…');
+    await page.check('[data-bf][value="Bank 02"]'); await page.check('[data-bf][value="Bank 05"]');
+    assert.equal(await page.textContent('#bfSave'), 'Save 2 as files…');
+    await page.check('#bfAll');
+    assert.equal(await page.$$eval('[data-bf]:checked', e => e.length), 15);
+  });
+});
+
 describe('courses', () => {
   test('add a course and switch with the Course menu', async () => {
     await addQuestions(page, [{ html: 'Geometry question' }]);
@@ -358,7 +378,7 @@ describe('shared banks (one bank in several courses)', () => {
   const st = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__tb.state.questions.map(q => ({ html: q.html, courses: q.courses, course: q.course })))));
   const share = async (bank, course) => {
     await gotoTab(page, 'io');
-    await page.click('details.usein summary');
+    await page.click(`[data-bmenu="${bank}"] > summary`);
     await page.check(`[data-usein="${bank}"][value="${course}"]`);
   };
   test('Courses… on a bank puts its questions in another course too, as one copy', async () => {
@@ -366,7 +386,8 @@ describe('shared banks (one bank in several courses)', () => {
     await addQuestions(page, [{ html: 'Shared one' }, { html: 'Shared two' }]);
     await share('Test bank', 'Algebra 2');
     assert.equal((await st()).length, 2, 'no copies were made');
-    assert.match(await page.textContent('details.usein summary'), /also in Algebra 2/);
+    assert.match(await page.textContent('.blist li'), /also in Algebra 2/);
+    assert.ok(await page.evaluate(() => document.querySelector('[data-bmenu="Test bank"]').open), 'the menu stays open after a tick');
     await page.selectOption('#courseSel', 'Algebra 2');
     assert.equal(await count(), 2);
     await gotoTab(page, 'bank');
@@ -411,6 +432,7 @@ describe('shared banks (one bank in several courses)', () => {
     await addQuestions(page, [{ html: 'Shared one' }, { html: 'Only here' }]);
     await page.evaluate(() => { window.__tb.state.questions[0].courses = ['Algebra 1', 'Algebra 2']; });
     await gotoTab(page, 'io');
+    await page.click('[data-bmenu="Test bank"] > summary');
     await page.click('[data-delbank="Test bank"]'); await page.click('[data-delbank="Test bank"]');
     let q = await st();
     assert.equal(q.length, 1); assert.deepEqual(q[0].courses, ['Algebra 2']);

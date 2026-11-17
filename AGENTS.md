@@ -379,3 +379,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   Released v0.11.0 (CI, Release, `:latest` = 0.11.0 checked).
 - **2026-11-16**: Import & backup: ExamView banks and Courses moved to the right column; the Spreadsheet (CSV) card and
   `parseCSV`/`toCSV`/`fromCSV` removed at her request (backups and bank files keep math and pictures; CSV couldn't).
+- **2026-11-16**: her request (tidier Import & backup): Your banks is one list (`yourBanksCard`/`wireBanksCard`): tick boxes
+  (`data-bf`, saving none ticked = all), `#bankFind`, first `BANKS_SHOWN` (10) + **Show all** (`ui.allBanks`), row ⋯ menu
+  `details.bmenu` (`ui.bOpen` keeps it open after a re-render) with Also use in / Make public / Rename / Delete. The Bank files card
+  and `bankCoursesHtml` are gone. 1476 checks.
