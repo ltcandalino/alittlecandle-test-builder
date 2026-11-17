@@ -129,6 +129,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   `\newunicodechar` only for symbols used, `UNI` map, longtable for review/key, cells top-aligned with
   `minipage[t]` + `\vspace{0pt}` when a row has blocks). TeX Live is on her Mac: export tests compile with
   pdfLaTeX when it's on PATH (`/Library/TeX/texbin`); CI skips that part.
+- **Preview pages** (her request 2026-11-17): `drawPreview` → `drawSheets(p, html, v)` lays the document out once off screen in `#pvMeasure` (7.5in, flow-root), `pvBlocks` collects unsplittable blocks (break-inside:avoid, `tr`, leaves; skips table-column), `pvBreaks` places breaks like print (avoid-after/before, `acc-break` forced, taller-than-a-page cut), then each `.pv-page` (8.5×11in) shows its slice in `.pv-win` with the print header (`headers()`, `topFor`) and footer (v. N / page number / lesson footer). `pvFit` zooms to the card width (ResizeObserver); re-run after pictures/fonts load. Name clash warning: `drawPages` is the bank list pager.
 - Per-question lesson roles, example concepts and bonus flags live in settings
   (`roles`, `concepts`, `bonus`, keyed by question id).
 - **Print uses `window.print()` with CSS `@page` margin boxes** (Chrome/Edge 131+). Headers are SVG
@@ -423,3 +424,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
   `tabindex=-1 aria-hidden` and its file input carries the name (was a dead tab stop). All four review steps done; re-run critique next.
 - **2026-11-17**: released v0.15.0 (CI, Release, `:latest` = 0.15.0; her local site updated). Public site still waits for James.
 - **2026-11-17**: re-ran critique (27/40; her picks pending). `/impeccable document` wrote `DESIGN.md` + `.impeccable/design.json` with her choices: North Star "The Teacher's Desk", friendly/personal/crafted, Candle Purple, nearly flat.
+- **2026-11-17**: her request: preview as letter-size pages (`drawSheets`, `pvBlocks`, `pvBreaks`, `.pv-page`). Breaks checked against Chrome's printed PDF for test, quiz, review, lesson (same questions on every page). 1486 checks.

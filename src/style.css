@@ -607,3 +607,15 @@ main[data-place=print] .pv-empty button,main[data-place=print] #pbWarn{display:n
 .pv-h h2{margin:0;flex:1}
 .pv-ans{display:flex;gap:7px;align-items:center;font-size:13px;font-weight:400}
 button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-head button[data-ga=del]{color:var(--danger)}
+
+/* the preview as letter-size pages (8.5 x 11 in, the same margins, header and footer as the printout) */
+.pv-pages{width:8.5in;margin:0 auto}
+.pv-page{position:relative;width:8.5in;height:11in;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18),0 4px 14px rgba(0,0,0,.08);overflow:hidden}
+.pv-page .pv-head{position:absolute;left:.5in;margin:0}
+.pv-win{position:absolute;left:.5in;width:7.5in;overflow:hidden}
+.pv-flow{display:flow-root}
+.pv-foot{position:absolute;left:.5in;right:.5in;bottom:0;height:.5in;display:flex;align-items:center;color:#000}
+.pv-fr{margin-left:auto}
+.pv-pn{text-align:center;font:12px/1 system-ui,sans-serif;color:var(--muted);margin:8px 0 18px}
+.pv-pages>.pv-pn:last-child{margin-bottom:0}
+#pvMeasure{position:absolute;left:-10000px;top:0;width:7.5in;display:flow-root;visibility:hidden;pointer-events:none}

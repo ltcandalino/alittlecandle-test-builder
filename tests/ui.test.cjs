@@ -624,7 +624,7 @@ describe('accommodations', () => {
     await page.selectOption('[data-acc="font"]', 'OpenDyslexic');
     await page.selectOption('[data-acc="size"]', 'xl');
     await page.selectOption('[data-acc="version"]', '1');
-    assert.match(await page.getAttribute('#paper', 'style'), /OpenDyslexic.*--pts:18pt/);
+    assert.match(await page.getAttribute('#paper', 'style'), /OpenDyslexic.*--pts: ?18pt/);
     assert.match(await page.textContent('#pbSum'), /2 versions \+ accommodated copy/);
     assert.ok(await page.isVisible('[data-print="acc"]'));
     const st = await page.evaluate(() => window.__tb.state.settings.accom);
@@ -768,4 +768,28 @@ describe('printing', () => {
       await page.emulateMedia({ media: 'screen' });
     });
   }
+});
+
+describe('the preview shows letter-size pages', () => {
+  test('pages are 8.5 x 11 in, numbered, never split a question, and keep the accommodated page breaks', async () => {
+    const ids = await addQuestions(page, Array.from({ length: 24 }, (_, i) => ({ html: 'Question number ' + (i + 1) + ' about slope.' })));
+    await select(page, ids); await settings(page, { docType: 'test', versions: 1 });
+    await place('print', 'preview');
+    await page.waitForFunction(() => document.querySelectorAll('#paper .pv-page').length > 1);
+    const r = await page.evaluate(() => {
+      const pages = [...document.querySelectorAll('#paper .pv-page')], m = document.querySelector('#pvMeasure'), t0 = m.getBoundingClientRect().top;
+      const segs = [...document.querySelectorAll('#paper .pv-flow')].map(f => { const a = -parseFloat(f.style.marginTop); return [a, a + parseFloat(f.parentNode.style.height)]; });
+      const split = [...m.querySelectorAll('.pt-q')].filter(q => { const b = q.getBoundingClientRect(), y0 = b.top - t0, y1 = b.bottom - t0; return !segs.some(([a, z]) => y0 >= a - 0.5 && y1 <= z + 0.5); }).length;
+      return { n: pages.length, w: pages[0].offsetWidth, h: pages[0].offsetHeight, label: document.querySelector('#paper .pv-pn').textContent, heads: document.querySelectorAll('#paper .pv-head img').length, split };
+    });
+    assert.ok(r.n >= 2, 'more than one page');
+    assert.deepEqual([r.w, r.h], [816, 1056], '8.5 x 11 inches');
+    assert.equal(r.label, 'Page 1 of ' + r.n);
+    assert.equal(r.heads, r.n, 'every page has its header');
+    assert.equal(r.split, 0, 'no question is cut across two pages');
+    // accommodated copy, 1 question per page: one page per question
+    await page.evaluate(() => { const s = window.__tb.state.settings; s.accom = { on: true, perPage: 1, version: 0 }; window.__tb.ui().pv = 'acc'; window.__tb.render(); });
+    await page.waitForFunction(() => document.querySelectorAll('#paper .pv-page').length >= 24);
+    assert.equal(await page.evaluate(() => document.querySelectorAll('#paper .pv-page').length), 24);
+  });
 });

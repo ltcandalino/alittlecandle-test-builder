@@ -394,17 +394,12 @@ function qBody(it,A){
 }
 function isTall(q){return (q.type==='bm'&&num(q.space,2)>5)||q.type==='es'&&(q.answerArea==='space'?num(q.space,3):num(q.lines,8)*0.33)>5||/<table/.test(q.html);}
 function nameRow(){return '<div class="cl-row cl-name"><span>Name: <span class="cl-line" style="width:3.1in"></span></span><span>Date: <span class="cl-line" style="width:1.6in"></span></span></div>';}
-function previewHead(first){var hd=headers(),x=first?hd.first:hd.rest;return '<div class="pv-head"><img src="'+svgUrl(x)+'" style="width:'+x.w+'pt;height:'+x.h+'pt" alt=""></div>';}
 function testHtml(items,v,opts){
   labelItems(items);
-  var t=docType(),pv=opts&&opts.preview,h=pv?previewHead(true):'';
+  var t=docType(),h='';
   if(t==='review')h+=reviewHtml(items,v,opts);
   else if(t==='lesson')h+=lessonHtml(items,v,opts);
   else h+=examHtml(items,v,opts);
-  if(pv){
-    if(isExamDoc())h+='<div class="cl-runfoot">v. '+(v+1)+'</div>';
-    else if(t==='lesson'){var lf=lessonFootSvg();if(lf)h+='<div class="cl-runfoot"><span class="hint" style="font-family:system-ui,sans-serif;font-size:10px;display:block;margin-bottom:3pt">Footer on pages 2+:</span><img src="'+svgUrl(lf)+'" style="width:'+lf.w+'pt;height:'+lf.h+'pt" alt=""></div>';}
-  }
   return h;
 }
 function examHtml(items,v,opts){
@@ -1547,14 +1542,67 @@ function drawRecap(){
 }
 function printSummary(){var n=nVersions(),q=state.selected.length,p=totalPts();return n+' version'+(n===1?'':'s')+(accOn()?' + accommodated copy':'')+' · '+q+' question'+(q===1?'':'s')+' · '+p+' point'+(p===1?'':'s');}
 var pvT;function drawPreviewSoon(){clearTimeout(pvT);pvT=setTimeout(drawPreview,250);}
+var pvRO=window.ResizeObserver&&new ResizeObserver(function(){var p=$('#paper');if(p&&p.classList.contains('pv-pages'))pvFit(p);});
 function drawPreview(){
-  var n=nVersions(),acc=accom().on;if(ui.pv==='acc'&&!acc)ui.pv=0;if(ui.pv!=='acc'&&ui.pv>=n)ui.pv=0;var vt=$('#vtabs');if(!vt)return;
+  var n=nVersions(),acc=accom().on;if(ui.pv==='acc'&&!acc)ui.pv=0;if(ui.pv!=='acc'&&ui.pv>=n)ui.pv=0;var vt=$('#vtabs');if(!vt)return;if(pvRO&&$('.paperwrap'))pvRO.observe($('.paperwrap'));
   vt.innerHTML=(n>1?'<span class="hint" style="margin-right:4px">Version</span>'+Array.apply(null,Array(n)).map(function(_,v){return '<button class="'+(v===ui.pv?'on':'')+'" data-v="'+v+'">'+LETTERS[v]+'</button>';}).join(''):'')+
     (acc?'<button class="'+(ui.pv==='acc'?'on':'')+'" data-v="acc" title="The accommodated copy">Accommodated</button>':'');
   $$('[data-v]',vt).forEach(function(b){b.onclick=function(){ui.pv=b.dataset.v==='acc'?'acc':+b.dataset.v;saveUi();drawPreview();};});
   var isAcc=ui.pv==='acc',pv=isAcc?accVersion():ui.pv,items=buildVersion(pv),p=$('#paper');p.setAttribute('style',isAcc?accStyle():ptStyle());
-  p.className='sheet pt pt-classic pt-'+docType()+(isAcc?accClass():'');p.innerHTML=items.length?(isAcc?accHtml({answers:ui.showAns,preview:true}):testHtml(items,ui.pv,{answers:ui.showAns,preview:true})):'<div class="pv-empty"><p>Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p><button class="small" id="pvPick">Pick questions</button></div>';var pk=$('#pvPick');if(pk)pk.onclick=function(){go('pick');};
+  var cls='pt pt-classic pt-'+docType()+(isAcc?accClass():'');
+  if(!items.length){p.className='sheet '+cls;p.innerHTML='<div class="pv-empty"><p>Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p><button class="small" id="pvPick">Pick questions</button></div>';$('#pvPick').onclick=function(){go('pick');};return;}
+  p.className='pv-pages '+cls;
+  drawSheets(p,isAcc?accHtml({answers:ui.showAns}):testHtml(items,ui.pv,{answers:ui.showAns}),pv);
 }
+/* The preview as letter-size pages. The document is laid out once, off screen, at its printed width (7.5 in); page breaks go
+   where printing puts them (questions and part headings aren't split, "page break after" is kept), then each page shows its
+   slice of that layout between the same header and footer the print margins get. */
+var PT=96/72,pvJob=0;
+function pvBlocks(root){
+  var out=[],top=root.getBoundingClientRect().top;
+  (function walk(el){Array.prototype.forEach.call(el.children,function(c){
+    var cs=getComputedStyle(c);if(cs.display==='none'||/^table-column/.test(cs.display)||cs.position==='absolute'||cs.position==='fixed')return;
+    var kids=Array.prototype.some.call(c.children,function(k){var d=getComputedStyle(k).display;return d!=='inline'&&d!=='inline-block'&&d!=='none';});
+    if(cs.breakInside==='avoid'||c.tagName==='TR'||!kids){var r=c.getBoundingClientRect();
+      if(r.height)out.push({top:r.top-top,bot:r.bottom-top,avoidAfter:cs.breakAfter==='avoid',avoidBefore:cs.breakBefore==='avoid',force:cs.breakAfter==='page'});}
+    else walk(c);});})(root);
+  return out;
+}
+function pvBreaks(b,cap1,cap){
+  var segs=[],start=0,cap0=cap1,i=0;
+  var cut=function(at){segs.push([start,at]);start=at;cap0=cap;};
+  for(i=0;i<b.length;i++){
+    if(i&&b[i-1].force&&b[i].top>start)cut(b[i].top);
+    while(b[i].bot-start>cap0){
+      if(b[i].top>start+1){var j=i;while(j>0&&(b[j-1].avoidAfter||b[j].avoidBefore)&&b[j-1].top>start+1)j--;cut(b[j].top);}
+      else cut(start+cap0); // taller than a page: printing splits it too
+    }
+  }
+  segs.push([start,Math.max(start,b.length?b[b.length-1].bot:0)]);
+  return segs;
+}
+function drawSheets(p,html,v){
+  var job=++pvJob,m=$('#pvMeasure');
+  if(!m){m=document.createElement('div');m.id='pvMeasure';m.setAttribute('aria-hidden','true');document.body.appendChild(m);}
+  m.className=p.className.replace('pv-pages','');m.setAttribute('style',p.getAttribute('style')||'');m.innerHTML=html;
+  var build=function(){if(job!==pvJob)return;
+    var hd=headers(),g=pageGeom(),t1=parseFloat(topFor(hd.first)),t2=parseFloat(topFor(hd.rest)),font=svgFont(),lf=docType()==='lesson'?lessonFootSvg():null;
+    var segs=pvBreaks(pvBlocks(m),(792-t1-36)*PT,(792-t2-36)*PT),n=segs.length,wrap=p.parentNode,sc=wrap.scrollTop;
+    p.innerHTML=segs.map(function(sg,k){var x=k?hd.rest:hd.first,tp=k?t2:t1,
+      foot=!k?(isExamDoc()?'<span class="pv-fl" style="font:8pt '+font+';color:#777">v. '+(v+1)+'</span>':''):
+        (lf?'<img class="pv-fl" src="'+svgUrl(lf)+'" style="width:'+lf.w+'pt;height:'+lf.h+'pt" alt="">':'')+'<span class="pv-fr" style="font:11pt '+font+'">'+(k+1)+'</span>';
+      return '<div class="pv-page"><div class="pv-head" style="top:'+(tp-6-x.h)+'pt"><img src="'+svgUrl(x)+'" style="width:'+x.w+'pt;height:'+x.h+'pt" alt=""></div>'+
+        '<div class="pv-win" style="top:'+tp+'pt;height:'+(sg[1]-sg[0])+'px"><div class="pv-flow" style="margin-top:'+(-sg[0])+'px">'+html+'</div></div>'+
+        '<div class="pv-foot">'+foot+'</div></div><div class="pv-pn">Page '+(k+1)+' of '+n+'</div>';}).join('');
+    p.dataset.pages=n;pvFit(p);wrap.scrollTop=sc;};
+  build();
+  // pictures and fonts can still be loading: lay it out again once they're in
+  var wait=Array.prototype.filter.call(m.querySelectorAll('img'),function(i){return !i.complete;}).map(function(i){return new Promise(function(r){i.onload=i.onerror=r;});});
+  if(wait.length||document.fonts.status!=='loaded')Promise.all(wait.concat([document.fonts.ready])).then(build);
+}
+// fit the 8.5-inch pages to the width of the preview card
+function pvFit(p){var w=p.parentNode.clientWidth-44;p.style.zoom=Math.min(1,w/(8.5*96));}
+
 
 /* ================= import / backup tab ================= */
 // courses a bank (as seen from this course) is also in: on = every question, mixed = some
@@ -2036,7 +2084,7 @@ var HELP_HTML='<h2 id="helpT">Help</h2>'+
   '<h3>The rail on the left</h3><p>Making a test is three steps: <b>1 Pick questions</b>, <b>2 Set up</b>, <b>3 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>3</kbd> jump to the steps; <b>Next</b> at the bottom moves you along.</p>'+
   '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
   '<h3>Pick questions</h3><p>In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and tick questions (or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
-  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them. <b>3 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them (letter-size pages, so you can see where each page breaks). <b>3 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
   '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
   '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+

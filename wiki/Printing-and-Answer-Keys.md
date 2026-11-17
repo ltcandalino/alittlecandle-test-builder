@@ -53,11 +53,10 @@ accommodated copy**. Then choose:
 
 The accommodated copy has exactly the same questions and answer order as that version, so **that version's
 answer key works for it**, and the key says "also the accommodated copy". Nothing on the student's copy says
-"accommodated". Check it with the **Accommodated** tab in the preview (dashed lines show where new pages
-start). **Print tests + answer keys** includes it; **Accommodated only** prints just that copy.
+"accommodated". Check it with the **Accommodated** tab in the preview (each new page shows as its own sheet). **Print tests + answer keys** includes it; **Accommodated only** prints just that copy.
 
 ## Preview
 
-The preview shows beside **2 Set up** and full width on **3 Print**, and updates as you change settings. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.
+The preview shows beside **2 Set up** and full width on **3 Print**, and updates as you change settings. It shows each page as a letter-size sheet (8½ × 11, ½-inch margins) with its header and page number and "Page 1 of 3" under it, so you can see exactly where the pages break. A question or part heading is never split across two pages, the same as when it prints. Use **Show answers** to preview the key marks, **A / B / C…** to look at each version, and **↻ New scramble** (next to the version letters) for a new shuffle.
 
 The print buttons are in a bar at the bottom of the preview. It stays in view while you scroll through the paper and shows what you're about to print, like "3 versions · 12 questions · 26 points". Check the paper, then print.
