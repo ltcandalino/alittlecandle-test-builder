@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-17
+
 ### Changed
 - **The preview shows real pages:** each page is a letter-size sheet (8½ × 11, ½-inch margins) with its own header and page number, and "Page 1 of 3" under it, so you can see where every page break falls before printing. Breaks follow the same rules as printing: questions and part headings aren't split, and the accommodated copy's "questions per page" shows as separate pages.
 
