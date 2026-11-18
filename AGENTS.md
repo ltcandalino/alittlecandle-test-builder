@@ -222,8 +222,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.15.0 released 2026-11-17** (design review 2026-11-17 steps 1–4: three steps, Print recap, picking only picks, polish). Her local site runs it.
-  Before it, **v0.14.0** (Plan 4 stage 2: Browse banks). Before it, **v0.13.0** (left rail, sub-tabs). Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
+- **v0.16.0 released 2026-11-17** (preview as letter-size pages). Her local site runs it.
+  Before it, **v0.15.0** (design review 2026-11-17 steps 1–4: three steps, Print recap, picking only picks, polish). Before it, **v0.14.0** (Plan 4 stage 2: Browse banks). Before it, **v0.13.0** (left rail, sub-tabs). Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
   Before it, **v0.10.0** (Plan 3 step 1: public/private banks, Shared with you; `:latest` = releases only). Before it, **v0.9.0** (bank tools, shared library, 9 dropped ExamView questions fixed).
   Before it, **v0.8.3** (no green left). Before it, **v0.8.2** (purple accent). Before it, **v0.8.1** (question numbers up to 50). Before it, **v0.8.0 released 2026-11-14** (Word + LaTeX downloads, her logo, newest-first sort, shared banks). Before it,
   **v0.7.1 released 2026-11-13** (blank first printed page fix). Before it, **v0.7.0**: design-review fixes, Display settings, database choice (SQLite/Postgres/
@@ -425,3 +425,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-17**: released v0.15.0 (CI, Release, `:latest` = 0.15.0; her local site updated). Public site still waits for James.
 - **2026-11-17**: re-ran critique (27/40; her picks pending). `/impeccable document` wrote `DESIGN.md` + `.impeccable/design.json` with her choices: North Star "The Teacher's Desk", friendly/personal/crafted, Candle Purple, nearly flat.
 - **2026-11-17**: her request: preview as letter-size pages (`drawSheets`, `pvBlocks`, `pvBreaks`, `.pv-page`). Breaks checked against Chrome's printed PDF for test, quiz, review, lesson (same questions on every page). 1486 checks.
+- **2026-11-17**: released v0.16.0 (CI, Release, `:latest` = 0.16.0; her local site updated). SSH to github.com timed out; pushed over HTTPS with `git -c credential.helper='!gh auth git-credential' push https://github.com/...`. Public site still waits for James.
