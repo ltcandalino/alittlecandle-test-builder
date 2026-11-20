@@ -2,9 +2,11 @@
 
 **Question bank** (on the rail) lists every question in the current course, with everything you need to look after them: **Edit**,
 **Copy**, **Delete**, **Change these…**, **Check & clean up** and **+ New question**. **1 Pick questions** is only for picking:
-its lists have the tick box and **Edit**, so a question can only be deleted here in the Question bank.
+its lists have the tick box and **Edit** (and **Copy to mine** on a colleague's question), so a question can only be deleted here in the Question bank.
 
 ## Browse banks
+
+**Browse banks** is the last tab on **1 Pick questions** (**Search** opens first). Inside a colleague's bank or a team bank, **Copy bank to mine** makes your own copy of the whole bank.
 
 **1 Pick questions › Browse banks** opens with one card per bank (your banks, banks colleagues shared, and team banks).
 
@@ -21,7 +23,7 @@ Search by words, or filter by **unit**, **section**, **topic** and **standard**.
 
 Every filter you're using shows as a chip under the filters, like **Unit: 3 ✕**. Click a chip to remove that filter, or **Clear filters** to remove them all. **Sort** (next to "Showing … of …") puts the list in bank order, newest added first, by exam date (newest or oldest first), by standard, or by unit and section.
 
-Tick the questions you want in your document. They're added to the list on **2 Set up › Questions** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a teal outline.
+Tick the questions you want in your document. **Select all** puts every question shown (all the matches, not just the first page) on the test; **Deselect all** takes them off. Both have **Undo**. They're added to the list on **2 Set up › Questions** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a purple outline.
 
 ## Editing a question
 

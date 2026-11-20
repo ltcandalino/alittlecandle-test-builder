@@ -721,6 +721,46 @@ describe('polish 2026-11-20', () => {
   });
 });
 
+describe('picking all at once and copies of banks', () => {
+  test('1 Pick questions opens on Search; Browse banks is the last tab', async () => {
+    await addQuestions(page, [{ html: 'Order' }]);
+    await page.evaluate(() => { const u = window.__tb.ui(); if (u.subs) delete u.subs.pick; });
+    await place('pick');
+    const tabs = await page.$$eval('.subtabs [data-sub]', b => b.map(x => x.dataset.sub));
+    assert.equal(tabs[0], 'search'); assert.equal(tabs[tabs.length - 1], 'browse');
+    assert.equal(await page.evaluate(() => window.__tb.fn.curSub('pick')), 'search');
+  });
+  test('Select all and Deselect all pick every question shown, with Undo', async () => {
+    const ids = await addQuestions(page, [{ html: 'SelX one' }, { html: 'SelX two' }, { html: 'SelX three' }]);
+    await select(page, []); await page.evaluate(() => { window.__tb.ui().q = 'SelX'; });
+    await place('pick', 'search');
+    assert.ok(await page.isDisabled('#selNone'));
+    await page.click('#selAll');
+    assert.deepEqual((await page.evaluate(() => window.__tb.state.selected)).sort(), ids.slice().sort());
+    assert.ok(await page.isDisabled('#selAll'));
+    await page.click('#selNone');
+    assert.equal(await page.evaluate(() => window.__tb.state.selected.length), 0);
+    await page.evaluate(() => { window.__tb.ui().q = ''; });
+  });
+  test('Duplicate makes a bank of copies; changing a copy leaves the original alone', async () => {
+    const ids = await addQuestions(page, [{ html: 'Dup A', bank: 'DupBank' }, { html: 'Dup B', bank: 'DupBank' }]);
+    await page.evaluate(() => window.__tb.fn.copyBank('DupBank'));
+    const r = await page.evaluate(ids => { const S = window.__tb.state, c = S.questions.filter(q => q.bank === 'DupBank (copy)');
+      c[0].html = 'Changed copy'; return { n: c.length, newIds: c.every(q => !ids.includes(q.id)), orig: S.questions.filter(q => ids.includes(q.id)).map(q => q.html) }; }, ids);
+    assert.equal(r.n, 2); assert.ok(r.newIds, 'copies have their own ids');
+    assert.deepEqual(r.orig, ['Dup A', 'Dup B'], 'the original bank is unchanged');
+    await page.evaluate(() => window.__tb.fn.copyBank('DupBank'));
+    assert.equal(await page.evaluate(() => window.__tb.state.questions.filter(q => q.bank === 'DupBank (copy 2)').length), 2);
+  });
+  test('a colleague’s bank copies into your own private bank that remembers where it came from', async () => {
+    await page.evaluate(() => { const S = window.__tb.state; ['Col 1', 'Col 2'].forEach((h, i) => S.questions.push(window.__tb.normalize({ questions: [{ id: 'col' + i, html: h, type: 'sa', bank: 'Their bank', courses: [S.course], owner: 'u-col', ownerName: 'Pat', visibility: 'public', canEdit: false }] }).questions[0])); });
+    await page.evaluate(() => { const S = window.__tb.state; S.questions.filter(q => q.id.startsWith('col')).forEach(q => { q.owner = 'u-col'; q.ownerName = 'Pat'; q.visibility = 'public'; }); window.__tb.fn.copyBank('sh:u-col|Their bank'); });
+    const c = await page.evaluate(() => window.__tb.state.questions.filter(q => q.bank === 'Their bank' && !q.owner));
+    assert.equal(c.length, 2);
+    assert.ok(c.every(q => !q.visibility && q.origin && q.origin.owner === 'u-col' && q.courses.length === 1), 'private, yours, with its origin');
+  });
+});
+
 describe('saved tests', () => {
   const stubPrint = () => page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
   test('printing saves the test; save, rename, duplicate, delete and undo', async () => {

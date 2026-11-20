@@ -635,3 +635,6 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 .blist .b-name{align-self:stretch}
 .pv-ans{min-height:32px;display:inline-flex;align-items:center}
 .rc-list .linkbtn{padding:4px 0}
+
+.selbtns{display:inline-flex;gap:6px}
+.br-top .small.ghost{margin-right:10px}

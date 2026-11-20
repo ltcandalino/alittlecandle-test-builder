@@ -61,7 +61,8 @@ A full backup is a different file (everything at once): open it with **Restore a
 **Import & backup → Your banks** lists your banks in the course you're in, one line each with how many questions it has.
 With many banks, the first 10 show: type in **Find a bank** or click **Show all** to see the rest. Each bank's **⋯** menu
 has **Also use in** (other courses, see [[Courses]]), **Make public** on the website (see [[Sharing with Colleagues]]),
-**Rename** and **Delete** (click twice; Undo brings it back).
+**Duplicate** (a second bank, named like "Unit 3 (copy)", with copies of every question: change them without touching the
+original), **Rename** and **Delete** (click twice; Undo brings it back).
 
 ## Keeping the original files
 

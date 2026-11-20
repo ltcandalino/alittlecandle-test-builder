@@ -33,7 +33,9 @@ like your own questions. Your course choices follow you to your other computers.
 
 Shared questions belong to the colleague who shared them, so only they can change them:
 
-- **Copy to mine** makes your own private copy that you can edit freely.
+- **Copy to mine** makes your own private copy that you can edit freely. It's on each question (also on **1 Pick questions**)
+  and on each bank under **Shared with you** and **Team banks**: a whole bank copies into a bank of yours with the same name
+  (or "(copy)" when you already have one). Changing your copy never changes the original.
 - **Remove** takes the question out of the current course. It stays in **Shared with you**, so you can add it back.
 - **Change these…** and **Check & clean up** leave shared questions alone.
 

@@ -6,7 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Select all / Deselect all** on 1 Pick questions (and the Question bank): puts every question shown on the test or takes them off, with Undo.
+- **Copies you can change:** **Duplicate** in a bank's ⋯ menu (Your banks), and **Copy to mine** for a colleague's or team bank (Shared with you, Team banks, and inside the bank in Browse banks) and on a colleague's question in 1 Pick questions. A copy is yours and private; changing it never changes the original.
+
 ### Changed
+- **1 Pick questions** opens on **Search**; **Browse banks** is now its last tab.
 - **Print from 3 Print only:** the 2 Set up tabs show the preview with one **Review & print** button, so you always see What will print before printing.
 - **Faster picking:** on 1 Pick questions, click anywhere on a question to put it on the test (click again to take it off), and Shift-click to add a whole run. Inside a bank the bank name no longer repeats on every question.
 - An empty test says the same thing everywhere: **Go to 1 Pick questions**. With nothing to print, 3 Print shows only that, without the version buttons.
