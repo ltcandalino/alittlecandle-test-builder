@@ -45,4 +45,4 @@ These settings are just for you, in that browser. They don't change your printed
 2. On **Import & backup › Import**, under **ExamView banks**, choose a `.bnk` file.
 3. In **1 Pick questions › Browse banks**, open a bank and a section, and tick the questions you want.
 4. On **2 Set up › Document**, choose **Test**, **Quiz**, **Review** or **Lesson** and fill in the numbers (quarter, unit and so on).
-5. Click **Print**. To make a PDF, choose **Save as PDF** as the printer.
+5. Click **Review & print** under the preview (or go to **3 Print**), check **What will print**, then click **Print**. To make a PDF, choose **Save as PDF** as the printer.

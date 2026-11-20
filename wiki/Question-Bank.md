@@ -10,7 +10,7 @@ its lists have the tick box and **Edit**, so a question can only be deleted here
 
 1. Click a bank to see its **units** and **sections**, with how many questions each has and how many are already on the test.
 2. Click a unit (all of it) or a section. Its questions show with the tick box and **Edit**.
-3. Tick questions to put them on the test, or use **Add 5 at random** for that section (**Undo** takes them off again).
+3. Click a question (anywhere on it) to put it on the test, and click again to take it off. **Shift-click** another question to add every one in between. Or or use **Add 5 at random** for that section (**Undo** takes them off again).
 4. The path at the top (**All banks › NY Regents Geometry › Unit 3 · Section 2**) goes back. **Set them up** jumps to **2 Set up**.
 
 A bank without units or sections opens straight to its questions. Browsing never changes your **Search** filters.

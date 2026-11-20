@@ -17,6 +17,9 @@ saved. Click any line to change that setting. Warnings show there too: questions
 missing backup (with a **Download backup** button). After printing it says **Printed today at …** and the name it was saved
 under. With no questions yet, it offers **Go to 1 Pick questions**.
 
+The print buttons are only on **3 Print**, so you always see this list first. On **2 Set up** the preview has a
+**Review & print** button that takes you there.
+
 - **Print … + answer keys**, **… only** or **Answer keys only**
 - The browser's print window opens. To make a PDF, choose **Save as PDF** as the printer.
 - **Print each version separately**: each version starts at page 1 with its own first-page header. The browser opens one print window per version.

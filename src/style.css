@@ -619,3 +619,19 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 .pv-pn{text-align:center;font:12px/1 system-ui,sans-serif;color:var(--muted);margin:8px 0 18px}
 .pv-pages>.pv-pn:last-child{margin-bottom:0}
 #pvMeasure{position:absolute;left:-10000px;top:0;width:7.5in;display:flow-root;visibility:hidden;pointer-events:none}
+
+/* polish 2026-11-20: Set up previews, 3 Print prints; whole question cards pick on 1 Pick questions; phones */
+.pv-go{display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--line);margin-top:12px}
+[data-place=pick] .qcard{cursor:pointer}
+[data-place=pick] .qcard:hover{border-color:var(--accent)}
+.sel-empty{display:block!important;text-align:center;color:var(--muted);padding:18px}
+.sel-empty .small{margin:0 4px}
+@media (max-width:760px){
+  .rail{flex-wrap:wrap;overflow:visible;gap:4px}
+  .rail button{padding:8px 10px;min-height:40px}
+}
+/* bigger tap targets: bank rows, Show answers, recap links */
+.blist li{min-height:36px}
+.blist .b-name{align-self:stretch}
+.pv-ans{min-height:32px;display:inline-flex;align-items:center}
+.rc-list .linkbtn{padding:4px 0}

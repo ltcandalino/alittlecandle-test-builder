@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Print from 3 Print only:** the 2 Set up tabs show the preview with one **Review & print** button, so you always see What will print before printing.
+- **Faster picking:** on 1 Pick questions, click anywhere on a question to put it on the test (click again to take it off), and Shift-click to add a whole run. Inside a bank the bank name no longer repeats on every question.
+- An empty test says the same thing everywhere: **Go to 1 Pick questions**. With nothing to print, 3 Print shows only that, without the version buttons.
+- **Phones:** the step buttons wrap onto two lines instead of scrolling off the side; bank rows, Show answers and the What will print links are easier to tap.
+
 ## [0.16.0] - 2026-11-17
 
 ### Changed

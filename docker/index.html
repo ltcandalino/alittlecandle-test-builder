@@ -632,6 +632,22 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 .pv-pn{text-align:center;font:12px/1 system-ui,sans-serif;color:var(--muted);margin:8px 0 18px}
 .pv-pages>.pv-pn:last-child{margin-bottom:0}
 #pvMeasure{position:absolute;left:-10000px;top:0;width:7.5in;display:flow-root;visibility:hidden;pointer-events:none}
+
+/* polish 2026-11-20: Set up previews, 3 Print prints; whole question cards pick on 1 Pick questions; phones */
+.pv-go{display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--line);margin-top:12px}
+[data-place=pick] .qcard{cursor:pointer}
+[data-place=pick] .qcard:hover{border-color:var(--accent)}
+.sel-empty{display:block!important;text-align:center;color:var(--muted);padding:18px}
+.sel-empty .small{margin:0 4px}
+@media (max-width:760px){
+  .rail{flex-wrap:wrap;overflow:visible;gap:4px}
+  .rail button{padding:8px 10px;min-height:40px}
+}
+/* bigger tap targets: bank rows, Show answers, recap links */
+.blist li{min-height:36px}
+.blist .b-name{align-self:stretch}
+.pv-ans{min-height:32px;display:inline-flex;align-items:center}
+.rc-list .linkbtn{padding:4px 0}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -3185,7 +3201,7 @@ function qCard(q){
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?'Unit '+q.unit:q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(picking()?((!q.owner||q.canEdit)?'<button class="small ghost" data-edit="'+q.id+'">Edit</button>':''):q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
 function renderBank(){_renderBank();showPlace();}
@@ -3259,13 +3275,14 @@ function _renderBank(){
   if($('#cleanBtn'))$('#cleanBtn').onclick=openCleanup;
   drawList();
 }
+var pickAnchor=null;
 function drawList(){
   var list=sortList(filtered()),on=list.filter(function(q){return isSel(q.id);}).length;
   var ch=$('#chips');if(ch){ch.innerHTML=chipsHtml();
     $$('[data-unf]',ch).forEach(function(b){b.onclick=function(){ui[b.dataset.unf]='';ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};});
     if($('#clearF'))$('#clearF').onclick=function(){activeFilters().forEach(function(k){ui[k]='';});ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};
     var mb=$('#moreF'),mc=moreCount();if(mb)mb.innerHTML='More filters'+(mc?' <span class="count">'+mc+'</span>':'');}
-  $('#subbar').innerHTML='<span>Showing '+list.length+(browsing()?'':' of '+cq().length)+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span>'+(picking()?'<span class="hint">To delete, copy or change many at once, use <button class="linkbtn" id="toBank">Question bank</button>.</span>':'<span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span>')+'<button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
+  $('#subbar').innerHTML='<span>Showing '+list.length+(browsing()?'':' of '+cq().length)+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span>'+(picking()?'<span class="hint">Click a question to add it; Shift-click to add a run of them. To delete or change many at once, use <button class="linkbtn" id="toBank">Question bank</button>.</span>':'<span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span>')+'<button class="small" id="addShown">'+(on===list.length?'Take shown off test':'Add all '+list.length+' shown to test')+'</button>':'');
   $('#fsort').onchange=function(){ui.sort=this.value;ui.limit=40;saveUi();drawList();};
   var su=$('#setUnit');if(su)su.onclick=function(){bulkBox(list);};
   var tb=$('#toBank');if(tb)tb.onclick=function(){go('bank','all');};
@@ -3278,7 +3295,15 @@ function drawList(){
   ql.innerHTML=list.length?shown.map(qCard).join(''):'<div class="empty"><b>No matches</b>Try a different search or filter.</div>';
   $('#more').innerHTML=list.length>ui.limit?'<button id="moreBtn">Show more ('+(list.length-ui.limit)+' left)</button>':'';
   if($('#moreBtn'))$('#moreBtn').onclick=function(){ui.limit+=60;drawList();};
-  $$('[data-pick]',ql).forEach(function(cb){cb.onchange=function(){var id=cb.dataset.pick;if(cb.checked){if(!isSel(id))state.selected.push(id);}else state.selected=state.selected.filter(function(x){return x!==id;});cb.closest('.qcard').classList.toggle('on',cb.checked);changed();renderTabs();$('#onCount').textContent=state.selected.length+' on the test';};});
+  var ids=shown.map(function(q){return q.id;});
+  var tick=function(id,on,shift){var a=shift?ids.indexOf(pickAnchor):-1,b=ids.indexOf(id),set=a>=0?ids.slice(Math.min(a,b),Math.max(a,b)+1):[id];pickAnchor=id;
+    set.forEach(function(x){if(on){if(!isSel(x))state.selected.push(x);}else state.selected=state.selected.filter(function(y){return y!==x;});
+      var c=$('[data-pick="'+x+'"]',ql);if(c){c.checked=on;c.closest('.qcard').classList.toggle('on',on);}});
+    changed();renderTabs();$('#onCount').textContent=state.selected.length+' on the test';};
+  $$('[data-pick]',ql).forEach(function(cb){cb.onclick=function(e){tick(cb.dataset.pick,cb.checked,e.shiftKey);};});
+  if(picking())$$('.qcard',ql).forEach(function(li){
+    li.onmousedown=function(e){if(e.shiftKey)e.preventDefault();}; // Shift-click picks a range instead of selecting text
+    li.onclick=function(e){if(e.target.closest('button,a,input,label,select,textarea')||String(getSelection()).trim())return;var cb=$('[data-pick]',li);tick(cb.dataset.pick,!cb.checked,e.shiftKey);};});
   $$('[data-edit]',ql).forEach(function(b){b.onclick=function(){openEditor(byId(b.dataset.edit));};});
   $$('[data-share]',ql).forEach(function(b){b.onclick=function(){shareDialog(byId(b.dataset.share),b);};});
   $$('[data-dup]',ql).forEach(function(b){b.onclick=function(){var q=byId(b.dataset.dup);var c=JSON.parse(JSON.stringify(q));c.id=uid();
@@ -3849,9 +3874,10 @@ function _renderBuild(){
     '</div><div class="bright" data-show="setup:* print:preview"><div class="card recap" id="recap" data-show="print:preview"></div><div class="card pvcard"><div class="pv-h"><h2>Preview</h2><label class="pv-ans"><input type="checkbox" id="showAns"'+(ui.showAns?' checked':'')+'>Show answers</label></div>'+
     '<div class="pvtop"><div class="vtabs" id="vtabs"></div><span class="spacer"></span><button class="small ghost" id="reshuf"'+(nVersions()>1?'':' disabled')+' title="Versions stay the same until you press this, so a key always matches copies you’ve already printed.">↻ New scramble</button></div>'+
     '<div class="paperwrap"><div class="sheet pt" id="paper"></div></div>'+
-    '<div class="printbar"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
+    '<div class="pv-go" data-show="setup:*"><button class="primary" id="toPrint">Review &amp; print <span aria-hidden="true">→</span></button></div>'+
+    '<div class="printbar" data-show="print:preview"><div id="pbWarn" class="pb-warnrow"></div><span class="pb-sum" id="pbSum"></span><span class="hint" id="pbNone" hidden>Add questions to print.</span>'+(accom().on?'<button data-print="acc">Accommodated only</button>':'')+'<button data-print="tests">'+DOC_TYPES[dt]+(nVersions()>1?'s':'')+' only</button><button data-print="keys">Answer keys only</button><button class="primary" data-print="both">'+(outFmt()==='docx'||outFmt()==='tex'?'Download ':'Print ')+T+(nVersions()>1?'s':'')+' + answer keys</button>'+
     '<label class="fmtsel">Format <select id="fmtSel">'+[['pdf','PDF'],['docx','Word (.docx)'],['tex','LaTeX (.tex)'],['print','Print…']].map(function(o){return '<option value="'+o[0]+'"'+(outFmt()===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></label></div>'+
-    '<p class="note" id="fmtNote" style="margin-bottom:0">'+fmtNote()+'</p></div>'+
+    '<p class="note" id="fmtNote" data-show="print:preview" style="margin-bottom:0">'+fmtNote()+'</p></div>'+
     '</div></div>';
   $$('[data-set]',main).forEach(function(el){
     var k=el.dataset.set;
@@ -3883,6 +3909,7 @@ function _renderBuild(){
   $$('[data-pdir]',main).forEach(function(t){t.oninput=function(){s.partDirs=Object.assign({},s.partDirs||{});s.partDirs[t.dataset.pdir]=t.value;changed();drawPreviewSoon();};});
   if($('#pdirReset'))$('#pdirReset').onclick=function(){s.partDirs=null;changed();renderBuild();};
   $$('[data-print]',main).forEach(function(b){b.onclick=function(){printNow(b.dataset.print);};});
+  $('#toPrint').onclick=function(){go('print','preview');};
   $('#fmtSel').onchange=function(){ui.fmt=this.value;saveUi();renderBuild();var f=$('#fmtSel');if(f)f.focus();};
   $('#reshuf').onclick=function(){var b=this;
     if(!b.classList.contains('danger')){b.classList.add('danger');b.textContent='Make new versions?';setTimeout(function(){if(document.body.contains(b)){b.classList.remove('danger');b.textContent='↻ New scramble';}},4000);return;}
@@ -3945,7 +3972,7 @@ function drawSaved(){var box=$('#savedCard');if(!box)return;var s=state.settings
 function refreshAuto(){var t=$('#main [data-set=title]');if(t)t.placeholder='auto: '+autoTitle();var c=$('#lcode');if(c)c.textContent=lessonCode()||'Q#W##D###';var src=$('#main [data-set=lessonSource]');if(src)src.placeholder=lessonSource()||'e.g. Big Ideas Geometry';}
 function drawSel(){
   var ul=$('#selList'),qs=selectedQs(),dt=docType(),st=state.settings;
-  if(!qs.length){ul.innerHTML='<li style="display:block;text-align:center;color:var(--muted);padding:18px">No questions yet. Tick questions on the Question bank tab or add random ones below.</li>';return;}
+  if(!qs.length){ul.innerHTML='<li class="sel-empty">No questions yet. <button class="small" id="selPick">Go to 1 Pick questions</button> or add random ones below.</li>';$('#selPick').onclick=function(){go('pick');};return;}
   ul.innerHTML=qs.map(function(q,i){return '<li><span class="n">'+(i+1)+'</span><span class="t" title="'+esc(plainQ(q).t)+'"><span class="badge '+q.type+'" style="margin-right:6px">'+{mc:'MC',bm:'Bimodal',tf:'T/F',sa:'SA',es:'Open'}[q.type]+'</span>'+esc(plainQ(q).t)+(q.topic?'<small>'+esc(q.topic)+'</small>':'')+(dt==='lesson'&&roleOf(q)==='example'?'<input type="text" class="exc" data-exc="'+q.id+'" value="'+esc((st.concepts||{})[q.id]||'')+'" placeholder="Example concept, e.g. SAS">':'')+'</span><span>'+(dt==='lesson'?'<select class="rolesel" data-role="'+q.id+'" title="Where this goes in the lesson"><option value="warmup"'+(roleOf(q)==='warmup'?' selected':'')+'>Warm Up</option><option value="example"'+(roleOf(q)==='example'?' selected':'')+'>Example</option><option value="practice"'+(roleOf(q)==='practice'?' selected':'')+'>Practice</option></select>':'')+(isExamDoc()?'<button class="ghost bmt'+(isBonus(q)?' on':'')+'" data-bonus="'+q.id+'" title="Bonus questions print at the end and don’t count toward the score">'+(isBonus(q)?'bonus ✓':'bonus')+'</button>':'')+(q.type==='bm'?'<button class="ghost bmt" data-bm="'+q.id+'" title="Switch between printing with and without answer choices">'+(bmChoices(q)?'with choices':'no choices')+'</button>':'')+'<button class="ghost" data-up="'+i+'" title="Move up"'+(i?'':' disabled')+'>↑</button><button class="ghost" data-dn="'+i+'" title="Move down"'+(i<qs.length-1?'':' disabled')+'>↓</button><button class="ghost" data-rm="'+q.id+'" title="Take off test">✕</button></span></li>';}).join('');
   function after(){changed();$('#stN').textContent=state.selected.length;$('#stP').textContent=totalPts();drawPrintBar();drawSel();drawPreview();renderTabs();}
   $$('[data-up]',ul).forEach(function(b){b.onclick=function(){var i=+b.dataset.up,a=state.selected,x=a[i-1];a[i-1]=a[i];a[i]=x;after();};});
@@ -4002,6 +4029,7 @@ function drawPreview(){
   $$('[data-v]',vt).forEach(function(b){b.onclick=function(){ui.pv=b.dataset.v==='acc'?'acc':+b.dataset.v;saveUi();drawPreview();};});
   var isAcc=ui.pv==='acc',pv=isAcc?accVersion():ui.pv,items=buildVersion(pv),p=$('#paper');p.setAttribute('style',isAcc?accStyle():ptStyle());
   var cls='pt pt-classic pt-'+docType()+(isAcc?accClass():'');
+  var pc=$('.pvcard'),pt=$('.pvtop');if(pt)pt.hidden=!items.length;if(pc)pc.hidden=!items.length&&placeOf()==='print'; // 3 Print's recap already says "Nothing to print yet"
   if(!items.length){p.className='sheet '+cls;p.innerHTML='<div class="pv-empty"><p>Your '+DOC_TYPES[docType()].toLowerCase()+' will appear here.</p><button class="small" id="pvPick">Pick questions</button></div>';$('#pvPick').onclick=function(){go('pick');};return;}
   p.className='pv-pages '+cls;
   drawSheets(p,isAcc?accHtml({answers:ui.showAns}):testHtml(items,ui.pv,{answers:ui.showAns}),pv);
@@ -4535,8 +4563,8 @@ function toastOn(msg){if(!$('#toast')){var t=document.createElement('div');t.cla
 var HELP_HTML='<h2 id="helpT">Help</h2>'+
   '<h3>The rail on the left</h3><p>Making a test is three steps: <b>1 Pick questions</b>, <b>2 Set up</b>, <b>3 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>3</kbd> jump to the steps; <b>Next</b> at the bottom moves you along.</p>'+
   '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
-  '<h3>Pick questions</h3><p>In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and tick questions (or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
-  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them (letter-size pages, so you can see where each page breaks). <b>3 Print</b> shows the preview with the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>Pick questions</h3><p>In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and click questions to add them (<b>Shift</b>-click adds a run; or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
+  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them (letter-size pages, so you can see where each page breaks). <b>Review &amp; print</b> under the preview goes to <b>3 Print</b>: what will print, the preview, the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
   '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
   '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+

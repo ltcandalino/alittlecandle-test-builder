@@ -88,7 +88,7 @@ describe('Word (.docx)', () => {
     assert.equal(blanks.length, 2, 'one blank header per key section');
   });
   test('Format menu: Word changes the buttons to Download and saves a .docx', async () => {
-    await gotoTab(page, 'build');
+    await gotoTab(page, 'print');
     await page.selectOption('#fmtSel', 'docx');
     assert.match(await page.textContent('[data-print="both"]'), /^Download /);
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-print="keys"]')]);
@@ -125,7 +125,7 @@ describe('LaTeX (.zip with .tex and pictures)', () => {
     fs.copyFileSync(path.join(dir, texName.replace(/\.tex$/, '.pdf')), path.join(OUT, 'export-latex.pdf'));
   });
   test('Format menu: LaTeX downloads a .zip', async () => {
-    await gotoTab(page, 'build');
+    await gotoTab(page, 'print');
     await page.selectOption('#fmtSel', 'tex');
     assert.match(await page.textContent('[data-print="both"]'), /^Download /);
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('[data-print="both"]')]);

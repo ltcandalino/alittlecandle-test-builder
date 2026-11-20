@@ -208,7 +208,7 @@ describe('building', () => {
     await select(page, ids);
     await settings(page, { versions: 2, perVersion: true });
     await page.evaluate(() => { window.__prints = []; window.print = () => { window.__prints.push(document.querySelector('#printRoot').innerHTML.length); setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); }; });
-    await gotoTab(page, 'build');
+    await gotoTab(page, 'print');
     await page.click('[data-print="both"]');
     await page.waitForFunction(() => window.__prints.length >= 3, null, { timeout: 15000 });
     const p = await page.evaluate(() => window.__prints);
@@ -265,15 +265,18 @@ describe('build and print layout', () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
     await select(page, ids.slice(0, 1)); await settings(page, { versions: 3 });
     await place('setup', 'questions');
+    assert.ok(!(await page.isVisible('[data-print="both"]')), 'Set up previews; printing happens on 3 Print');
+    await page.click('#toPrint');
+    assert.equal(await page.evaluate(() => window.__tb.fn.curSub('print')), 'preview');
     const order = await page.evaluate(() => {
       const y = el => el.getBoundingClientRect().top + window.scrollY;
       return { paper: y(document.querySelector('#paper')), print: y(document.querySelector('[data-print="both"]')) };
     });
     assert.ok(order.paper < order.print, 'paper preview is above the Print buttons');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 1 question · 2 points');
-    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await place('setup', 'questions');
+    await page.evaluate(id => window.__tb.state.selected.push(id), ids[1]); await place('print', 'preview');
     assert.equal(await page.textContent('#pbSum'), '3 versions · 2 questions · 6 points');
-    await page.click('#selList [data-rm]');
+    await place('setup', 'questions'); await page.click('#selList [data-rm]');
     assert.match(await page.textContent('#pbSum'), /1 question ·/);
   });
 });
@@ -625,6 +628,7 @@ describe('accommodations', () => {
     await page.selectOption('[data-acc="size"]', 'xl');
     await page.selectOption('[data-acc="version"]', '1');
     assert.match(await page.getAttribute('#paper', 'style'), /OpenDyslexic.*--pts: ?18pt/);
+    await place('print', 'preview');
     assert.match(await page.textContent('#pbSum'), /2 versions \+ accommodated copy/);
     assert.ok(await page.isVisible('[data-print="acc"]'));
     const st = await page.evaluate(() => window.__tb.state.settings.accom);
@@ -690,6 +694,30 @@ describe('3 Print: what will print', () => {
     await page.click('[data-print="tests"]');
     await page.waitForSelector('#recap .rc-done');
     assert.match(await page.textContent('#recap .rc-done'), /Printed today at .* saved as “Quarter 1 – Unit 3 Exam”/);
+  });
+});
+
+describe('polish 2026-11-20', () => {
+  test('on 1 Pick questions a click on a question picks it and Shift-click picks a run', async () => {
+    const ids = await addQuestions(page, [{ html: 'P1' }, { html: 'P2' }, { html: 'P3' }, { html: 'P4' }]);
+    await select(page, []); await page.evaluate(() => Object.assign(window.__tb.ui(), { q: 'P', sort: 'bank' }));
+    await place('pick', 'search');
+    const card = i => page.locator('#qlist .qcard', { hasText: 'P' + i }).locator('.qmeta');
+    await card(1).click();
+    await card(4).click({ modifiers: ['Shift'] });
+    assert.deepEqual((await page.evaluate(() => window.__tb.state.selected)).sort(), ids.slice().sort(), 'P1 to P4 picked');
+    await card(2).click();
+    assert.equal(await page.evaluate(() => window.__tb.state.selected.length), 3, 'a second click takes it off');
+    await page.evaluate(() => { window.__tb.ui().q = ''; });
+  });
+  test('an empty test points to 1 Pick questions; 3 Print shows only the recap', async () => {
+    await select(page, []);
+    await place('setup', 'questions');
+    await page.click('#selPick');
+    assert.equal(await page.evaluate(() => document.querySelector('#main').dataset.place), 'pick');
+    await place('print', 'preview');
+    assert.ok(!(await page.isVisible('.pvcard')), 'no preview, versions or print buttons with nothing to print');
+    assert.match(await page.textContent('#recap'), /Nothing to print yet/);
   });
 });
 
@@ -759,7 +787,7 @@ describe('printing', () => {
     test('no blank first page: ' + label, async () => {
       const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two' }]);
       await select(page, ids); await settings(page, { versions: 2, perVersion });
-      await gotoTab(page, 'build');
+      await gotoTab(page, 'print');
       await page.evaluate(() => { window.print = () => {}; });
       await page.click(`[data-print="${kind}"]`);
       await page.waitForFunction(() => document.querySelector('#printRoot section'));
