@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-20
+
 ### Added
 - **Select all / Deselect all** on 1 Pick questions (and the Question bank): puts every question shown on the test or takes them off, with Undo.
 - **Copies you can change:** **Duplicate** in a bank's ⋯ menu (Your banks), and **Copy to mine** for a colleague's or team bank (Shared with you, Team banks, and inside the bank in Browse banks) and on a colleague's question in 1 Pick questions. A copy is yours and private; changing it never changes the original.
