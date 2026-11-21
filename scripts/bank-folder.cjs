@@ -174,7 +174,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       return inner();
     }
     const mathOf = n => '$' + tex(n).replace(/(\\, *)+(?=['′}^_])/g, '').replace(/\s+/g, ' ').replace(/(\\ )+$/, '').trim() + '$';
-    const textOf = d => d.replace(/º/g, '°').replace(/([\\$*_|])/g, '\\$1').replace(/(\d+(?:\.\d+)?)?π/g, (_, k) => '$' + (k || '') + '\\pi$');
+    const textOf = d => d.replace(/º/g, '°').replace(/([\\$*_|])/g, '\\$1').replace(/(^|[\s(“"])([b-z])(?=$|[\s,;:?!)”"-]|\.(?!\w))/g, (all, pre, v, at, str) => /\d\s$/.test(str.slice(Math.max(0, at - 2), at + pre.length)) ? all : pre + '$' + v + '$').replace(/(\d+(?:\.\d+)?)?π/g, (_, k) => '$' + (k || '') + '\\pi$');
     function mdOf(html, img) {
       const d = document.createElement('div'); d.innerHTML = html; let s = '';
       (function walk(el) {
@@ -193,11 +193,10 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     }
     // tables: a title row (one cell across) becomes a bold line above; the first row is the header
     function tableMd(t) {
-      const rows = [...t.querySelectorAll('tr')].map(r => [...r.children].map(td => ({ span: +(td.getAttribute('colspan') || 1), md: mdOf(td.innerHTML, () => '').replace(/\n+/g, ' ').replace(/^\*\*(.*)\*\*$/, '$1') })));
-      let title = ''; if (rows.length > 1 && rows[0].length === 1 && rows[0][0].span > 1) title = '**' + rows.shift()[0].md + '**\n\n';
+      const rows = [...t.querySelectorAll('tr')].map(r => [...r.children].map(td => ({ span: +(td.getAttribute('colspan') || 1), md: mdOf(td.innerHTML, () => '').replace(/\n+/g, ' ') })));
       const n = Math.max(...rows.map(r => r.reduce((a, c) => a + c.span, 0)));
       const line = r => '| ' + r.map(c => (c.md || ' ') + ' ' + '|'.repeat(c.span)).join(' '); // "title ||" spans two columns; an empty cell is "|   |"
-      return title + line(rows[0]) + '\n|' + ':-:|'.repeat(n) + '\n' + rows.slice(1).map(line).join('\n');
+      return line(rows[0]) + '\n|' + ':-:|'.repeat(n) + '\n' + rows.slice(1).map(line).join('\n');
     }
     const out = qs.map(q => {
       const pics = []; const pic = n => { pics.push({ src: n.getAttribute('src'), w: (/width:([\d.]+)in/.exec(n.getAttribute('style') || '') || [])[1] }); return '@@PIC' + (pics.length - 1) + '@@'; };
@@ -265,8 +264,8 @@ function math(s){var errs=0;
   // \$ is a dollar sign (money), not the start of math
   var h=img(s).replace(/\\\$/g,'\u0004').split(/(\$[^$]+\$)/).map(function(part){
     if(/^\$[^$]+\$$/.test(part)){try{return katex.renderToString(part.slice(1,-1).replace(/\u0004/g,'\\$'),{throwOnError:true});}catch(e){errs++;return '<span class="err" title="'+esc(e.message)+'">'+esc(part)+'</span>';}}
-    return esc(part).replace(/\\([\\$*_|])/g,'$1').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/\n/g,'<br>')
-      .replace(/\u0001([^\u0002]+)\u0002([\d.]+)\u0003/g,'<img src="$1" style="width:$2in">').replace(/\u0004/g,'$');}).join('');
+    return esc(part).replace(/\\([\\$*_|])/g,'$1').replace(/\n/g,'<br>')
+      .replace(/\u0001([^\u0002]+)\u0002([\d.]+)\u0003/g,'<img src="$1" style="width:$2in">').replace(/\u0004/g,'$');}).join('').replace(/\*\*([\s\S]+?)\*\*/g,'<b>$1</b>').replace(/(^|[^\\])\*([^*]+?)\*/g,'$1<i>$2</i>'); // bold and italics can hold math
   return {h:h,errs:errs};}
 function table(p){var rows=p.split('\n').filter(function(r){return !/^\|[\s:|-]+\|$/.test(r);}),errs=0;
   var h='<table class="tb">'+rows.map(function(r,i){var parts=r.replace(/^\|/,'').replace(/\|$/,'').split(/(?<!\\)\|/),cells=[];
@@ -299,7 +298,7 @@ header b{color:#7851a9}
 img{max-width:100%;height:auto;vertical-align:top}
 ol{padding-left:28px} .q>div:last-child li{line-height:1.5;margin:.3em 0} .q>div:last-child li:has(.mfrac){margin:.8em 0} li.ok{font-weight:700}
 .katex{font-size:1.05em}
-.tb{border-collapse:collapse;margin:8px auto;font:13px Arial,Helvetica,sans-serif}.tb th,.tb td{border:1px solid #000;padding:2px 14px;text-align:center}
+.tb{border-collapse:collapse;margin:8px auto;font:13px Arial,Helvetica,sans-serif}.tb th,.tb td{border:1px solid #000;padding:2px 14px;text-align:center;font-weight:400}
 .meta{font:12px system-ui,sans-serif;color:#666;border-top:1px solid #eee;margin-top:10px;padding-top:6px}
 .err{background:#fde8e8}
 ${css}
