@@ -74,7 +74,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
-| `scripts/` | `release.py`, `release-notes.py`, `docker-test.sh`. |
+| `scripts/` | `release.py`, `release-notes.py`, `docker-test.sh`, `bank-folder.cjs` (ExamView bank → bank folder: Markdown + LaTeX, pictures cut from Regents PDFs found by their cover page, review.html; run `python3 build.py` first). |
 | `VERSION` | Semantic version; `build.py` injects it (`APP_VERSION`, `<meta name="version">`); server reads it from index.html. |
 | `.github/workflows/` | `docker.yml` = CI (tests → image to GHCR), `release.yml` (GitHub Release from CHANGELOG), `wiki.yml`. |
 
@@ -439,3 +439,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-20**: released v0.18.0 (CI, Release, `:latest` = 0.18.0; her local site updated). Public site still waits for James.
 - **2026-11-20**: her request: reorder by drag or number + Sort (2 Set up › Questions). `selGroups()` = printed order before shuffling (review open→mc via `reviewKind`, lesson roles, grouped test parts like `buildVersion`, bonus last); `drawSel` rows have `data-drag` handle (HTML5 drag within the same group `data-g`, ↑ ↓ keys) and `data-num` box (clamped to the group); `moveSel` rewrites `state.selected` in group order; `sortSel` + `SEL_SORTS` (`#selSort`), all with Undo. ↑ ↓ buttons removed.
 - **2026-11-20**: released v0.19.0 (CI, Release, `:latest` = 0.19.0; her local site updated). Public site still waits for James.
+- **2026-11-20**: her picks: current Regents banks next, she downloads the PDFs, app support after. `scripts/bank-folder.cjs` replaces the one-off scripts (finds exam PDFs in ~/Downloads by cover page course + date, skips keys/rating guides; crops question and answer-choice pictures, picks the piece shaped like the bank's picture; tables → Markdown, `"title ||"` spans; keeps ids on re-runs; `\$` = money; log3 → `\log_3`). Folders in ~/Downloads/BNKv6: GEO2024-2026 (redone, same as reviewed), AI2026-2027 and AII2025-2027 (ExamView pictures until she adds Algebra I Jan + June 2026 and Algebra II June 2026 PDFs; then re-run).
