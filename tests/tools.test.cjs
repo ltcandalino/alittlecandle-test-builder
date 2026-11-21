@@ -238,14 +238,14 @@ describe('bank files', () => {
     await reset();
     const r = await page.evaluate(() => {
       const T = window.__tb, c = T.state.course;
-      T.state.questions.push(T.normalize({ questions: [{ id: 'mine1', type: 'mc', html: 'Old', choices: ['a', 'b'], answer: 0, bank: 'GEO', ref: '062502geo', unit: '6', courses: [c] }] }).questions[0]);
+      T.state.questions.push(T.normalize({ questions: [{ id: 'mine1', type: 'mc', html: 'Old', choices: ['a', 'b'], answer: 0, bank: 'GEO', ref: '062502geo', unit: '6', topic: 'Using Trigonometry to Find a Side', courses: [c] }] }).questions[0]);
       const res = T.fn.importBankData([{ name: 'geo.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'GEO', questions: [
-        { id: 'fromfolder', type: 'mc', html: 'New <img class="q-img" src="data:image/png;base64,iVBORw0KGgo=">', choices: ['a', 'b', 'c'], answer: 2, bank: 'GEO', ref: '062502geo', unit: '', courses: [c] },
+        { id: 'fromfolder', type: 'mc', html: 'New <img class="q-img" src="data:image/png;base64,iVBORw0KGgo=">', choices: ['a', 'b', 'c'], answer: 2, bank: 'GEO', ref: '062502geo', unit: '', topic: 'Trigonometry', subtopic: 'find a side using a trig ratio', courses: [c] },
         { id: 'other', type: 'es', html: 'Another', bank: 'GEO', ref: '062503geo', courses: [c] }] } }]);
       const q = T.state.questions.find(x => x.ref === '062502geo');
-      return { added: res.added, updated: res.updated, id: q.id, html: q.html.slice(0, 3), unit: q.unit, answer: q.answer, n: T.state.questions.filter(x => x.ref === '062502geo').length };
+      return { added: res.added, updated: res.updated, id: q.id, html: q.html.slice(0, 3), unit: q.unit, topic: q.topic, sub: q.subtopic, answer: q.answer, n: T.state.questions.filter(x => x.ref === '062502geo').length };
     });
-    assert.deepEqual(r, { added: 1, updated: 1, id: 'mine1', html: 'New', unit: '6', answer: 2, n: 1 });
+    assert.deepEqual(r, { added: 1, updated: 1, id: 'mine1', html: 'New', unit: '6', topic: 'Trigonometry', sub: 'find a side using a trig ratio', answer: 2, n: 1 }, 'her unit stays; the file\'s new topic replaces the old one');
   });
   test('a backup file is not taken as a bank file', async () => {
     await reset();

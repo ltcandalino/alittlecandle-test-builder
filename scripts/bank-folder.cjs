@@ -27,6 +27,9 @@ const refParts = ref => { let m = /^(\d\d)(\d\d)(\d\d)/.exec(ref || ''); if (m) 
 const nameOf = (q, i) => { const r = refParts(q.ref); if (!r) return 'q' + String(i + 1).padStart(3, '0'); /* no exam reference: its place in the bank */ return (r.kind === 'exam' ? r.mm + r.yy : r.kind + r.yy) + '-' + String(r.n).padStart(2, '0'); };
 const examOf = q => { const r = refParts(q.ref); if (!r) return ''; if (r.kind === 'exam') return (MON[r.mm] || r.mm) + ' 20' + r.yy + ' #' + r.n;
   const k = { spr: 'Spring', fall: 'Fall', sum: 'Summer', win: 'Winter' }[r.kind] || r.kind; return k + ' 20' + r.yy + ' sample #' + r.n; };
+// front-matter keys the tool writes from the bank; a key it doesn't know (one of her own fields) or one of KEEP_KEYS is kept on a re-run
+const TOOL_KEYS = new Set(['id', 'ref', 'exam', 'type', 'points', 'answer', 'answer notes', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines']);
+const KEEP_KEYS = new Set(['topic', 'subtopic', 'unit', 'section', 'notes']);
 const yq = v => v === '' || v == null ? '""' : typeof v === 'number' || (/^[\w .,()\-\/#]+$/.test(String(v)) && !/^\d+$/.test(String(v))) ? String(v) : JSON.stringify(String(v));
 const b64 = f => fs.readFileSync(f).toString('base64');
 
@@ -253,13 +256,16 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     });
     const ny = /^(.*?),?\s*NY:\s*(.+)$/.exec(q.standard || ''); if (ny) { q.standard = ny[1].trim(); q.nyStd = q.nyStd || ny[2].trim(); }
     // run again on a folder: each question keeps the id it already has there
-    const had = path.join(OUT, 'questions', name + '.md'), oldId = fs.existsSync(had) && (/\nid: (\S+)/.exec(fs.readFileSync(had, 'utf8')) || [])[1];
+    const had = path.join(OUT, 'questions', name + '.md'), hadTxt = fs.existsSync(had) ? fs.readFileSync(had, 'utf8') : '', oldId = (/\nid: (\S+)/.exec(hadTxt) || [])[1];
+    // what was changed in the folder stays: topic, subtopic, unit, section, notes, and any field of her own (JMAP topic, …)
+    const kept = {}; ((/^---\n([\s\S]*?)\n---/.exec(hadTxt) || [])[1] || '').split('\n').forEach(l => { const m = /^([^:]+):\s?(.*)$/.exec(l); if (m && !TOOL_KEYS.has(m[1].trim()) || m && KEEP_KEYS.has(m[1].trim())) kept[m[1].trim()] = m[2]; });
     const meta = { id: oldId || q.id, ref: q.ref, exam: examOf(q) };
     fields.forEach(k => { const v = q[k]; if (v !== '' && v != null && !(k === 'answer' && !(q.type === 'mc' || q.type === 'bm'))) meta[k] = k === 'answer' ? (v >= 0 ? v + 1 : '') : v; });
     meta.type = { mc: 'multiple choice', bm: 'bimodal', tf: 'true/false', sa: 'short answer', es: 'open response' }[q.type] || q.type;
     if (q.type === 'tf') meta.answer = q.answer === 'T' ? 'true' : q.answer === 'F' ? 'false' : '';
     else if (!(q.type === 'mc' || q.type === 'bm') && q.answer) meta['answer notes'] = q.answer;
-    let txt = '---\n' + Object.entries(meta).map(([k, v]) => k + ': ' + yq(v)).join('\n') + '\n---\n\n' + place(m.stem) + '\n';
+    const lines = Object.entries(meta).filter(([k]) => !(k in kept)).map(([k, v]) => k + ': ' + yq(v)).concat(Object.entries(kept).map(([k, v]) => k + ': ' + v));
+    let txt = '---\n' + lines.join('\n') + '\n---\n\n' + place(m.stem) + '\n';
     if (m.choices.length) txt += '\n' + m.choices.map((ch, k) => (k + 1) + '. ' + place(ch)).join('\n') + '\n';
     fs.writeFileSync(path.join(OUT, 'questions', name + '.md'), txt);
   });

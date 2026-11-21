@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Opening a bank file of a bank you already have** now takes the file's topic, subtopic and standards (for example the new Geometry topics). Your unit, section, notes and your own fields are still kept.
+
 ## [0.20.1] - 2026-11-20
 
 ### Fixed
