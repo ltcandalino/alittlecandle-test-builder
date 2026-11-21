@@ -6,8 +6,8 @@
    images/examview/.
 
    node scripts/bank-folder.cjs <bank.bnk> [--pdfs <folder>] [--out <folder>]
-     --pdfs  where the exam PDFs are (default ~/Downloads)
-     --out   where the bank folder goes (default: ~/Downloads/BNKv6)
+     --pdfs  where the exam PDFs are, looked for in subfolders too (default ~/Documents/TestBuilderResource/Regents exams)
+     --out   where the bank folder goes (default ~/Documents/TestBuilderResource/Bank folders)
 
    Uses the app itself (ExamView reader, PDF reader) in a headless browser, so run `python3 build.py` first. */
 const fs = require('fs'), path = require('path'), os = require('os');
@@ -15,7 +15,8 @@ const ROOT = path.join(__dirname, '..');
 const { launch, openApp } = require(path.join(ROOT, 'tests', 'helpers.cjs'));
 
 const args = process.argv.slice(2), opt = k => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : null; };
-const PDFS = opt('--pdfs') || path.join(os.homedir(), 'Downloads'), OUTDIR = opt('--out') || path.join(os.homedir(), 'Downloads', 'BNKv6');
+const RES = path.join(os.homedir(), 'Documents', 'TestBuilderResource');
+const PDFS = opt('--pdfs') || path.join(RES, 'Regents exams'), OUTDIR = opt('--out') || path.join(RES, 'Bank folders');
 const BNK = args[0];
 if (!BNK || !fs.existsSync(BNK)) { console.error('usage: node scripts/bank-folder.cjs <bank.bnk> [--pdfs <folder>] [--out <folder>]'); process.exit(1); }
 const OUT = path.join(OUTDIR, path.basename(BNK, '.bnk') + ' bank folder');
@@ -46,8 +47,8 @@ const b64 = f => fs.readFileSync(f).toString('base64');
   // 2. find the exam PDFs: the cover page names the course and the date (answer keys and rating guides are skipped)
   const want = new Set(bank.qs.map(q => refParts(q.ref)).filter(r => r && r.kind === 'exam').map(r => '20' + r.yy + r.mm));
   const exams = {};
-  for (const f of fs.readdirSync(PDFS).filter(f => /\.pdf$/i.test(f))) {
-    const full = path.join(PDFS, f); if (fs.statSync(full).size > 15e6) continue;
+  const pdfsIn = (d, depth) => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? (depth ? pdfsIn(path.join(d, e.name), depth - 1) : []) : /\.pdf$/i.test(e.name) ? [path.join(d, e.name)] : []);
+  for (const full of pdfsIn(PDFS, 3)) { if (fs.statSync(full).size > 15e6) continue;
     const cover = await page.evaluate(async d => {
       const lib = await (window.__pdflib || (window.__pdflib = import(URL.createObjectURL(new Blob([document.getElementById('pdflib').textContent], { type: 'text/javascript' }))).then(async lib => {
         const w = await import(URL.createObjectURL(new Blob([document.getElementById('pdfworker').textContent], { type: 'text/javascript' }))); globalThis.pdfjsWorker = w; return lib; })));

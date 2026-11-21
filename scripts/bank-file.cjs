@@ -4,7 +4,7 @@
    (fractions, roots, overlines, lines, rays, arcs, exponents, symbols); tables, bold, italics and pictures are kept.
 
    node scripts/bank-file.cjs "<bank folder>" [--out <file.json>] [--course "Algebra 1"]
-     --out     default: next to the folder, "<bank> bank file.json"
+     --out     default: "<bank> bank file.json" in Bank files (next to Bank folders), else next to the folder
      --course  the app course to put it in (default: from bank.md; Algebra I → Algebra 1, Algebra II → Algebra 2) */
 const fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = k => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : null; };
@@ -116,7 +116,9 @@ const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.ends
   (q.html + (q.choices || []).join('')).replace(/\\[A-Za-z]+/g, m => { unknown.add(m); return m; });
   return q;
 });
-const out = OUTF || path.join(path.dirname(DIR), path.basename(DIR).replace(/ bank folder$/, '') + ' bank file.json');
+// next to the folder, or in "Bank files" when the folders are in "Bank folders" (Documents/TestBuilderResource)
+const near = path.basename(path.dirname(path.resolve(DIR))) === 'Bank folders' ? path.join(path.dirname(path.dirname(path.resolve(DIR))), 'Bank files') : path.dirname(path.resolve(DIR));
+const out = OUTF || path.join(near, path.basename(DIR).replace(/ bank folder$/, '') + ' bank file.json');
 fs.writeFileSync(out, JSON.stringify({ app: 'test-builder', kind: 'bank', version: 1, saved: new Date().toISOString(), bank: bankName, courses, fields: [], questions }));
 console.log('wrote ' + out + ': ' + questions.length + ' questions, ' + pics + ' pictures, course ' + courses.join(', ') + ' (' + (fs.statSync(out).size / 1e6).toFixed(1) + ' MB)');
 if (unknown.size) console.log('LaTeX the app can’t draw yet (left as written): ' + [...unknown].join(' '));
