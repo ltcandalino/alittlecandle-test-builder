@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-11-20
+
 ### Fixed
 - ExamView's script letter ℓ ("line ℓ", "p = 2ℓ + 2w") showed as “ª”. New imports read it correctly, and questions already in your banks are fixed when the app opens.
 - PDF import missed questions on pages where a graph's labels or a table sat further left than the question numbers (for example Algebra I January 2019 found only 3 of 37 questions).
