@@ -262,7 +262,7 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function img(p){var im=/!\[[^\]]*\]\(\.\.\/([^)]+)\)\{width=([\d.]+)in\}/g;return p.replace(im,function(_,f,w){return '\u0001'+f+'\u0002'+w+'\u0003';});}
 function math(s){var errs=0;
   // \$ is a dollar sign (money), not the start of math
-  var h=img(s).replace(/\\\$/g,'\u0004').split(/(\$[^$]+\$)/).map(function(part){
+  var h=img(s).replace(/\\\$/g,'\u0004').replace(/\(\$([^$]+)\$\)/g,'$($1)$').split(/(\$[^$]+\$)/).map(function(part){
     if(/^\$[^$]+\$$/.test(part)){try{return katex.renderToString(part.slice(1,-1).replace(/\u0004/g,'\\$'),{throwOnError:true});}catch(e){errs++;return '<span class="err" title="'+esc(e.message)+'">'+esc(part)+'</span>';}}
     return esc(part).replace(/\\([\\$*_|])/g,'$1').replace(/\n/g,'<br>')
       .replace(/\u0001([^\u0002]+)\u0002([\d.]+)\u0003/g,'<img src="$1" style="width:$2in">').replace(/\u0004/g,'$');}).join('').replace(/\*\*([\s\S]+?)\*\*/g,'<b>$1</b>').replace(/(^|[^\\])\*([^*]+?)\*/g,'$1<i>$2</i>'); // bold and italics can hold math
@@ -298,7 +298,7 @@ header b{color:#7851a9}
 img{max-width:100%;height:auto;vertical-align:top}
 ol{padding-left:28px} .q>div:last-child li{line-height:1.5;margin:.3em 0} .q>div:last-child li:has(.mfrac){margin:.8em 0} li.ok{font-weight:700}
 .katex{font-size:1.05em}
-.tb{border-collapse:collapse;margin:8px auto;font:13px Arial,Helvetica,sans-serif}.tb th,.tb td{border:1px solid #000;padding:2px 14px;text-align:center;font-weight:400}
+.tb{border-collapse:collapse;margin:8px auto;font:inherit}.tb th,.tb td{border:1px solid #000;padding:2px 14px;text-align:center;font-weight:400}
 .meta{font:12px system-ui,sans-serif;color:#666;border-top:1px solid #eee;margin-top:10px;padding-top:6px}
 .err{background:#fde8e8}
 ${css}
