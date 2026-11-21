@@ -656,6 +656,21 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 .q-grid{margin:8px auto}
 .q-grid td{border:1px solid currentColor;text-align:center;vertical-align:middle;padding:2px 12px;min-width:0}
 .pt .q-grid td{min-width:0}
+
+/* 2 Set up › Questions: printed order with headings, grab handle, number box, Sort */
+.sel-tools{display:flex;gap:12px;align-items:center;margin:0 0 8px;flex-wrap:wrap}
+.sel-tools label{display:flex;gap:6px;align-items:center;font-size:13px}
+.sel li{grid-template-columns:22px 40px 1fr auto}
+.sel li.sel-h{display:flex;gap:8px;align-items:baseline;background:var(--accent-soft);font-size:12.5px;padding:5px 10px;position:sticky;top:0;z-index:1}
+.sel li.sel-h span{color:var(--muted)}
+.sel .drag{cursor:grab;padding:2px 2px;font-size:15px;line-height:1;color:var(--muted);border:none;background:none}
+.sel .drag:hover,.sel .drag:focus-visible{color:var(--accent)}
+.sel .selnum{width:40px;padding:2px 4px;font-size:13px;text-align:center;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--ink2)}
+.sel .selnum:hover{border-color:var(--line2)}
+.sel .selnum:focus{border-color:var(--accent);background:#fff;outline:none}
+.sel li.dragging{opacity:.45}
+.sel li.drop-a{box-shadow:inset 0 2px 0 var(--accent)}
+.sel li.drop-b{box-shadow:inset 0 -2px 0 var(--accent)}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -3044,7 +3059,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3912,6 +3927,7 @@ function _renderBuild(){
     '<div class="card" data-show="setup:versions"><h2>Versions</h2><div class="fields">'+'<div class="row"><label><span class="lbl">Versions</span><select data-set="versions">'+[1,2,3,4,5,6,7,8].map(function(n){return '<option value="'+n+'"'+(n==s.versions?' selected':'')+'>'+n+(n===1?' (no scrambling)':' — A to '+LETTERS[n-1])+'</option>';}).join('')+'</select></label><span></span></div>'+'</div>'+
     '<h3>Scrambling</h3><div class="checks">'+cb('shuffleQ','Shuffle question order',exam?'Within each part.':'Within each section.')+cb('shuffleC','Shuffle answer choices','“All/None of the above” stays last.')+cb('keepA','Keep Version A in the original order','Handy as your master copy.')+(nVersions()>1?cb('perVersion','Print each version separately','Page numbers start at 1 and the first-page header prints on each version.'):'')+'</div></div>'+
 '<div class="card savedcard" id="savedCard" data-show="print:saved"></div><div class="card" data-show="setup:questions"><h2>Questions on this '+T+'</h2><div class="stat"><div><b id="stN">'+state.selected.length+'</b>questions</div><div><b id="stP">'+totalPts()+'</b>points</div></div>'+
+    '<div class="sel-tools"><label>Sort <select id="selSort"'+(state.selected.length>1?'':' disabled')+'><option value="">Choose…</option>'+SEL_SORTS.map(function(o){return '<option value="'+o[0]+'">'+esc(o[1])+'</option>';}).join('')+'</select></label><span class="hint">Drag ⠿ or type a number to move a question.</span></div>'+
     '<ul class="sel" id="selList"></ul>'+
     '<div class="pickrow"><span>Add</span><input type="number" id="pkN" min="1" max="500" value="'+esc(ui.pickN)+'"><span>random questions from</span>'+(banks.length>1?'<select id="pkB">'+opts(banks,ui.pickBank,'any bank')+'</select>':'')+unitSelect('pkU',ui.pickUnit,'any unit')+unitSelect('pkS',ui.pickSection,'any section','section')+'<select id="pkT">'+opts(uniq('topic'),ui.pickTopic,'any topic')+'</select><select id="pkY">'+typeOpts(ui.pickType,'any type')+'</select><button class="small" id="pkGo">Add</button><span class="spacer"></span><button class="small ghost" id="clr"'+(state.selected.length?'':' disabled')+'>Clear all</button></div>'+
     '<p class="note">Pick individual questions under 1 Pick questions. Questions print in this order unless you shuffle or group them.</p></div>'+
@@ -3937,6 +3953,8 @@ function _renderBuild(){
     if(k==='on'){if(v)ui.pv='acc';renderBuild();var f=$('[data-acc="on"]');if(f)f.focus();}else{if(ui.pv!=='acc'){ui.pv='acc';saveUi();}drawPreview();drawPrintBar();}};});
   $$('[data-doctype]',main).forEach(function(b){b.onclick=function(){s.docType=b.dataset.doctype;changed();renderBuild();renderTabs();};});
   drawSel();
+  $('#selSort').onchange=function(){var k=this.value;if(!k)return;var prev=sortSel(k);changed();renderBuild();renderTabs();
+    toast('Sorted: '+SEL_SORTS.filter(function(o){return o[0]===k;})[0][1].toLowerCase()+'.',function(){state.selected=prev;changed();render();});};
   $('#pkN').oninput=function(){ui.pickN=parseInt(this.value,10)||1;saveUi();};
   if($('#pkB'))$('#pkB').onchange=function(){ui.pickBank=this.value;saveUi();};
   $('#pkT').onchange=function(){ui.pickTopic=this.value;saveUi();};
@@ -4018,15 +4036,83 @@ function refreshAuto(){var t=$('#main [data-set=title]');if(t)t.placeholder='aut
 function drawSel(){
   var ul=$('#selList'),qs=selectedQs(),dt=docType(),st=state.settings;
   if(!qs.length){ul.innerHTML='<li class="sel-empty">No questions yet. <button class="small" id="selPick">Go to 1 Pick questions</button> or add random ones below.</li>';$('#selPick').onclick=function(){go('pick');};return;}
-  ul.innerHTML=qs.map(function(q,i){return '<li><span class="n">'+(i+1)+'</span><span class="t" title="'+esc(plainQ(q).t)+'"><span class="badge '+q.type+'" style="margin-right:6px">'+{mc:'MC',bm:'Bimodal',tf:'T/F',sa:'SA',es:'Open'}[q.type]+'</span>'+esc(plainQ(q).t)+(q.topic?'<small>'+esc(q.topic)+'</small>':'')+(dt==='lesson'&&roleOf(q)==='example'?'<input type="text" class="exc" data-exc="'+q.id+'" value="'+esc((st.concepts||{})[q.id]||'')+'" placeholder="Example concept, e.g. SAS">':'')+'</span><span>'+(dt==='lesson'?'<select class="rolesel" data-role="'+q.id+'" title="Where this goes in the lesson"><option value="warmup"'+(roleOf(q)==='warmup'?' selected':'')+'>Warm Up</option><option value="example"'+(roleOf(q)==='example'?' selected':'')+'>Example</option><option value="practice"'+(roleOf(q)==='practice'?' selected':'')+'>Practice</option></select>':'')+(isExamDoc()?'<button class="ghost bmt'+(isBonus(q)?' on':'')+'" data-bonus="'+q.id+'" title="Bonus questions print at the end and don’t count toward the score">'+(isBonus(q)?'bonus ✓':'bonus')+'</button>':'')+(q.type==='bm'?'<button class="ghost bmt" data-bm="'+q.id+'" title="Switch between printing with and without answer choices">'+(bmChoices(q)?'with choices':'no choices')+'</button>':'')+'<button class="ghost" data-up="'+i+'" title="Move up"'+(i?'':' disabled')+'>↑</button><button class="ghost" data-dn="'+i+'" title="Move down"'+(i<qs.length-1?'':' disabled')+'>↓</button><button class="ghost" data-rm="'+q.id+'" title="Take off test">✕</button></span></li>';}).join('');
+  var G=selGroups(),total=qs.length,n=0,heads=G.length>1;
+  ul.innerHTML=G.map(function(g,gi){var pts=g.qs.reduce(function(a,q){return a+num(q.points,1);},0);
+    return (heads?'<li class="sel-h" role="presentation"><b>'+esc(g.label)+'</b> <span>'+plural(g.qs.length,'question')+' · '+plural(pts,'point')+'</span></li>':'')+g.qs.map(function(q){n++;var i=n-1;
+    return '<li data-sq="'+q.id+'" data-g="'+gi+'"><button class="ghost drag" data-drag="'+q.id+'" title="Drag to move (or press ↑ ↓)" aria-label="Move question '+n+'">⠿</button><input class="selnum" data-num="'+q.id+'" value="'+n+'" inputmode="numeric" aria-label="Question '+n+': type a new number to move it" title="Type a number and press Enter to move it there"><span class="t" title="'+esc(plainQ(q).t)+'"><span class="badge '+q.type+'" style="margin-right:6px">'+{mc:'MC',bm:'Bimodal',tf:'T/F',sa:'SA',es:'Open'}[q.type]+'</span>'+esc(plainQ(q).t)+(q.topic?'<small>'+esc(q.topic)+'</small>':'')+(dt==='lesson'&&roleOf(q)==='example'?'<input type="text" class="exc" data-exc="'+q.id+'" value="'+esc((st.concepts||{})[q.id]||'')+'" placeholder="Example concept, e.g. SAS">':'')+'</span><span>'+(dt==='lesson'?'<select class="rolesel" data-role="'+q.id+'" title="Where this goes in the lesson"><option value="warmup"'+(roleOf(q)==='warmup'?' selected':'')+'>Warm Up</option><option value="example"'+(roleOf(q)==='example'?' selected':'')+'>Example</option><option value="practice"'+(roleOf(q)==='practice'?' selected':'')+'>Practice</option></select>':'')+(isExamDoc()?'<button class="ghost bmt'+(isBonus(q)?' on':'')+'" data-bonus="'+q.id+'" title="Bonus questions print at the end and don’t count toward the score">'+(isBonus(q)?'bonus ✓':'bonus')+'</button>':'')+(q.type==='bm'?'<button class="ghost bmt" data-bm="'+q.id+'" title="Switch between printing with and without answer choices">'+(bmChoices(q)?'with choices':'no choices')+'</button>':'')+'<button class="ghost" data-rm="'+q.id+'" title="Take off test">✕</button></span></li>';}).join('');}).join('');
   function after(){changed();$('#stN').textContent=state.selected.length;$('#stP').textContent=totalPts();drawPrintBar();drawSel();drawPreview();renderTabs();}
-  $$('[data-up]',ul).forEach(function(b){b.onclick=function(){var i=+b.dataset.up,a=state.selected,x=a[i-1];a[i-1]=a[i];a[i]=x;after();};});
-  $$('[data-dn]',ul).forEach(function(b){b.onclick=function(){var i=+b.dataset.dn,a=state.selected,x=a[i+1];a[i+1]=a[i];a[i]=x;after();};});
+  wireOrder(ul,G,after);
   $$('[data-rm]',ul).forEach(function(b){b.onclick=function(){state.selected=state.selected.filter(function(x){return x!==b.dataset.rm;});after();};});
   $$('[data-role]',ul).forEach(function(x){x.onchange=function(){st.roles=Object.assign({},st.roles);st.roles[x.dataset.role]=x.value;after();};});
   $$('[data-exc]',ul).forEach(function(x){x.oninput=function(){st.concepts=Object.assign({},st.concepts);st.concepts[x.dataset.exc]=x.value;changed();drawPreviewSoon();};});
   $$('[data-bonus]',ul).forEach(function(b){b.onclick=function(){st.bonus=Object.assign({},st.bonus);if(st.bonus[b.dataset.bonus])delete st.bonus[b.dataset.bonus];else st.bonus[b.dataset.bonus]=true;after();};});
   $$('[data-bm]',ul).forEach(function(b){b.onclick=function(){var s=state.settings,q=selQ(b.dataset.bm);s.bmOverride=s.bmOverride||{};var next=bmChoices(q)?'without':'with';if(next===s.bmMode)delete s.bmOverride[q.id];else s.bmOverride[q.id]=next;after();};});
+}
+/* 2 Set up › Questions lists the questions the way they print (before any shuffling): a Review prints open response, then
+   multiple choice; a Lesson Warm Up, Examples, Practice; a grouped Test its parts; bonus questions last. A question moves
+   only inside its own group (it would print back there anyway): drag the ⠿ handle, press ↑ ↓ on it, or type a number. */
+function selGroups(){
+  var dt=docType(),qs=selectedQs(),main=qs.filter(function(q){return !isBonus(q);}),bon=qs.filter(isBonus),out=[];
+  var add=function(key,label,g){if(g.length)out.push({key:key,label:label,qs:g});};
+  if(dt==='review')[['open','Open response'],['mc','Multiple choice']].forEach(function(k){add(k[0],k[1],main.filter(function(q){return reviewKind(q)===k[0];}));});
+  else if(dt==='lesson')[['warmup','Warm Up'],['example','Examples'],['practice','Practice']].forEach(function(k){add(k[0],k[1],main.filter(function(q){return roleOf(q)===k[0];}));});
+  else if(state.settings.group){
+    var explicit=main.length&&main.every(function(q){return q.part;}),keys=[];
+    main.forEach(function(q){var k=partKeyOf(q,explicit);if(keys.indexOf(k)<0)keys.push(k);});
+    if(explicit)keys.sort(function(a,b){return romanVal(a)-romanVal(b);});else keys.sort();
+    keys.forEach(function(k,i){add(k,explicit?k:'Part '+ROMAN[i],main.filter(function(q){return partKeyOf(q,explicit)===k;}));});
+  }else add('','',main);
+  add('bonus','Bonus',bon);
+  return out;
+}
+// puts question id at place `to` (0-based) inside group gi and saves the new order; the old order can be undone
+function moveSel(G,gi,id,to){
+  var g=G[gi].qs.map(function(q){return q.id;}),from=g.indexOf(id);
+  to=Math.max(0,Math.min(g.length-1,to));if(from<0||from===to)return false;
+  g.splice(from,1);g.splice(to,0,id);
+  var ids=[];G.forEach(function(x,k){ids=ids.concat(k===gi?g:x.qs.map(function(q){return q.id;}));});
+  var prev=state.selected.slice();state.selected=ids.concat(prev.filter(function(x){return ids.indexOf(x)<0;}));
+  return prev;
+}
+function wireOrder(ul,G,after){
+  var start=[],k=0;G.forEach(function(g){start.push(k);k+=g.qs.length;});
+  var moved=function(prev,id,focus,note){if(!prev)return;after();toast((note||'')+'Moved to number '+(selGroups().reduce(function(a,g){return a.concat(g.qs.map(function(q){return q.id;}));},[]).indexOf(id)+1)+'.',function(){state.selected=prev;after();});
+    var f=$('[data-'+focus+'="'+id+'"]',$('#selList'));if(f)f.focus();};
+  // the number box: Enter (or leaving it) moves the question there, within its group
+  $$('[data-num]',ul).forEach(function(inp){var li=inp.closest('li'),gi=+li.dataset.g,id=inp.dataset.num,was=inp.value;
+    var go2=function(){var t=parseInt(inp.value,10);if(!t||String(t)===was){inp.value=was;return;}
+      var g=G[gi],lo=start[gi]+1,hi=start[gi]+g.qs.length,c=Math.max(lo,Math.min(hi,t));
+      var prev=moveSel(G,gi,id,c-lo);
+      var note=c!==t?(g.label||'These questions')+' are numbers '+lo+'–'+hi+'. ':'';
+      if(prev)moved(prev,id,'num',note);else{inp.value=was;if(note)toast(note+'It’s already number '+c+'.');}};
+    inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();go2();}else if(e.key==='Escape'){inp.value=was;inp.blur();}};
+    inp.onchange=go2;inp.onfocus=function(){inp.select();};});
+  // the handle: ↑ ↓ move one place; drag moves anywhere in the same group
+  $$('[data-drag]',ul).forEach(function(h){var li=h.closest('li'),gi=+li.dataset.g,id=h.dataset.drag;
+    h.onkeydown=function(e){if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();
+      var at=G[gi].qs.map(function(q){return q.id;}).indexOf(id);moved(moveSel(G,gi,id,at+(e.key==='ArrowUp'?-1:1)),id,'drag');};
+    h.onmousedown=function(){li.draggable=true;};h.onmouseup=function(){li.draggable=false;};});
+  var dragId=null,dragG=-1;
+  $$('li[data-sq]',ul).forEach(function(li){
+    li.ondragstart=function(e){dragId=li.dataset.sq;dragG=+li.dataset.g;li.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',dragId);}catch(x){}};
+    li.ondragend=function(){li.draggable=false;li.classList.remove('dragging');$$('.drop-a,.drop-b',ul).forEach(function(x){x.classList.remove('drop-a','drop-b');});dragId=null;};
+    li.ondragover=function(e){if(!dragId||+li.dataset.g!==dragG)return;e.preventDefault();var r=li.getBoundingClientRect(),below=e.clientY>r.top+r.height/2;
+      $$('.drop-a,.drop-b',ul).forEach(function(x){x.classList.remove('drop-a','drop-b');});li.classList.add(below?'drop-b':'drop-a');};
+    li.ondrop=function(e){if(!dragId||+li.dataset.g!==dragG)return;e.preventDefault();
+      var ids=G[dragG].qs.map(function(q){return q.id;}),from=ids.indexOf(dragId),to=ids.indexOf(li.dataset.sq)+(li.classList.contains('drop-b')?1:0);if(from<to)to--;
+      var id=dragId;moved(moveSel(G,dragG,id,to),id,'drag');};
+  });
+}
+// Sort (2 Set up › Questions): reorders the list once; ↑ ↓ / drag still work after it, Undo puts the old order back
+var SEL_SORTS=[['type','Type (multiple choice first)'],['unit','Unit, then section'],['std','Standard'],['exam','Exam date, oldest first'],['examnew','Exam date, newest first'],['rev','Reverse the order']];
+function sortSel(kind){
+  var qs=selectedQs(),prev=state.selected.slice(),out;
+  if(kind==='rev')out=qs.slice().reverse();
+  else if(kind==='type')out=qs.slice().sort(function(a,b){return TYPE_ORDER.indexOf(a.type)-TYPE_ORDER.indexOf(b.type);});
+  else{var keep=ui.sort;ui.sort=kind;out=sortList(qs);ui.sort=keep;}
+  var ids=out.map(function(q){return q.id;});
+  state.selected=ids.concat(prev.filter(function(x){return ids.indexOf(x)<0;}));
+  return prev;
 }
 function noAnswer(){return selectedQs().filter(function(q){return (isMC(q.type)&&!q.inImage&&(q.answer<0||q.answer>=q.choices.length))||(q.inImage&&q.answer<0)||(q.type==='tf'&&q.answer!=='T'&&q.answer!=='F');});}
 function printCheck(){var m=noAnswer();if(!m.length)return '';return '<span class="pb-warn" role="status"><b>'+m.length+' question'+(m.length>1?'s have':' has')+' no correct answer,</b> so the answer key will be blank there. <button type="button" class="small" id="fixAns" data-fix="'+m[0].id+'">Fix'+(m.length>1?' the first one':'')+'</button></span>';}
@@ -4625,7 +4711,7 @@ var HELP_HTML='<h2 id="helpT">Help</h2>'+
   '<h3>The rail on the left</h3><p>Making a test is three steps: <b>1 Pick questions</b>, <b>2 Set up</b>, <b>3 Print</b>. Below them are <b>Question bank</b> and <b>Import &amp; backup</b>. The buttons across the top of each one (like <b>Spacing</b> or <b>Backup</b>) show one panel at a time. <kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>3</kbd> jump to the steps; <b>Next</b> at the bottom moves you along.</p>'+
   '<h3>Bring in questions</h3><p>On <b>Import &amp; backup › Import</b>, choose ExamView banks (.bnk), a Word test (.docx), a PDF, or paste text. Or use <b>+ New question</b> on the Question bank.</p>'+
   '<h3>Pick questions</h3><p><b>Select all</b> / <b>Deselect all</b> pick every question shown. In <b>1 Pick questions › Browse banks</b>, click a bank, then a unit or section, and click questions to add them (<b>Shift</b>-click adds a run; or <b>Add 5 at random</b>). <b>Search</b> finds questions by words, unit, topic and standard (<b>More filters</b> for the rest).</p>'+
-  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions, the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them (letter-size pages, so you can see where each page breaks). <b>Review &amp; print</b> under the preview goes to <b>3 Print</b>: what will print, the preview, the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
+  '<h3>Set up and print</h3><p><b>2 Set up</b> has the order of the questions (drag ⠿, type a number, or <b>Sort</b>), the document type (Test, Quiz, Review, Lesson) and its details, <b>Versions</b> and scrambling, <b>Spacing</b>, <b>Accommodations</b> and <b>Page style</b>, with the preview beside them (letter-size pages, so you can see where each page breaks). <b>Review &amp; print</b> under the preview goes to <b>3 Print</b>: what will print, the preview, the print buttons, and your <b>Saved tests</b>. To make a PDF, choose “Save as PDF” as the printer.</p>'+
   '<h3>Your own copies</h3><p><b>Duplicate</b> (a bank’s ⋯ menu on Your banks) and <b>Copy to mine</b> (a colleague’s question or bank) make copies you can change without touching the original.</p><h3>Answer keys always match</h3><p>Versions stay the same until you press <b>New scramble</b>, so a key matches copies you’ve already printed.</p>'+
   '<h3>Keep your work safe</h3><p>On <b>Import &amp; backup › Backup</b>, use <b>Download backup</b> now and then. Signed in on the website, your work is also saved on the server.</p>'+
   '<h3>Keyboard</h3><p><kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves a question, <kbd>Esc</kbd> closes the editor. From the question box, <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches the symbols; arrow keys pick one.</p>'+

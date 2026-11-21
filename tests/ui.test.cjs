@@ -761,6 +761,32 @@ describe('picking all at once and copies of banks', () => {
   });
 });
 
+describe('putting questions in order', () => {
+  test('a Review lists open response then multiple choice with printed numbers; drag, type a number, keys, Sort', async () => {
+    const ids = await addQuestions(page, [{ type: 'mc', html: 'MC one' }, { type: 'es', html: 'Open one' }, { type: 'mc', html: 'MC two' }, { type: 'es', html: 'Open two' }, { type: 'mc', html: 'MC three' }]);
+    await select(page, ids); await page.evaluate(() => { window.__tb.state.settings.docType = 'review'; });
+    await place('setup', 'questions');
+    const order = () => page.$$eval('#selList li[data-sq]', l => l.map(x => x.querySelector('.selnum').value + ':' + x.querySelector('.t').textContent.replace(/^(MC|Open)/, '').replace(/Topic$/, '').trim()));
+    assert.deepEqual(await page.$$eval('#selList .sel-h b', h => h.map(x => x.textContent)), ['Open response', 'Multiple choice']);
+    assert.deepEqual(await order(), ['1:Open one', '2:Open two', '3:MC one', '4:MC two', '5:MC three']);
+    const box = page.locator('[data-num="' + ids[0] + '"]'); await box.fill('5'); await box.press('Enter');
+    assert.deepEqual((await order()).slice(2), ['3:MC two', '4:MC three', '5:MC one'], 'typed 5');
+    const b2 = page.locator('[data-num="' + ids[2] + '"]'); await b2.fill('1'); await b2.press('Enter');
+    assert.match(await page.textContent('.toast'), /Multiple choice are numbers 3–5/, 'stays in its own section');
+    await page.locator('[data-drag="' + ids[3] + '"]').dragTo(page.locator('li[data-sq="' + ids[1] + '"]'), { targetPosition: { x: 50, y: 3 } });
+    assert.deepEqual((await order()).slice(0, 2), ['1:Open two', '2:Open one'], 'dragged');
+    await page.focus('[data-drag="' + ids[2] + '"]'); await page.keyboard.press('ArrowDown');
+    assert.deepEqual((await order()).slice(2), ['3:MC three', '4:MC two', '5:MC one'], 'arrow key');
+    await page.click('.toast button'); // Undo
+    assert.deepEqual((await order()).slice(2), ['3:MC two', '4:MC three', '5:MC one'], 'undo');
+    await page.evaluate(() => { const s = window.__tb.state.settings; s.docType = 'test'; s.group = false; });
+    await place('setup', 'questions');
+    await page.selectOption('#selSort', 'type');
+    assert.deepEqual((await order()).map(x => x.split(':')[1].split(' ')[0]), ['MC', 'MC', 'MC', 'Open', 'Open'], 'sorted by type');
+    await page.evaluate(() => { window.__tb.state.settings.docType = 'test'; });
+  });
+});
+
 describe('saved tests', () => {
   const stubPrint = () => page.evaluate(() => { window.print = () => setTimeout(() => window.dispatchEvent(new Event('afterprint')), 10); });
   test('printing saves the test; save, rename, duplicate, delete and undo', async () => {

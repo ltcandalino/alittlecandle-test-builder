@@ -85,6 +85,20 @@ The spacing is the same when you print and in Word and LaTeX downloads.
 layout, and **Part directions** when parts are on), with the preview beside it. **Next** at the bottom moves to the next
 panel, and from the last one to **3 Print**.
 
+**Putting questions in order (2 Set up › Questions).** The list shows the questions the way they will print, with the
+numbers they will have. A Review lists **Open response** first, then **Multiple choice**; a Lesson lists **Warm Up**,
+**Examples** and **Practice**; a Test with **Group into parts** lists its parts; bonus questions come last. Each heading says
+how many questions and points are in it.
+
+- **Drag** the ⠿ handle to move a question. A line shows where it will go.
+- **Type a number** in the box next to a question and press Enter: it moves to that number and the others make room.
+- **Keyboard:** click the ⠿ handle, then press ↑ or ↓.
+- A question stays in its own section (a multiple-choice question on a Review always prints with the multiple choice), so a
+  number from another section moves it to the nearest place in its own.
+- **Sort** puts the whole list in order once: by type (multiple choice first), unit and section, standard, exam date, or
+  reversed. You can still move questions afterwards.
+- Every move and sort shows **Undo**.
+
 - **Font** and **Size** (Century Schoolbook 12 pt by default)
 - **Answer choice labels**: a. b. c. d., A. B. C. D., a) b) c) d), or (1) (2) (3) (4) Regents style
 - **Name and date line**

@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Reorder questions by dragging or by number** (2 Set up › Questions): a ⠿ handle to drag (or ↑ ↓ on it), and a number box: type 7 and press Enter to move a question to number 7. The list shows the printed order and numbers, with headings for a Review's Open response / Multiple choice, a Lesson's Warm Up / Examples / Practice, a Test's parts, and bonus questions. Replaces the ↑ ↓ buttons.
+- **Sort** the questions on a test once: by type (multiple choice first), unit and section, standard, exam date, or reversed, with Undo.
+
 ## [0.18.0] - 2026-11-20
 
 ### Fixed
