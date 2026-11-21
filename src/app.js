@@ -178,6 +178,8 @@ function normalize(s){
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
     if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
+    // older imports showed ExamView's parallel sign as € between two segments: AB€CD → AB∥CD
+    var par=/(<span class="m-ov">[^<]*<\/span>)€(?=<span class="m-ov">)/g;if(typeof q.html==='string'&&q.html.indexOf('€')>=0)q.html=q.html.replace(par,'$1∥');if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return typeof c==='string'&&c.indexOf('€')>=0?c.replace(par,'$1∥'):c;});
     if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.nyStd=q.nyStd||'';if(q.visibility!=='public')delete q.visibility;if(!q.owner){delete q.owner;delete q.ownerName;}if(q.extra!==undefined&&(!q.extra||typeof q.extra!=='object'||Array.isArray(q.extra)||!Object.keys(q.extra).length))delete q.extra;q.html=q.html||textToHtml(q.text||'');fillMeta(q);
     if(q.type==='bm'){q.space=q.space||2;}
     if(isMC(q.type)){q.choices=(Array.isArray(q.choices)?q.choices:[]).map(function(c){return c;});if(typeof q.answer!=='number')q.answer=-1;}

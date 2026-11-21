@@ -48,7 +48,7 @@ var BNK=(function(){
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
-        else out.push({t:'c',c:latin(t)});
+        else out.push({t:'c',c:t===0x80?'∥':latin(t)}); // 0x80 in an equation is ExamView's parallel sign, not €
       }
       return out;
     }

@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+- The parallel sign (∥) in ExamView equations showed as “€” (for example “DE€AC”). New imports read it correctly, and questions already in your banks are fixed when the app opens.
+
 ## [0.17.0] - 2026-11-20
 
 ### Added

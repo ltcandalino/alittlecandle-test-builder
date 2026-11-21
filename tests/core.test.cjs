@@ -36,6 +36,14 @@ describe('references (MMYYQQ)', () => {
   });
 });
 
+describe('ExamView parallel sign', () => {
+  test('questions saved with € between two segments show ∥', async () => {
+    const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'p', type: 'mc', html: 'If <span class="m"><span class="m-ov">AB</span>€<span class="m-ov">DE</span></span>, costs €5', choices: ['<span class="m"><span class="m-ov">AD</span>€<span class="m-ov">BC</span></span>', 'b'], answer: 0 }] }).questions[0]);
+    assert.match(q.html, /AB<\/span>∥<span/); assert.match(q.html, /costs €5/, 'a real € is left alone');
+    assert.match(q.choices[0], /AD<\/span>∥<span/);
+  });
+});
+
 describe('standards', () => {
   test('cluster comes from the standard', async () => {
     assert.equal(await fn(page, 'clusterOf', 'G.SRT.B.5'), 'G.SRT.B');
