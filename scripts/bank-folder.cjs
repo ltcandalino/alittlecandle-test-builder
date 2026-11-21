@@ -209,7 +209,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
 
   // 5. write the folder
   fs.mkdirSync(path.join(OUT, 'questions'), { recursive: true }); fs.mkdirSync(path.join(OUT, 'images', 'examview'), { recursive: true });
-  const used = {}, names = [], fields = ['type', 'points', 'answer', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes'];
+  const used = {}, names = [], fields = ['type', 'points', 'answer', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines'];
   let nNew = 0, nOld = 0;
   bank.qs.forEach((q, i) => {
     const m = md.out[i]; let name = nameOf(q); if (used[name]) { let k = 2; while (used[name + '-' + k]) k++; name += '-' + k; } used[name] = 1; names.push(name);

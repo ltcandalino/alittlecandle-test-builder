@@ -69,6 +69,9 @@ has **Also use in** (other courses, see [[Courses]]), **Make public** on the web
 **Duplicate** (a second bank, named like "Unit 3 (copy)", with copies of every question: change them without touching the
 original), **Rename** and **Delete** (click twice; Undo brings it back).
 
+**Opening a bank file of a bank you already have** updates it: a question with the same exam reference (like `062502geo`)
+is replaced by the file's version, keeping your units, sections and your own fields, and no copy is made.
+
 ## Keeping the original files
 
 The app saves the questions it pulls out of a file, not the file itself. Keep your `.bnk`, `.pdf` and `.docx` files somewhere safe, such as a NAS, and choose them from there when importing.

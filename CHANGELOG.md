@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Bank files update the questions you already have:** a question in a bank file with the same bank and exam reference (like 062502geo) as one of yours, for example from importing the ExamView file, is updated in place instead of added again. It keeps your units, sections and other details, and your saved tests still find it.
+
 ## [0.19.0] - 2026-11-20
 
 ### Added

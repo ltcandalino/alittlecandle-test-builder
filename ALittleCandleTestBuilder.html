@@ -3616,6 +3616,9 @@ function isBankFile(d){return !!(d&&d.kind===BANK_KIND&&Array.isArray(d.question
 function importBankData(list){
   var prevQ=state.questions.slice(),prevF=JSON.parse(JSON.stringify(myFields())),byId={},added=0,updated=0,same=0,bad=[],banks=[];
   state.questions.forEach(function(q,i){byId[q.id]=i;});
+  // a question you already have from the same bank and exam (same reference, like 062502geo), imported some other way
+  // (an ExamView file), is updated in place: it keeps its id (saved tests, picks) and the details you set
+  var refN={},byRef={};state.questions.forEach(function(q,i){if(own(q)&&q.ref){var k=q.bank+'\u0001'+q.ref;refN[k]=(refN[k]||0)+1;byRef[k]=i;}});
   list.forEach(function(it){
     var d=it.data;if(!isBankFile(d)){bad.push(it.name);return;}
     var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine)map[f.id]=mine.id;}});
@@ -3627,8 +3630,12 @@ function importBankData(list){
       if(!q.bank)q.bank=d.bank||'My questions';
     });
     qs=normalize({questions:qs,courses:state.courses.slice(),course:state.course}).questions;
+    var fileN={};qs.forEach(function(q){if(q.ref){var k=q.bank+'\u0001'+q.ref;fileN[k]=(fileN[k]||0)+1;}});
     qs.forEach(function(q){
-      var i=byId[q.id];
+      var i=byId[q.id],rk=q.ref&&q.bank+'\u0001'+q.ref;
+      if(i==null&&rk&&refN[rk]===1&&fileN[rk]===1){i=byRef[rk];var h=state.questions[i];q.id=h.id;
+        ['unit','section','topic','subtopic','standard','cluster','nyStd','source','notes'].forEach(function(k){if(h[k])q[k]=h[k];});
+        if(h.extra)q.extra=Object.assign({},q.extra||{},h.extra);if(h.visibility)q.visibility=h.visibility;}
       if(i==null){state.questions.push(q);byId[q.id]=state.questions.length-1;added++;return;}
       var have=state.questions[i];setCourses(q,coursesOf(have).concat(coursesOf(q)));
       if(JSON.stringify(have)===JSON.stringify(q)){same++;return;}

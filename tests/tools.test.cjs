@@ -234,6 +234,19 @@ describe('bank files', () => {
     await page.click('#toast button');
     assert.equal((await qs()).length, 3);
   });
+  test('a bank file updates questions you have from the same bank and exam (same reference), keeping their id and your details', async () => {
+    await reset();
+    const r = await page.evaluate(() => {
+      const T = window.__tb, c = T.state.course;
+      T.state.questions.push(T.normalize({ questions: [{ id: 'mine1', type: 'mc', html: 'Old', choices: ['a', 'b'], answer: 0, bank: 'GEO', ref: '062502geo', unit: '6', courses: [c] }] }).questions[0]);
+      const res = T.fn.importBankData([{ name: 'geo.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'GEO', questions: [
+        { id: 'fromfolder', type: 'mc', html: 'New <img class="q-img" src="data:image/png;base64,iVBORw0KGgo=">', choices: ['a', 'b', 'c'], answer: 2, bank: 'GEO', ref: '062502geo', unit: '', courses: [c] },
+        { id: 'other', type: 'es', html: 'Another', bank: 'GEO', ref: '062503geo', courses: [c] }] } }]);
+      const q = T.state.questions.find(x => x.ref === '062502geo');
+      return { added: res.added, updated: res.updated, id: q.id, html: q.html.slice(0, 3), unit: q.unit, answer: q.answer, n: T.state.questions.filter(x => x.ref === '062502geo').length };
+    });
+    assert.deepEqual(r, { added: 1, updated: 1, id: 'mine1', html: 'New', unit: '6', answer: 2, n: 1 });
+  });
   test('a backup file is not taken as a bank file', async () => {
     await reset();
     const r = await page.evaluate(() => window.__tb.fn.importBankData([{ name: 'backup.json', data: { app: 'test-builder', version: 1, state: { questions: [] } } }]));
