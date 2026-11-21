@@ -23,7 +23,7 @@ const OUT = path.join(OUTDIR, path.basename(BNK, '.bnk') + ' bank folder');
 const MON = { '01': 'January', '06': 'June', '08': 'August' }, MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const refParts = ref => { let m = /^(\d\d)(\d\d)(\d\d)/.exec(ref || ''); if (m) return { kind: 'exam', mm: m[1], yy: m[2], n: +m[3] };
   m = /^([a-z]+)(\d\d)(\d\d)/i.exec(ref || ''); return m ? { kind: m[1].toLowerCase(), yy: m[2], n: +m[3] } : null; };
-const nameOf = q => { const r = refParts(q.ref); if (!r) return q.id; return (r.kind === 'exam' ? r.mm + r.yy : r.kind + r.yy) + '-' + String(r.n).padStart(2, '0'); };
+const nameOf = (q, i) => { const r = refParts(q.ref); if (!r) return 'q' + String(i + 1).padStart(3, '0'); /* no exam reference: its place in the bank */ return (r.kind === 'exam' ? r.mm + r.yy : r.kind + r.yy) + '-' + String(r.n).padStart(2, '0'); };
 const examOf = q => { const r = refParts(q.ref); if (!r) return ''; if (r.kind === 'exam') return (MON[r.mm] || r.mm) + ' 20' + r.yy + ' #' + r.n;
   const k = { spr: 'Spring', fall: 'Fall', sum: 'Summer', win: 'Winter' }[r.kind] || r.kind; return k + ' 20' + r.yy + ' sample #' + r.n; };
 const yq = v => v === '' || v == null ? '""' : typeof v === 'number' || (/^[\w .,()\-\/#]+$/.test(String(v)) && !/^\d+$/.test(String(v))) ? String(v) : JSON.stringify(String(v));
@@ -32,13 +32,15 @@ const b64 = f => fs.readFileSync(f).toString('base64');
 (async () => {
   const browser = await launch(); const { page } = await openApp(browser);
   page.on('console', m => { if (m.type() === 'error') console.log('  [page]', m.text()); });
+  if (process.env.DBG) await page.evaluate(n => { globalThis.__DBGN = n; }, +process.env.DBG);
 
   // 1. read the bank with the app's own ExamView reader
   const bank = await page.evaluate(async ([d, name]) => {
     const u = Uint8Array.from(atob(d), c => c.charCodeAt(0)); const o = await BNK.parse(u.buffer, name);
     return { title: o.title, warnings: o.warnings, qs: o.questions.map(q => window.__tb.normalize({ questions: [q] }).questions[0]) };
   }, [b64(BNK), path.basename(BNK)]);
-  const course = bank.title.replace(/\s*\d{4}(-\d{4})?\s*REGENTS EXAMS?\s*$/i, '').trim();
+  const cc = /COMMON CORE/i.test(bank.title); // the older banks are the Common Core exams
+  const course = bank.title.replace(/\s*\d{4}(-\d{4})?\s*REGENTS EXAMS?\s*$/i, '').replace(/\s*COMMON CORE STATE STANDARDS/i, '').trim();
   console.log(bank.title + ': ' + bank.qs.length + ' questions (course on the exams: ' + course + ')');
 
   // 2. find the exam PDFs: the cover page names the course and the date (answer keys and rating guides are skipped)
@@ -56,7 +58,8 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     if (!new RegExp('\\b' + course.trim().split(/\s+/).join('\\s+') + '\\b').test(cover.replace(/\s+/g, ' '))) continue;
     const dm = new RegExp('(' + MONTHS.join('|') + ')\\s+\\d{1,2},\\s+(\\d{4})').exec(cover); if (!dm) continue;
     const ym = dm[2] + String(MONTHS.indexOf(dm[1]) + 1).padStart(2, '0');
-    if (want.has(ym)) { exams[ym] = full; }
+    // two exams on one date (a Common Core and a new one): take the one that matches the bank
+    if (want.has(ym) && (!exams[ym] || /COMMON CORE/i.test(cover) === cc)) { exams[ym] = full; }
   }
   console.log('exam PDFs found: ' + (Object.keys(exams).sort().map(k => MON[k.slice(4)] + ' ' + k.slice(0, 4) + ' (' + path.basename(exams[k]) + ')').join(', ') || 'none'));
   const missing = [...want].filter(k => !exams[k]).sort();
@@ -68,17 +71,20 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     const jobs = bank.qs.filter(q => { const r = refParts(q.ref); return r && r.kind === 'exam' && '20' + r.yy + r.mm === ym && /<img/.test(q.html + (q.choices || []).join('')); })
       .map(q => ({ id: q.id, n: refParts(q.ref).n, stem: (/<img[^>]*src="([^"]+)"/.exec(q.html) || [])[1] || null, choices: (q.choices || []).map(c => (/<img[^>]*src="([^"]+)"/.exec(c) || [])[1] || null) }));
     const res = await page.evaluate(async ([d, jobs]) => {
-      const u = Uint8Array.from(atob(d), c => c.charCodeAt(0)), doc = await PDFIMP.open(u), S = 300 / 72, cache = {}, out = {};
+      window.__DBG = +(new URLSearchParams(location.search).get('dbg') || 0) || globalThis.__DBGN; const u = Uint8Array.from(atob(d), c => c.charCodeAt(0)), doc = await PDFIMP.open(u), S = 300 / 72, cache = {}, out = {};
       const pageCanvas = async pi => cache[pi] || (cache[pi] = (await PDFIMP.thumb(doc, pi, Math.round(doc.pages[pi].w * S))).canvas);
-      const size = src => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth / i.naturalHeight); i.onerror = () => r(0); i.src = src; });
+      const blanks = {};
+      const size = src => new Promise(r => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'), w = c.width = Math.min(400, i.naturalWidth), h = c.height = Math.max(1, Math.round(w * i.naturalHeight / i.naturalWidth)); const x = c.getContext('2d'); x.drawImage(i, 0, 0, w, h);
+        const d = x.getImageData(0, 0, w, h).data; let n = 0; for (let k = 0; k < d.length; k += 4) if (d[k] < 160 || d[k + 1] < 160 || d[k + 2] < 160) n++; blanks[src.length + ':' + src.slice(-40)] = n < w * h * 0.002; r(i.naturalWidth / i.naturalHeight); }; i.onerror = () => r(0); i.src = src; });
+      const isBlank = src => !!blanks[src.length + ':' + src.slice(-40)];
       // the ink inside a box, without sentences, the page frame or the "Use this space for computations." note;
       // when there are several separate pieces, the one shaped most like the bank's picture
       const find = async (pi, bx, yEnd, textX, ratio, prose) => {
         const P = doc.pages[pi], cv = await pageCanvas(pi), ctx = cv.getContext('2d');
         const comp = P.lines.flatMap(L => L.items).filter(it => /computations|Use this space/i.test(it.s) && it.x > bx.x0 + 100 && it.top < yEnd + 300);
-        const x0 = Math.max(0, Math.floor((bx.x0 - (prose ? 30 : 0)) * S)), x1 = Math.ceil((comp.length ? Math.min(bx.x1, Math.min(...comp.map(c => c.x)) - 6) : bx.x1) * S);
+        const x0 = Math.max(0, Math.floor((bx.x0 - (prose ? 30 : 0)) * S)), x1 = Math.ceil((comp.length ? Math.min(...comp.map(c => c.x)) - 6 : prose ? P.w - 30 : bx.x1) * S);
         const y0 = Math.floor(bx.y0 * S), y1 = Math.ceil(yEnd * S), W = x1 - x0, H = y1 - y0; if (W < 10 || H < 10) return null;
-        const words = prose ? P.lines.filter(L => L.top * S < y1 && L.bot * S > y0 && ((L.text.length >= 18 && (L.text.match(/[A-Za-z]{3,}/g) || []).length >= 3) || (Math.abs(L.x0 - textX) < 4 && /[a-z]{2,}/.test(L.text)))) : [];
+        const words = prose ? P.lines.filter(L => L.top * S < y1 && L.bot * S > y0 && (/continued on the next page|^\[The use of/i.test(L.text) || (L.x0 < textX + 4 && /[a-z]{2,}/.test(L.text)) || (L.text.length >= 45 && (L.text.match(/[A-Za-z]{3,}/g) || []).length >= 5))) : [];
         const isProse = y => words.some(L => y >= (L.top - 0.45 * L.h) * S && y <= (L.bot + 0.25 * L.h) * S);
         const data = ctx.getImageData(x0, y0, W, H).data, dark = (x, y) => { const k = (y * W + x) * 4; return data[k] < 200 || data[k + 1] < 200 || data[k + 2] < 200; };
         const colN = new Uint32Array(W), rowN = new Uint32Array(H);
@@ -89,6 +95,10 @@ const b64 = f => fs.readFileSync(f).toString('base64');
         const bands = []; let cur = null, gap = 0;
         for (let y = 0; y < H; y++) { if (row[y] === 1) { if (cur && gap < 16 * S) cur.b = y; else { cur = { a: y, b: y }; bands.push(cur); } gap = 0; } else if (row[y] === 2) { cur = null; gap = 0; } else gap++; }
         const cands = bands.filter(b => b.b - b.a > 2 * S).map(b => { let lx = W, rx = 0; for (let y = b.a; y <= b.b; y++) for (let x = 0; x < W; x++) if (ink(x, y)) { if (x < lx) lx = x; if (x > rx) rx = x; } return Object.assign(b, { lx, rx, r: (rx - lx + 1) / (b.b - b.a + 1) }); });
+        // pieces with no sentence between them can be one picture (dot plots in four panels, a box plot over its number line)
+        const segs = []; let sg = null;
+        bands.filter(b => b.b - b.a > 2 * S).forEach(b => { if (!sg || row.slice(sg.b, b.a).includes(2)) { sg = { a: b.a, b: b.b, n: 1 }; segs.push(sg); } else { sg.b = b.b; sg.n++; } });
+        segs.filter(g => g.n > 1).forEach(g => { let lx = W, rx = 0; for (let y = g.a; y <= g.b; y++) if (row[y] !== 2) for (let x = 0; x < W; x++) if (ink(x, y)) { if (x < lx) lx = x; if (x > rx) rx = x; } cands.push({ a: g.a, b: g.b, lx, rx, r: (rx - lx + 1) / (g.b - g.a + 1) }); });
         if (!cands.length) return null;
         const big = cands.sort((p, q) => ratio ? Math.abs(Math.log(p.r / ratio)) - Math.abs(Math.log(q.r / ratio)) || (q.b - q.a) - (p.b - p.a) : (q.b - q.a) - (p.b - p.a))[0];
         const pad = Math.round(3 * S), cx = Math.max(0, x0 + big.lx - pad), cy = Math.max(0, y0 + big.a - pad), cw = Math.min(cv.width - cx, big.rx - big.lx + 2 * pad), ch = Math.min(cv.height - cy, big.b - big.a + 2 * pad);
@@ -112,14 +122,29 @@ const b64 = f => fs.readFileSync(f).toString('base64');
           while (st.length) { const c = st.pop(), cx = c % gw, cy = (c - cx) / gw; b.n++; b.x0 = Math.min(b.x0, cx); b.x1 = Math.max(b.x1, cx); b.y0 = Math.min(b.y0, cy); b.y1 = Math.max(b.y1, cy);
             for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue; const ni = ny * gw + nx; if (cell[ni] && seen[ni] < 0) { seen[ni] = blobs.length; st.push(ni); } } }
           blobs.push(b); }
-        const big = blobs.filter(b => (b.x1 - b.x0 + 1) * G > 20 * S && (b.y1 - b.y0 + 1) * G > 20 * S);
-        // each label: the picture whose edge is nearest to it
+        // labels sit under their pictures, or level with / above them. Try both ways and keep the one whose pictures are shaped
+        // most like the bank's. Pictures stay in their label's column, and the question's own lines (at the text margin) are left out.
         const labels = (q.choices || []).map(c => ({ x: (c.box.x0 - 8) * S - x0, y: (c.box.y0 + 7) * S - y0 }));
-        const pairs = []; labels.forEach((L, k) => { if (!want[k]) return; big.forEach((b, bi) => { const bx = Math.max(b.x0 * G - L.x, 0, L.x - (b.x1 + 1) * G), by = Math.max(b.y0 * G - L.y, 0, L.y - (b.y1 + 1) * G); pairs.push({ k, bi, d: Math.hypot(bx, by * 1.5) }); }); });
-        pairs.sort((p, r) => p.d - r.d); const got = {}, usedB = {};
-        pairs.forEach(p => { if (got[p.k] != null || usedB[p.bi] || p.d > 40 * S) return; got[p.k] = p.bi; usedB[p.bi] = 1; });
-        return labels.map((L, k) => { const b = big[got[k]]; if (!b) return null; const pad = Math.round(3 * S);
-          const cx = Math.max(0, x0 + b.x0 * G - pad), cy = Math.max(0, y0 + b.y0 * G - pad), cw = Math.min(cv.width - cx, (b.x1 - b.x0 + 1) * G + 2 * pad), ch = Math.min(cv.height - cy, (b.y1 - b.y0 + 1) * G + 2 * pad);
+        const rowsY = []; labels.forEach(L => { if (!rowsY.some(y => Math.abs(y - L.y) < 8 * S)) rowsY.push(L.y); }); rowsY.sort((a, b) => a - b);
+        const rowOf = L => rowsY.findIndex(y => Math.abs(y - L.y) < 8 * S), gapR = rowsY.length > 1 ? Math.min(...rowsY.slice(1).map((y, i) => y - rowsY[i])) : 150 * S;
+        const colRange = L => { const xs = labels.filter(M => rowOf(M) === rowOf(L)).map(M => M.x).sort((a, b) => a - b), i = xs.indexOf(L.x); return [i ? (xs[i - 1] + L.x) / 2 : -1e9, i < xs.length - 1 ? (L.x + xs[i + 1]) / 2 : 1e9]; };
+        const textBot = Math.max(-1, ...P.lines.filter(L => Math.abs(L.x0 - q.textX) < 4 && L.text.replace(/\s/g, '').length >= 4 && L.bot * S - y0 < rowsY[0] - 6 * S && L.top >= q.top - 1).map(L => (L.bot + 2) * S - y0));
+        const parts = blobs.filter(b => b.n >= 3 && b.y0 * G > textBot && !((b.y1 - b.y0 + 1) * G < 3 * S && (b.x1 - b.x0 + 1) * G > 60 * S)); // no answer lines
+        const box = bs => { const b = { x0: Math.min(...bs.map(x => x.x0)), x1: Math.max(...bs.map(x => x.x1)), y0: Math.min(...bs.map(x => x.y0)), y1: Math.max(...bs.map(x => x.y1)) }, pad = Math.round(3 * S);
+          if ((b.x1 - b.x0 + 1) * G < 15 * S || (b.y1 - b.y0 + 1) * G < 8 * S) return null; // too small to be a picture
+          const cx = Math.max(0, x0 + b.x0 * G - pad), cy = Math.max(0, y0 + b.y0 * G - pad); return { cx, cy, cw: Math.min(cv.width - cx, (b.x1 - b.x0 + 1) * G + 2 * pad), ch: Math.min(cv.height - cy, (b.y1 - b.y0 + 1) * G + 2 * pad) }; };
+        const tryWay = under => { const own = labels.map(() => []);
+          parts.forEach(b => { const cx = (b.x0 + b.x1 + 1) / 2 * G, cy = (b.y0 + b.y1 + 1) / 2 * G; let best = -1, bd = 1e9;
+            labels.forEach((L, k) => { const [lo, hi] = colRange(L); if (cx < lo || cx > hi) return; const d = under ? L.y - cy : cy - L.y, r = rowOf(L);
+              const reach = under ? L.y - (r > 0 ? rowsY[r - 1] : textBot) : (r < rowsY.length - 1 ? rowsY[r + 1] : H) - L.y; // up to the row before (or the question's text), or down to the next row
+              if (d < (under ? -22 : -12) * S || d > reach) return; if (Math.abs(d) < bd) { bd = Math.abs(d); best = k; } });
+            if (best >= 0) own[best].push(b); });
+          const boxes = own.map((bs, k) => want[k] && bs.length ? box(bs) : null);
+          const err = boxes.reduce((e, b, k) => e + (!want[k] ? 0 : !b ? 3 : Math.abs(Math.log((b.cw / b.ch) / (ratios[k] || b.cw / b.ch)))), 0);
+          return { boxes, err }; };
+        const a = tryWay(true), b2 = tryWay(false), pick = a.err <= b2.err ? a : b2;
+        if (window.__DBG === q.num) console.error('DBG', JSON.stringify({ labels: labels.map(L => [Math.round(L.x / S), Math.round(L.y / S)]), textBot: Math.round(textBot / S), parts: parts.map(b => [b.x0 * G / S | 0, b.y0 * G / S | 0, b.x1 * G / S | 0, b.y1 * G / S | 0]), a: a.err, b: b2.err, boxesA: a.boxes.map(Boolean), boxesB: b2.boxes.map(Boolean) }));
+        return pick.boxes.map((bx, k) => { if (!bx) return null; const { cx, cy, cw, ch } = bx;
           const o = document.createElement('canvas'); o.width = cw; o.height = ch; const oc = o.getContext('2d'); oc.drawImage(cv, cx, cy, cw, ch, 0, 0, cw, ch);
           oc.fillStyle = '#fff'; labelBoxes.forEach(b => oc.fillRect((b.x - 2) * S - cx, (b.top - 2) * S - cy, (b.x1 - b.x + 4) * S, (b.bot - b.top + 4) * S)); // the (1)–(4) labels stay out of the pictures
           return { png: o.toDataURL('image/png'), page: q.page + 1, shape: (cw / ch) / (ratios[k] || cw / ch) }; });
@@ -129,26 +154,26 @@ const b64 = f => fs.readFileSync(f).toString('base64');
         const r = { choices: [] };
         if (j.stem) {
           const ratio = await size(j.stem), end = q.choices ? q.choices[0].box.y0 : q.stemBox.y1;
-          r.stem = await find(q.page, q.stemBox, end, q.textX, ratio, true);
+          r.stem = await find(q.page, q.stemBox, end, q.textX, ratio, true); r.stemBlank = isBlank(j.stem);
           if (!r.stem && doc.pages[q.page].lines.some(l => /continued on the next page/i.test(l.text)) && doc.pages[q.page + 1])
             r.stem = await find(q.page + 1, { x0: q.stemBox.x0, x1: q.stemBox.x1, y0: 40 }, doc.pages[q.page + 1].h * 0.93, q.textX, ratio, true);
         }
-        if (j.choices.some(Boolean) && q.choices) { const ratios = []; for (const c of j.choices) ratios.push(c ? await size(c) : 0); r.choices = await choicePics(q, j.choices.map(Boolean), ratios); }
+        if (j.choices.some(Boolean) && q.choices) { const ratios = []; for (const c of j.choices) ratios.push(c ? await size(c) : 0); r.choices = await choicePics(q, j.choices.map(Boolean), ratios); r.choiceBlank = j.choices.map(c => !!c && isBlank(c)); }
         out[j.id] = r;
       }
       return out;
     }, [b64(exams[ym]), jobs]);
     Object.assign(crops, res);
-    const flag = Object.entries(res).flatMap(([id, r]) => { const q = bank.qs.find(x => x.id === id), n = nameOf(q);
+    const flag = Object.entries(res).flatMap(([id, r]) => { const q = bank.qs.find(x => x.id === id), n = nameOf(q, bank.qs.indexOf(q));
       if (r.err) return [n + ': ' + r.err];
       return [['', r.stem]].concat(r.choices.map((c, k) => ['-' + (k + 1), c])).filter(([, c], i) => i === 0 ? /<img/.test(q.html) : (q.choices[i - 1] || '').indexOf('<img') >= 0)
-        .filter(([, c]) => !c || c.shape < 0.8 || c.shape > 1.25).map(([s, c]) => n + s + (c ? ' shape ' + c.shape.toFixed(2) : ' not found')); });
+        .filter(([s, c]) => !c || ((c.shape < 0.8 || c.shape > 1.25) && !(s ? (r.choiceBlank || [])[+s.slice(1) - 1] : r.stemBlank))).map(([s, c]) => n + s + (c ? ' (shape differs, kept the ExamView picture)' : ' (not found, kept the ExamView picture)')); });
     console.log(MON[ym.slice(4)] + ' ' + ym.slice(0, 4) + ': ' + Object.keys(res).length + ' questions with pictures' + (flag.length ? '; check: ' + flag.join(', ') : ', all shapes match the bank'));
   }
 
   // 4. Markdown with LaTeX
   const md = await page.evaluate(qs => {
-    const CH = { '∠': '\\angle ', '°': '^{\\circ}', 'º': '^{\\circ}', '−': '-', '≅': '\\cong ', '∼': '\\sim ', '⊥': '\\perp ', '∥': '\\parallel ', 'π': '\\pi ', 'θ': '\\theta ', '△': '\\triangle ', 'Δ': '\\Delta ', '×': '\\times ', '÷': '\\div ', '≠': '\\neq ', '≤': '\\le ', '≥': '\\ge ', '±': '\\pm ', '≈': '\\approx ', '·': '\\cdot ', '→': '\\to ', '←': '\\leftarrow ', '↔': '\\leftrightarrow ', '∞': '\\infty ', '∴': '\\therefore ', '∈': '\\in ', '∅': '\\varnothing ', '∩': '\\cap ', '∪': '\\cup ', 'α': '\\alpha ', 'β': '\\beta ', 'γ': '\\gamma ', 'λ': '\\lambda ', 'μ': '\\mu ', 'σ': '\\sigma ', 'ω': '\\omega ', 'Ω': '\\Omega ', 'φ': '\\phi ', '′': "'", '″': "''", '√': '\\surd ', '\u2009': '\\, ', '\u00a0': '\\ ', ' ': '\\ ', '%': '\\%', '{': '\\{', '}': '\\}', '$': '\\$', '#': '\\#', '&': '\\&', '_': '\\_', '|': '\\vert ' };
+    const CH = { '∠': '\\angle ', '°': '^{\\circ}', 'º': '^{\\circ}', '−': '-', '≅': '\\cong ', '∼': '\\sim ', '⊥': '\\perp ', '∥': '\\parallel ', 'π': '\\pi ', 'θ': '\\theta ', '△': '\\triangle ', 'Δ': '\\Delta ', '×': '\\times ', '÷': '\\div ', '≠': '\\neq ', '≤': '\\le ', '≥': '\\ge ', '±': '\\pm ', '≈': '\\approx ', '·': '\\cdot ', '→': '\\to ', '←': '\\leftarrow ', '↔': '\\leftrightarrow ', '∞': '\\infty ', 'ℓ': '\\ell ', '∴': '\\therefore ', '∈': '\\in ', '∅': '\\varnothing ', '∩': '\\cap ', '∪': '\\cup ', 'α': '\\alpha ', 'β': '\\beta ', 'γ': '\\gamma ', 'λ': '\\lambda ', 'μ': '\\mu ', 'σ': '\\sigma ', 'ω': '\\omega ', 'Ω': '\\Omega ', 'φ': '\\phi ', '′': "'", '″': "''", '√': '\\surd ', '\u2009': '\\, ', '\u00a0': '\\ ', ' ': '\\ ', '%': '\\%', '{': '\\{', '}': '\\}', '$': '\\$', '#': '\\#', '&': '\\&', '_': '\\_', '|': '\\vert ' };
     const unknown = {};
     function tex(n) {
       if (n.nodeType === 3) {
@@ -173,7 +198,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       if (c.contains('m-frac')) return '\\dfrac{' + tex(n.querySelector('.m-num')) + '}{' + tex(n.querySelector('.m-den')) + '}';
       return inner();
     }
-    const mathOf = n => '$' + tex(n).replace(/(\\, *)+(?=['′}^_])/g, '').replace(/\s+/g, ' ').replace(/(\\ )+$/, '').trim() + '$';
+    const mathOf = n => '$' + tex(n).replace(/\^\{([^{}]*)\}\^\{/g, '^{$1').replace(/(\\, *)+(?=['′}^_])/g, '').replace(/\s+/g, ' ').replace(/(\\ )+$/, '').trim() + '$';
     const textOf = d => d.replace(/º/g, '°').replace(/([\\$*_|])/g, '\\$1').replace(/(^|[\s(“"])([b-z])(?=$|[\s,;:?!)”"-]|\.(?!\w))/g, (all, pre, v, at, str) => /\d\s$/.test(str.slice(Math.max(0, at - 2), at + pre.length)) ? all : pre + '$' + v + '$').replace(/(\d+(?:\.\d+)?)?π/g, (_, k) => '$' + (k || '') + '\\pi$');
     function mdOf(html, img) {
       const d = document.createElement('div'); d.innerHTML = html; let s = '';
@@ -212,15 +237,17 @@ const b64 = f => fs.readFileSync(f).toString('base64');
   const used = {}, names = [], fields = ['type', 'points', 'answer', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines'];
   let nNew = 0, nOld = 0;
   bank.qs.forEach((q, i) => {
-    const m = md.out[i]; let name = nameOf(q); if (used[name]) { let k = 2; while (used[name + '-' + k]) k++; name += '-' + k; } used[name] = 1; names.push(name);
+    const m = md.out[i]; let name = nameOf(q, i); if (used[name]) { let k = 2; while (used[name + '-' + k]) k++; name += '-' + k; } used[name] = 1; names.push(name);
     const c = crops[q.id] || {}, stemImgs = (q.html.match(/<img/g) || []).length;
     const place = (s) => s.replace(/@@PIC(\d+)@@/g, (_, k) => {
       k = +k; const p = m.pics[k], ext = (/^data:image\/(\w+)/.exec(p.src) || [, 'png'])[1].replace('jpeg', 'jpg');
       const isChoice = k >= stemImgs, ci = isChoice ? m.choices.findIndex(t => t.indexOf('@@PIC' + k + '@@') >= 0) : -1, base = name + (isChoice ? '-' + (ci + 1) : k ? '-' + (k + 1) : '');
       if (p.src.startsWith('data:')) fs.writeFileSync(path.join(OUT, 'images', 'examview', base + '.' + ext), Buffer.from(p.src.split(',')[1], 'base64'));
-      const cut = isChoice ? c.choices && c.choices[ci] : k === 0 ? c.stem : null;
+      let cut = isChoice ? c.choices && c.choices[ci] : k === 0 ? c.stem : null;
+      const bankBlank = isChoice ? (c.choiceBlank || [])[ci] : c.stemBlank;
+      if (cut && (cut.shape < 0.8 || cut.shape > 1.25) && !bankBlank) cut = null; // shaped differently from the bank's: keep the bank's
       let file = 'examview/' + base + '.' + ext;
-      if (cut && cut.png) { fs.writeFileSync(path.join(OUT, 'images', base + '.png'), Buffer.from(cut.png.split(',')[1], 'base64')); file = base + '.png'; nNew++; } else nOld++;
+      if (cut && cut.png) { fs.writeFileSync(path.join(OUT, 'images', base + '.png'), Buffer.from(cut.png.split(',')[1], 'base64')); file = base + '.png'; nNew++; } else { nOld++; try { fs.unlinkSync(path.join(OUT, 'images', base + '.png')); } catch (e) { } } // no leftover from an earlier run
       return '![picture](../images/' + file + '){width=' + (p.w || '2') + 'in}';
     });
     const ny = /^(.*?),?\s*NY:\s*(.+)$/.exec(q.standard || ''); if (ny) { q.standard = ny[1].trim(); q.nyStd = q.nyStd || ny[2].trim(); }
@@ -235,6 +262,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     if (m.choices.length) txt += '\n' + m.choices.map((ch, k) => (k + 1) + '. ' + place(ch)).join('\n') + '\n';
     fs.writeFileSync(path.join(OUT, 'questions', name + '.md'), txt);
   });
+  fs.readdirSync(path.join(OUT, 'questions')).filter(f => f.endsWith('.md') && !used[f.slice(0, -3)]).forEach(f => fs.unlinkSync(path.join(OUT, 'questions', f)));
   const courseName = course.toLowerCase().replace(/\b(\w)/g, c => c.toUpperCase()).replace(/\bIi\b/, 'II').replace(/\bI\b/, 'I');
   fs.writeFileSync(path.join(OUT, 'bank.md'), '---\nname: ' + JSON.stringify(bank.title) + '\ncourses: [' + courseName + ']\nmade from: ' + path.basename(BNK) + '\n---\n\nOne file per question in questions/. Math is LaTeX between $ signs; tables are Markdown tables. Pictures are in images/:\nthe sharp ones were cut from the Regents exam PDFs at 300 dpi; images/examview/ keeps the pictures from the ExamView bank.\n');
 

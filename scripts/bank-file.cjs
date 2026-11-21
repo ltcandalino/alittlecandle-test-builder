@@ -22,7 +22,7 @@ function front(text) {
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* ---------- LaTeX (the part bank-folder writes) → the app's math HTML ---------- */
-const SYM = { angle: '∠', cong: '≅', sim: '∼', perp: '⊥', parallel: '∥', pi: 'π', theta: 'θ', triangle: '△', Delta: 'Δ', times: '×', div: '÷', neq: '≠', ne: '≠', le: '≤', leq: '≤', ge: '≥', geq: '≥', pm: '±', approx: '≈', cdot: '·', to: '→', rightarrow: '→', leftarrow: '←', leftrightarrow: '↔', infty: '∞', therefore: '∴', in: '∈', varnothing: '∅', emptyset: '∅', cap: '∩', cup: '∪', alpha: 'α', beta: 'β', gamma: 'γ', lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', Omega: 'Ω', phi: 'φ', surd: '√', vert: '|', circ: '°', degree: '°', prime: '′', ldots: '…', dots: '…' };
+const SYM = { angle: '∠', cong: '≅', sim: '∼', perp: '⊥', parallel: '∥', pi: 'π', theta: 'θ', triangle: '△', Delta: 'Δ', times: '×', div: '÷', neq: '≠', ne: '≠', le: '≤', leq: '≤', ge: '≥', geq: '≥', pm: '±', approx: '≈', cdot: '·', to: '→', rightarrow: '→', leftarrow: '←', leftrightarrow: '↔', infty: '∞', ell: 'ℓ', therefore: '∴', in: '∈', varnothing: '∅', emptyset: '∅', cap: '∩', cup: '∪', alpha: 'α', beta: 'β', gamma: 'γ', lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', Omega: 'Ω', phi: 'φ', surd: '√', vert: '|', circ: '°', degree: '°', prime: '′', ldots: '…', dots: '…' };
 const FN = { sin: 1, cos: 1, tan: 1, log: 1, ln: 1 };
 const REL = /^[=<>≤≥≠≈≅∼⊥∥]$/, BIN = /^[+−±×÷]$/;
 function latex(src) {
@@ -98,7 +98,7 @@ function blocks(text, pic) {
 const bankMd = fs.existsSync(path.join(DIR, 'bank.md')) ? front(fs.readFileSync(path.join(DIR, 'bank.md'), 'utf8')).meta : {};
 const bankName = bankMd.name || path.basename(DIR).replace(/ bank folder$/, '');
 const COURSES = { 'Algebra I': 'Algebra 1', 'Algebra II': 'Algebra 2' };
-const courses = COURSE ? [COURSE] : (Array.isArray(bankMd.courses) ? bankMd.courses : [bankMd.courses].filter(Boolean)).map(c => COURSES[c] || c);
+const courses = COURSE ? [COURSE] : (Array.isArray(bankMd.courses) ? bankMd.courses : [bankMd.courses].filter(Boolean)).map(c => COURSES[c] || (/algebra ii\b/i.test(c) ? 'Algebra 2' : /algebra i\b/i.test(c) ? 'Algebra 1' : /geometry/i.test(c) ? 'Geometry' : c));
 const TYPE = { 'multiple choice': 'mc', bimodal: 'bm', 'true/false': 'tf', 'short answer': 'sa', 'open response': 'es' };
 let pics = 0; const unknown = new Set();
 const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.endsWith('.md')).sort().map(f => {

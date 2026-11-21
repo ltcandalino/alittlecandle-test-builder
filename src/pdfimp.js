@@ -76,11 +76,12 @@ var PDFIMP=(function(){
       var k=-1;L.items.forEach(function(it,i){if(k<0&&/^use this space/i.test(it.s.trim()))k=i;});
       if(k>0){L.items=L.items.slice(0,k);L.x1=Math.max.apply(null,L.items.map(function(i){return i.x1;}));L.text=joinItems(L.items);}
     });
-    var xs=P.lines.map(function(L){return L.x0;}).sort(function(a,b){return a-b;});
+    // the left margin, from real lines of text (a graph's lone x and y labels can sit further left than the question numbers)
+    var xs=P.lines.filter(function(L){return L.text.replace(/\s/g,'').length>=3;}).map(function(L){return L.x0;}).sort(function(a,b){return a-b;});
     P.left=xs.length?xs[Math.floor(xs.length*0.05)]:P.w*0.08;
   }
-  function startNum(L,P){
-    if(L.x0>P.left+18)return null;
+  function startNum(L,P,numX){
+    if(L.x0>P.left+18&&!(numX!=null&&Math.abs(L.x0-numX)<8))return null; // or lined up with the question numbers before it
     var first=L.items[0].s.trim(),m=first.match(/^(\d{1,2})[.)]?$/);
     if(m&&L.items.length>1)return {n:+m[1],textX:L.items[1].x};
     m=L.text.match(/^(\d{1,2})[.)]?\s+(?=\S)/);
@@ -102,12 +103,12 @@ var PDFIMP=(function(){
     });
   }
   function findQuestions(pages){
-    var qs=[],expected=null,cur=null;
+    var qs=[],expected=null,cur=null,numX=null;
     pages.forEach(function(P,pi){
       cleanLines(P);splitLabels(P);
       P.lines.forEach(function(L,li){
-        var st=startNum(L,P);
-        if(st&&(expected===null?st.n<=60:st.n===expected)){
+        var st=startNum(L,P,numX);
+        if(st&&(expected===null?st.n<=60:st.n===expected)){numX=L.x0;
           if(cur)qs.push(cur);
           cur={num:st.n,page:pi,textX:st.textX,lines:[L],more:[],stopped:false};
           expected=st.n+1;return;

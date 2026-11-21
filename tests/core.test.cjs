@@ -42,6 +42,10 @@ describe('ExamView parallel sign', () => {
     assert.match(q.html, /AB<\/span>∥<span/); assert.match(q.html, /costs €5/, 'a real € is left alone');
     assert.match(q.choices[0], /AD<\/span>∥<span/);
   });
+  test('questions saved with ª show the script ℓ', async () => {
+    const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'l', type: 'es', html: 'Line <span class="m">ª</span> and <span class="m">p<span class="m-op">=</span>2ª</span>' }] }).questions[0]);
+    assert.equal(q.html, 'Line <span class="m">ℓ</span> and <span class="m">p<span class="m-op">=</span>2ℓ</span>');
+  });
 });
 
 describe('standards', () => {
