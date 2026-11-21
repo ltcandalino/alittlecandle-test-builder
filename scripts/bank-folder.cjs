@@ -52,8 +52,8 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       try { const doc = await lib.getDocument({ data: Uint8Array.from(atob(d), c => c.charCodeAt(0)) }).promise; const t = await (await doc.getPage(1)).getTextContent(); return t.items.map(i => i.str).join('\n'); } catch (e) { return ''; }
     }, b64(full));
     if (!/REGENTS HIGH SCHOOL EXAMINATION/i.test(cover) || /SCORING KEY|RATING GUIDE|CONVERSION CHART/i.test(cover)) continue;
-    const lines = cover.split('\n').map(s => s.trim()).filter(Boolean);
-    if (!lines.some(l => l.toUpperCase() === course.toUpperCase())) continue;
+    // the course in capitals anywhere on the cover ("ALGEBRA I" can come in pieces; \b keeps ALGEBRA I and ALGEBRA II apart)
+    if (!new RegExp('\\b' + course.trim().split(/\s+/).join('\\s+') + '\\b').test(cover.replace(/\s+/g, ' '))) continue;
     const dm = new RegExp('(' + MONTHS.join('|') + ')\\s+\\d{1,2},\\s+(\\d{4})').exec(cover); if (!dm) continue;
     const ym = dm[2] + String(MONTHS.indexOf(dm[1]) + 1).padStart(2, '0');
     if (want.has(ym)) { exams[ym] = full; }
@@ -95,6 +95,35 @@ const b64 = f => fs.readFileSync(f).toString('base64');
         const o = document.createElement('canvas'); o.width = cw; o.height = ch; o.getContext('2d').drawImage(cv, cx, cy, cw, ch, 0, 0, cw, ch);
         return { png: o.toDataURL('image/png'), page: pi + 1, shape: (cw / ch) / (ratio || cw / ch) };
       };
+      // answer choices that are pictures (graphs, small tables): find every separate picture in the question and give each
+      // label (1)–(4) the picture right next to it (labels are often under the picture, which the text reader can't know)
+      const choicePics = async (q, want, ratios) => {
+        const P = doc.pages[q.page], cv = await pageCanvas(q.page), ctx = cv.getContext('2d');
+        const comp = P.lines.flatMap(L => L.items).filter(it => /computations|Use this space/i.test(it.s) && it.x > q.stemBox.x0 + 100);
+        const x0 = Math.max(0, Math.floor((q.stemBox.x0 - 30) * S)), x1 = Math.ceil((comp.length ? Math.min(q.stemBox.x1, Math.min(...comp.map(c => c.x)) - 6) : P.w - 30) * S);
+        const y0 = Math.floor(q.top * S), y1 = Math.ceil(q.limitBottom * S), W = x1 - x0, H = y1 - y0;
+        const data = ctx.getImageData(x0, y0, W, H).data, G = 6, gw = Math.ceil(W / G), gh = Math.ceil(H / G), cell = new Uint8Array(gw * gh);
+        const blank = P.lines.filter(L => L.top * S < y1 && L.bot * S > y0).flatMap(L => (L.text.length >= 18 && (L.text.match(/[A-Za-z]{3,}/g) || []).length >= 3) ? [{ x: L.x0, x1: L.x1, top: L.top, bot: L.bot }] : L.items.filter(it => /^\(?[1-4]\)$/.test(it.s.trim())).map(it => ({ x: it.x, x1: it.x1, top: it.top, bot: it.bot })));
+        const labelBoxes = P.lines.flatMap(L => L.items).filter(it => /^\(?[1-4]\)$/.test(it.s.trim()));
+        const blanked = (x, y) => blank.some(b => x >= (b.x - 4) * S - x0 && x <= (b.x1 + 4) * S - x0 && y >= (b.top - 4) * S - y0 && y <= (b.bot + 4) * S - y0);
+        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const k = (y * W + x) * 4; if ((data[k] < 235 || data[k + 1] < 235 || data[k + 2] < 235) && !blanked(x, y)) cell[Math.floor(y / G) * gw + Math.floor(x / G)] = 1; }
+        const seen = new Int32Array(gw * gh).fill(-1), blobs = [], R = 3; // cells within 3 (about 4 pt) belong together
+        for (let i = 0; i < cell.length; i++) { if (!cell[i] || seen[i] >= 0) continue; const b = { x0: 1e9, y0: 1e9, x1: -1, y1: -1, n: 0 }, st = [i]; seen[i] = blobs.length;
+          while (st.length) { const c = st.pop(), cx = c % gw, cy = (c - cx) / gw; b.n++; b.x0 = Math.min(b.x0, cx); b.x1 = Math.max(b.x1, cx); b.y0 = Math.min(b.y0, cy); b.y1 = Math.max(b.y1, cy);
+            for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= gw || ny >= gh) continue; const ni = ny * gw + nx; if (cell[ni] && seen[ni] < 0) { seen[ni] = blobs.length; st.push(ni); } } }
+          blobs.push(b); }
+        const big = blobs.filter(b => (b.x1 - b.x0 + 1) * G > 20 * S && (b.y1 - b.y0 + 1) * G > 20 * S);
+        // each label: the picture whose edge is nearest to it
+        const labels = (q.choices || []).map(c => ({ x: (c.box.x0 - 8) * S - x0, y: (c.box.y0 + 7) * S - y0 }));
+        const pairs = []; labels.forEach((L, k) => { if (!want[k]) return; big.forEach((b, bi) => { const bx = Math.max(b.x0 * G - L.x, 0, L.x - (b.x1 + 1) * G), by = Math.max(b.y0 * G - L.y, 0, L.y - (b.y1 + 1) * G); pairs.push({ k, bi, d: Math.hypot(bx, by * 1.5) }); }); });
+        pairs.sort((p, r) => p.d - r.d); const got = {}, usedB = {};
+        pairs.forEach(p => { if (got[p.k] != null || usedB[p.bi] || p.d > 40 * S) return; got[p.k] = p.bi; usedB[p.bi] = 1; });
+        return labels.map((L, k) => { const b = big[got[k]]; if (!b) return null; const pad = Math.round(3 * S);
+          const cx = Math.max(0, x0 + b.x0 * G - pad), cy = Math.max(0, y0 + b.y0 * G - pad), cw = Math.min(cv.width - cx, (b.x1 - b.x0 + 1) * G + 2 * pad), ch = Math.min(cv.height - cy, (b.y1 - b.y0 + 1) * G + 2 * pad);
+          const o = document.createElement('canvas'); o.width = cw; o.height = ch; const oc = o.getContext('2d'); oc.drawImage(cv, cx, cy, cw, ch, 0, 0, cw, ch);
+          oc.fillStyle = '#fff'; labelBoxes.forEach(b => oc.fillRect((b.x - 2) * S - cx, (b.top - 2) * S - cy, (b.x1 - b.x + 4) * S, (b.bot - b.top + 4) * S)); // the (1)–(4) labels stay out of the pictures
+          return { png: o.toDataURL('image/png'), page: q.page + 1, shape: (cw / ch) / (ratios[k] || cw / ch) }; });
+      };
       for (const j of jobs) {
         const q = doc.found.find(f => f.num === j.n); if (!q) { out[j.id] = { err: 'question ' + j.n + ' not found in the PDF' }; continue; }
         const r = { choices: [] };
@@ -104,7 +133,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
           if (!r.stem && doc.pages[q.page].lines.some(l => /continued on the next page/i.test(l.text)) && doc.pages[q.page + 1])
             r.stem = await find(q.page + 1, { x0: q.stemBox.x0, x1: q.stemBox.x1, y0: 40 }, doc.pages[q.page + 1].h * 0.93, q.textX, ratio, true);
         }
-        for (let k = 0; k < j.choices.length; k++) r.choices.push(j.choices[k] && q.choices && q.choices[k] ? await find(q.page, q.choices[k].box, q.choices[k].box.y1, 0, await size(j.choices[k]), false) : null);
+        if (j.choices.some(Boolean) && q.choices) { const ratios = []; for (const c of j.choices) ratios.push(c ? await size(c) : 0); r.choices = await choicePics(q, j.choices.map(Boolean), ratios); }
         out[j.id] = r;
       }
       return out;
