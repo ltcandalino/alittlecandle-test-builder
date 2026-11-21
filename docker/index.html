@@ -651,6 +651,11 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 
 .selbtns{display:inline-flex;gap:6px}
 .br-top .small.ghost{margin-right:10px}
+
+/* ExamView tables: ruled and centered, like on the Regents */
+.q-grid{margin:8px auto}
+.q-grid td{border:1px solid currentColor;text-align:center;vertical-align:middle;padding:2px 12px;min-width:0}
+.pt .q-grid td{min-width:0}
 </style></head>
 <body><div id="root"></div><div id="printRoot"></div>
 <script type="text/plain" id="pdflib">/**
@@ -828,10 +833,24 @@ var BNK=(function(){
   }
 
   /* ---- text with objects ---- */
+  /* A table is text too: \x10 starts it, \x11 ends each cell, \x11\x11 ends each row; the table ends at a row end that is
+     followed by a line break, the answer choices or the end of the question. Returns the HTML and where the text goes on. */
+  function tableEnd(s,i){var j=i;while((j=s.indexOf('\x11\x11',j))>=0){var n=s.charAt(j+2);if(j+2>=s.length||n==='\r'||n==='\n'||n==='\x10')return j;j+=2;}return -1;}
+  function tableHtml(s,objHtml,oi){
+    var rows=s.split('\x11\x11').map(function(r){return r.split('\x11');}),ncol=Math.max.apply(null,rows.map(function(r){return r.length;}));
+    var title=rows.length>2&&rows[0].length===1&&ncol>1,head=title?1:0,side=rows.length-head<=2&&ncol>3; // a short wide table reads across: its first column is the header
+    var h='<table class="q-tbl q-grid">'+rows.map(function(r,ri){
+      return '<tr>'+r.map(function(cell,ci){var t=textHtml(cell,objHtml,oi);oi=t.next;
+        var x=t.html.replace(/\b(mi|cm|in|ft|m|km|yd|mm)([23])\b/g,'$1<sup>$2</sup>'); // units like mi2, cm3: the 2 was a superscript in ExamView
+        var bold=ri<head||(side?ci===0:ri===head);
+        return '<td'+(r.length===1&&ncol>1?' colspan="'+ncol+'"':'')+'>'+(bold&&x?'<b>'+x+'</b>':x)+'</td>';}).join('')+'</tr>';}).join('')+'</table>';
+    return {html:h,next:oi};
+  }
   function textHtml(s,objHtml,start){
     var h='',oi=start;
     for(var i=0;i<s.length;i++){
       var c=s.charCodeAt(i);
+      if(c===0x10){var te=tableEnd(s,i+1);if(te<0)te=s.length;var tb=tableHtml(s.slice(i+1,te),objHtml,oi);oi=tb.next;h=h.replace(/(<br>)+$/,'')+tb.html;i=te+1;if(s.charAt(i+1)==='\r')i++;continue;}
       if(c===0x0f){h+=objHtml[oi++]||'';}
       else if(c===0x0d||c===0x0b){h+='<br>';}
       else if(c===9){h+='&emsp;';}
@@ -939,7 +958,8 @@ var BNK=(function(){
           }
         }
         // split stem / choices
-        var ch0=text.indexOf('\x10'),stem=ch0>=0?text.slice(0,ch0):text,rest=ch0>=0?text.slice(ch0+1):'';
+        var ch0=-1;for(var c0i=text.indexOf('\x10');c0i>=0;c0i=text.indexOf('\x10',c0i+1))if(/^\s*\(?[a-hA-H1-8][).]\x11/.test(text.slice(c0i+1,c0i+8))){ch0=c0i;break;} // a \x10 that isn't followed by a) starts a table
+        var stem=ch0>=0?text.slice(0,ch0):text,rest=ch0>=0?text.slice(ch0+1):'';
         var st=textHtml(stem,objHtml,0),choices=[];
         if(ch0>=0){
           var parts=rest.split('\x11'),objIdx=st.next,cur=null,list=[];
@@ -2208,13 +2228,14 @@ function makeExporter(A) {
       var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'), W = this.cur.width - (indent || 0);
       if (!rows.length) return '';
       var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
-      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className);
+      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), grid = /\bq-grid\b/.test(tb.className);
+      if (grid) W = Math.min(W, ncol * 1.5 * TW); // ExamView tables: as narrow as they need, centered
       var widths = isRv ? [0.45 * TW, W - 0.45 * TW] : null;
       if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
       var grid = '<w:tblGrid>' + widths.map(function (w) { return '<w:gridCol w:w="' + Math.round(w) + '"/>'; }).join('') + '</w:tblGrid>';
       var borders = isKey ? '<w:tblBorders><w:insideH w:val="single" w:sz="4" w:color="DDDDDD"/><w:bottom w:val="single" w:sz="4" w:color="DDDDDD"/></w:tblBorders>' :
         '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return isRv ? '<w:' + s + ' w:val="nil"/>' : '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
-      var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
+      var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + (grid ? '<w:jc w:val="center"/>' : '') + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className) ? 'E5DFEC' : null, col = 0;
         h += '<w:tr>' + (head ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>');
@@ -2223,7 +2244,7 @@ function makeExporter(A) {
           var keep = self.cur, inner;
           var hasBlocks = Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); });
           self.cur = Object.assign({}, keep, { width: w - 160 });
-          inner = hasBlocks ? self.blocks(td) : self.p(self.runs(inlines(td, head || /\b(n|l|rv-n)\b/.test(td.className) ? { b: true } : {})), { after: 40 });
+          inner = hasBlocks ? self.blocks(td) : self.p(self.runs(inlines(td, head || /\b(n|l|rv-n)\b/.test(td.className) ? { b: true } : {})), { after: 40, align: grid ? 'center' : null });
           self.cur = keep;
           if (!/<\/w:p>$/.test(inner)) inner += '<w:p/>'; // a cell must end with a paragraph
           h += '<w:tc><w:tcPr><w:tcW w:w="' + Math.round(w) + '" w:type="dxa"/>' + (span > 1 ? '<w:gridSpan w:val="' + span + '"/>' : '') + (shade ? '<w:shd w:val="clear" w:color="auto" w:fill="' + shade + '"/>' : '') + '</w:tcPr>' + inner + '</w:tc>';
@@ -2418,10 +2439,11 @@ function makeExporter(A) {
     table: function (tb) {
       var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'); if (!rows.length) return '';
       var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
-      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), W = this.width;
+      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), grid = /\bq-grid\b/.test(tb.className), W = this.width;
+      if (grid) W = Math.min(W, ncol * 1.5);
       var widths = isRv ? [0.35, W - 0.35] : null; if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
       var ruled = !isKey && !isRv, bar = ruled ? '|' : ''; // Review: no borders
-      var colspec = bar + widths.map(function (w) { return 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
+      var colspec = bar + widths.map(function (w) { return (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
       var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (ruled ? '\\hline\n' : '\n');
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
@@ -2435,10 +2457,11 @@ function makeExporter(A) {
           self.width = keep;
           inner = inner.replace(/\n+$/, '');
           if (anyBlocks) inner = '\\begin{minipage}[t]{\\linewidth}\\vspace{0pt}' + inner + '\\end{minipage}'; // top-align, even when it starts with a picture
-          return span > 1 ? '\\multicolumn{' + span + '}{' + bar + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}' + bar + '}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
+          return span > 1 ? '\\multicolumn{' + span + '}{' + bar + (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}' + bar + '}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
         });
         h += cells.join(' & ') + ' \\\\' + (isKey ? (head ? '\\hline\\endhead' : '') : ruled ? '\\hline' : '') + '\n';
       });
+      if (grid) return '\\begin{center}' + h + '\\end{tabular}\\end{center}\n';
       return h + (isRv || isKey ? '\\end{longtable}\n' : '\\end{tabular}\\par\n');
     },
     section: function (s, root, first) {
@@ -2607,7 +2630,7 @@ function sanitize(html){
       if(/^(table|tbody|thead|tr|td|th)$/.test(tag)){
         if(tag==='tbody'||tag==='thead'){walk(n,out);return;}
         var te=document.createElement(tag==='th'?'td':tag);
-        if(tag==='table')te.className='q-tbl';
+        if(tag==='table')te.className='q-tbl'+(/\bq-grid\b/.test(n.className||'')?' q-grid':'');
         if(tag==='td'||tag==='th'){var cs=n.getAttribute('colspan');if(cs)te.setAttribute('colspan',cs);var st2=(n.getAttribute('style')||'').match(/border-(top|bottom|left|right)\s*:[^;]+/g);if(st2)te.setAttribute('style',st2.join(';'));}
         walk(n,te);
         if(tag==='tr'&&out.nodeName!=='TABLE'&&out.nodeName!=='TBODY'){}
@@ -4227,6 +4250,21 @@ function _renderIO(){
     res.className='result ok';res.innerHTML='Imported '+r.qs.length+' question'+(r.qs.length>1?'s':'')+'. Find them on the Question bank tab.'+(r.errors.length?'<div style="color:var(--danger);margin-top:6px">Check: '+r.errors.slice(0,6).map(esc).join(' · ')+'</div>':'');
   };
 }
+/* Older versions cut ExamView questions off at a table (the table, the text after it and sometimes answer choices were lost).
+   Importing the same bank again repairs those questions in place and keeps everything else you changed. Returns a message, or
+   '' when the file isn't the bank you already have (then it's imported as a copy, as before). */
+function tblKey(q){return q.ref?'r:'+q.ref:'t:'+plain(String(q.html||'').split('<table')[0]).replace(/\s+/g,' ').trim().slice(0,160);}
+function repairTables(out,name,course){
+  var by={};state.questions.forEach(function(q){if(q.bank===name&&inCourse(q,course)&&own(q))by[tblKey(q)]=q;});
+  var pairs=out.questions.map(function(n){return [n,by[tblKey(n)]];}).filter(function(p){return p[1];});
+  if(pairs.length<out.questions.length*0.8)return '';
+  var undo=[];
+  pairs.forEach(function(p){var n=p[0],o=p[1];if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
+    undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
+    o.html=n.html;o.type=n.type;o.answer=n.answer;if(n.choices)o.choices=n.choices;else delete o.choices;});
+  if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' with a table in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
+  return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+plural(undo.length,'question')+' with a table: the table and anything after it were missing before. Your other changes are kept.':'Its questions are all up to date.');
+}
 function importBnks(files){
   var res=$('#bnkRes');res.className='result';res.textContent='Reading '+files.length+' file'+(files.length>1?'s':'')+'…';
   var msgs=[],total=0,i=0;
@@ -4240,6 +4278,7 @@ function importBnks(files){
     f.arrayBuffer().then(function(buf){return BNK.parse(buf,f.name);}).then(function(out){
       var g=guessCourse(out.title),course=(g&&state.courses.indexOf(g)>=0)?g:state.course;
       var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&inCourse(q,course);}).length;
+      if(existing){var rp=repairTables(out,name,course);if(rp){msgs.push(rp);return;}}
       if(existing){var k=2;while(state.questions.some(function(q){return q.bank===name+' ('+k+')'&&inCourse(q,course);}))k++;name=name+' ('+k+')';}
       out.questions.forEach(function(q){q.id=uid();q.bank=name;q.course=course;splitNY(q);fillMeta(q);});
       state.questions=state.questions.concat(out.questions);total+=out.questions.length;

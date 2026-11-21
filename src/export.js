@@ -281,13 +281,14 @@ function makeExporter(A) {
       var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'), W = this.cur.width - (indent || 0);
       if (!rows.length) return '';
       var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
-      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className);
+      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), grid = /\bq-grid\b/.test(tb.className);
+      if (grid) W = Math.min(W, ncol * 1.5 * TW); // ExamView tables: as narrow as they need, centered
       var widths = isRv ? [0.45 * TW, W - 0.45 * TW] : null;
       if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
       var grid = '<w:tblGrid>' + widths.map(function (w) { return '<w:gridCol w:w="' + Math.round(w) + '"/>'; }).join('') + '</w:tblGrid>';
       var borders = isKey ? '<w:tblBorders><w:insideH w:val="single" w:sz="4" w:color="DDDDDD"/><w:bottom w:val="single" w:sz="4" w:color="DDDDDD"/></w:tblBorders>' :
         '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return isRv ? '<w:' + s + ' w:val="nil"/>' : '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
-      var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
+      var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + (grid ? '<w:jc w:val="center"/>' : '') + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className) ? 'E5DFEC' : null, col = 0;
         h += '<w:tr>' + (head ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>');
@@ -296,7 +297,7 @@ function makeExporter(A) {
           var keep = self.cur, inner;
           var hasBlocks = Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); });
           self.cur = Object.assign({}, keep, { width: w - 160 });
-          inner = hasBlocks ? self.blocks(td) : self.p(self.runs(inlines(td, head || /\b(n|l|rv-n)\b/.test(td.className) ? { b: true } : {})), { after: 40 });
+          inner = hasBlocks ? self.blocks(td) : self.p(self.runs(inlines(td, head || /\b(n|l|rv-n)\b/.test(td.className) ? { b: true } : {})), { after: 40, align: grid ? 'center' : null });
           self.cur = keep;
           if (!/<\/w:p>$/.test(inner)) inner += '<w:p/>'; // a cell must end with a paragraph
           h += '<w:tc><w:tcPr><w:tcW w:w="' + Math.round(w) + '" w:type="dxa"/>' + (span > 1 ? '<w:gridSpan w:val="' + span + '"/>' : '') + (shade ? '<w:shd w:val="clear" w:color="auto" w:fill="' + shade + '"/>' : '') + '</w:tcPr>' + inner + '</w:tc>';
@@ -491,10 +492,11 @@ function makeExporter(A) {
     table: function (tb) {
       var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'); if (!rows.length) return '';
       var ncol = 0; Array.prototype.forEach.call(rows, function (r) { var c = 0; Array.prototype.forEach.call(r.children, function (td) { c += +(td.getAttribute('colspan') || 1); }); ncol = Math.max(ncol, c); });
-      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), W = this.width;
+      var isRv = /\brv\b/.test(tb.className), isKey = /\bpt-key\b/.test(tb.className), grid = /\bq-grid\b/.test(tb.className), W = this.width;
+      if (grid) W = Math.min(W, ncol * 1.5);
       var widths = isRv ? [0.35, W - 0.35] : null; if (!widths) { widths = []; for (var k = 0; k < ncol; k++) widths.push(W / ncol); }
       var ruled = !isKey && !isRv, bar = ruled ? '|' : ''; // Review: no borders
-      var colspec = bar + widths.map(function (w) { return 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
+      var colspec = bar + widths.map(function (w) { return (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
       var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (ruled ? '\\hline\n' : '\n');
       Array.prototype.forEach.call(rows, function (r) {
         var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
@@ -508,10 +510,11 @@ function makeExporter(A) {
           self.width = keep;
           inner = inner.replace(/\n+$/, '');
           if (anyBlocks) inner = '\\begin{minipage}[t]{\\linewidth}\\vspace{0pt}' + inner + '\\end{minipage}'; // top-align, even when it starts with a picture
-          return span > 1 ? '\\multicolumn{' + span + '}{' + bar + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}' + bar + '}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
+          return span > 1 ? '\\multicolumn{' + span + '}{' + bar + (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}' + bar + '}{' + (shade ? '\\cellcolor{mcshade}' : '') + inner + '}' : inner;
         });
         h += cells.join(' & ') + ' \\\\' + (isKey ? (head ? '\\hline\\endhead' : '') : ruled ? '\\hline' : '') + '\n';
       });
+      if (grid) return '\\begin{center}' + h + '\\end{tabular}\\end{center}\n';
       return h + (isRv || isKey ? '\\end{longtable}\n' : '\\end{tabular}\\par\n');
     },
     section: function (s, root, first) {

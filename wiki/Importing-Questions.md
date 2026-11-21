@@ -4,7 +4,12 @@ Everything is on **Import & backup › Import** (on the rail at the left). Quest
 
 ## ExamView banks (.bnk)
 
-Choose one or more `.bnk` files. The question text, answer choices, correct answers, points, pictures and math come in: fractions, square roots, exponents, overlines, segments, rays, arcs and triangle symbols.
+Choose one or more `.bnk` files. The question text, answer choices, correct answers, points, pictures, tables and math come in: fractions, square roots, exponents, overlines, segments, rays, arcs and triangle symbols.
+
+**Banks imported before version 0.18** lost every table: the question stopped at the table, and the text and sometimes an
+answer choice after it were missing (so a few answer keys were wrong). To fix a bank you already have, import the same `.bnk`
+file again. The app sees it's the same bank, repairs only the questions with a table, keeps everything you changed (units,
+sections, your fields) and doesn't make a copy.
 
 Standards like `A.REI.A.1, NY: A.N.1` are split: the Common Core code stays in **Standard**, and the old NY code goes to **Old NY standard**.
 

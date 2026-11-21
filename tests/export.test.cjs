@@ -99,6 +99,20 @@ describe('Word (.docx)', () => {
   });
 });
 
+describe('tables from ExamView', () => {
+  test('Word and LaTeX keep them ruled and centered', async () => {
+    const [t] = await addQuestions(page, [{ type: 'sa', html: 'The table below lists metals.<table class="q-tbl q-grid"><tr><td><b>Metal</b></td><td><b>Density</b></td></tr><tr><td>Zinc</td><td>7.14</td></tr></table>Which is it?', answer: 'Zinc' }]);
+    await select(page, [t]);
+    const doc = unzip(await makeDocx('tests'))['word/document.xml'].toString('utf8');
+    assert.match(doc, /<w:tblW w:w="4320" w:type="dxa"\/>.*?<w:jc w:val="center"\/><w:tblLayout/, 'two columns, 1.5 in each, centered');
+    assert.match(doc, /<w:jc w:val="center"\/>.*?Zinc/);
+    const tex = unzip(await makeFile('latex', 'tests'));
+    const src = Object.entries(tex).find(([n]) => /\.tex$/.test(n))[1].toString('utf8');
+    assert.match(src, /\\begin\{center\}\\begin\{tabular\}\{\|>\{\\centering\\arraybackslash\}p\{/);
+    assert.match(src, /Zinc & 7\.14/);
+  });
+});
+
 describe('LaTeX (.zip with .tex and pictures)', () => {
   test('exam class, real LaTeX math and symbols, one section per version and key', async () => {
     await page.evaluate(id => { window.__tb.state.questions.find(q => q.id === id).html += ' <img src="' + (() => { const c = document.createElement('canvas'); c.width = 40; c.height = 20; return c.toDataURL('image/png'); })() + '" style="width:1in">'; }, ids[4]);

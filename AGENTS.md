@@ -253,9 +253,10 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - [ ] Collect her feedback from trying the single-file version.
 - [ ] Bank tools (2026-11-14): she wants to try Change these…, Check & clean up, her own fields and bank files on her
       real banks (her local compose changes are uncommitted on purpose). Ideas: auto unit/section from a standard→unit map she provides.
-- [ ] ExamView **tables** are lost on import (2026-11-20): the question text stops at the table and everything after it is dropped, including
-      answer choices (GEO2024-2026 0825 #26, 0126 #20: lost choice (1), so the saved answer was wrong). No warning is shown. Parse the table
-      object in `bnk.js`, or at least warn. The bank folder has them fixed by hand from the PDFs.
+- [x] ExamView **tables** (2026-11-20): `bnk.js` `tableEnd`/`tableHtml`: \x10 starts a table unless followed by a choice label, \x11 cell,
+      \x11\x11 row, ends at \x11\x11 + \r/\x10/end; title row → colspan, bold header row (first column when ≤2 rows and >3 cols), unit
+      superscripts (mi2). `<table class="q-tbl q-grid">` (sanitize keeps q-grid; CSS ruled + centered; Word/LaTeX 1.5 in per column, centered).
+      582 of 11,833 questions in her banks, 264 MC got a lost choice back; nothing else changed. Re-import repairs in place: `repairTables`/`tblKey`.
 - [ ] ExamView equation codes not understood yet (shown as test diagnostics, the math around them still reads): 3 (251×),
       16 (148×), 17 (65×), 23 (24×), 24 (14×), 2 (3×), mostly in older banks (GE 2008–2016, Sequential III, Math A/B,
       Ch 9 Test Bank). Probably matrices/piles/limits; look at those questions next to ExamView output.
@@ -434,3 +435,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-20**: released v0.17.0 (CI, Release, `:latest` = 0.17.0; her local site updated). Public site still waits for James.
 - **2026-11-20**: bank-folder trial (her request: better pictures, LaTeX math, mass changes): GEO2024-2026EXAMs → `~/Downloads/BNKv6/GEO2024-2026EXAMs bank folder/` (questions/*.md with YAML front matter + `$LaTeX$`, images/*.png cropped at 300 dpi from her Regents PDFs in ~/Downloads matched by ref MMYYQQ, images/examview/ originals, review.html with KaTeX, make/ scripts). Crop: PDFIMP.open + found[num] stemBox, prose lines masked, edge frames ignored, next page when "continued on the next page"; 85/85 matched. Found + fixed: ExamView 0x80 in equations is ∥ (was €), `bnk.js` + normalize repair. Not in the app yet: import/export of bank folders, KaTeX rendering, LaTeX→OMML for Word.
 - **2026-11-20**: her review of the bank folder: fixed crops (prose mask reaches 0.45 line height above for overlines), `\dfrac` for fractions, π as `$\pi$`, no `\,` before `}`, tables as Markdown pipe tables (0825-26, 0126-20 + its lost choice and answer, hand-copied from the PDFs in convert.cjs `FIX`), review page draws tables and spaces choices 1.5 (wider with fractions). `textcmp.cjs` compares every question's words with the PDF: only those two lost text.
+- **2026-11-20**: ExamView tables read (see Backlog). Checked: all private banks old vs new (only table questions change), app card + print preview, LaTeX compiled with pdfLaTeX, Word via LibreOffice (Times copy).

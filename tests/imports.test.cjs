@@ -97,6 +97,17 @@ describe('ExamView (.bnk)', () => {
         const missing = all.filter(h => /q-missing/.test(h)).length;
         assert.ok(missing <= Math.max(1, all.length * 0.02), missing + ' questions show [picture] instead of the picture');
       });
+      test('tables are read, with the text and choices after them', () => {
+        // older versions cut a question off at its table ("…shown in the table below." and nothing more)
+        const cut = r.questions.filter(q => /table (below|shown)\W*$/i.test(q.html.replace(/<[^>]+>/g, '').trim()) && !/<table/.test(q.html));
+        assert.equal(cut.length, 0, cut.slice(0, 3).map(q => q.ref || q.html.slice(0, 60)).join(' | '));
+        if (/GEO2024-2026/.test(file)) {
+          const census = r.questions.find(q => q.ref === '012620geo'), metals = r.questions.find(q => q.ref === '082526geo');
+          assert.equal(census.choices.length, 4); assert.match(census.choices[census.answer], /^Pennsylvania, New York/);
+          assert.match(census.html, /colspan="3"><b>2020 State Population and Land Area<\/b>/); assert.match(census.html, /mi<sup>2<\/sup>/);
+          assert.match(metals.html, /<td>Silver<\/td><td>10\.5<\/td>.*Using the table above/);
+        }
+      });
       test('equation line breaks are understood', (t) => {
         assert.deepEqual(r.warnings.filter(w => /\btag13\b/.test(w)), []);
         // other equation codes the reader doesn't know yet are listed, not failed (see AGENTS.md backlog)

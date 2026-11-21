@@ -117,10 +117,24 @@ var BNK=(function(){
   }
 
   /* ---- text with objects ---- */
+  /* A table is text too: \x10 starts it, \x11 ends each cell, \x11\x11 ends each row; the table ends at a row end that is
+     followed by a line break, the answer choices or the end of the question. Returns the HTML and where the text goes on. */
+  function tableEnd(s,i){var j=i;while((j=s.indexOf('\x11\x11',j))>=0){var n=s.charAt(j+2);if(j+2>=s.length||n==='\r'||n==='\n'||n==='\x10')return j;j+=2;}return -1;}
+  function tableHtml(s,objHtml,oi){
+    var rows=s.split('\x11\x11').map(function(r){return r.split('\x11');}),ncol=Math.max.apply(null,rows.map(function(r){return r.length;}));
+    var title=rows.length>2&&rows[0].length===1&&ncol>1,head=title?1:0,side=rows.length-head<=2&&ncol>3; // a short wide table reads across: its first column is the header
+    var h='<table class="q-tbl q-grid">'+rows.map(function(r,ri){
+      return '<tr>'+r.map(function(cell,ci){var t=textHtml(cell,objHtml,oi);oi=t.next;
+        var x=t.html.replace(/\b(mi|cm|in|ft|m|km|yd|mm)([23])\b/g,'$1<sup>$2</sup>'); // units like mi2, cm3: the 2 was a superscript in ExamView
+        var bold=ri<head||(side?ci===0:ri===head);
+        return '<td'+(r.length===1&&ncol>1?' colspan="'+ncol+'"':'')+'>'+(bold&&x?'<b>'+x+'</b>':x)+'</td>';}).join('')+'</tr>';}).join('')+'</table>';
+    return {html:h,next:oi};
+  }
   function textHtml(s,objHtml,start){
     var h='',oi=start;
     for(var i=0;i<s.length;i++){
       var c=s.charCodeAt(i);
+      if(c===0x10){var te=tableEnd(s,i+1);if(te<0)te=s.length;var tb=tableHtml(s.slice(i+1,te),objHtml,oi);oi=tb.next;h=h.replace(/(<br>)+$/,'')+tb.html;i=te+1;if(s.charAt(i+1)==='\r')i++;continue;}
       if(c===0x0f){h+=objHtml[oi++]||'';}
       else if(c===0x0d||c===0x0b){h+='<br>';}
       else if(c===9){h+='&emsp;';}
@@ -228,7 +242,8 @@ var BNK=(function(){
           }
         }
         // split stem / choices
-        var ch0=text.indexOf('\x10'),stem=ch0>=0?text.slice(0,ch0):text,rest=ch0>=0?text.slice(ch0+1):'';
+        var ch0=-1;for(var c0i=text.indexOf('\x10');c0i>=0;c0i=text.indexOf('\x10',c0i+1))if(/^\s*\(?[a-hA-H1-8][).]\x11/.test(text.slice(c0i+1,c0i+8))){ch0=c0i;break;} // a \x10 that isn't followed by a) starts a table
+        var stem=ch0>=0?text.slice(0,ch0):text,rest=ch0>=0?text.slice(ch0+1):'';
         var st=textHtml(stem,objHtml,0),choices=[];
         if(ch0>=0){
           var parts=rest.split('\x11'),objIdx=st.next,cur=null,list=[];

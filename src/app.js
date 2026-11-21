@@ -136,7 +136,7 @@ function sanitize(html){
       if(/^(table|tbody|thead|tr|td|th)$/.test(tag)){
         if(tag==='tbody'||tag==='thead'){walk(n,out);return;}
         var te=document.createElement(tag==='th'?'td':tag);
-        if(tag==='table')te.className='q-tbl';
+        if(tag==='table')te.className='q-tbl'+(/\bq-grid\b/.test(n.className||'')?' q-grid':'');
         if(tag==='td'||tag==='th'){var cs=n.getAttribute('colspan');if(cs)te.setAttribute('colspan',cs);var st2=(n.getAttribute('style')||'').match(/border-(top|bottom|left|right)\s*:[^;]+/g);if(st2)te.setAttribute('style',st2.join(';'));}
         walk(n,te);
         if(tag==='tr'&&out.nodeName!=='TABLE'&&out.nodeName!=='TBODY'){}
@@ -1756,6 +1756,21 @@ function _renderIO(){
     res.className='result ok';res.innerHTML='Imported '+r.qs.length+' question'+(r.qs.length>1?'s':'')+'. Find them on the Question bank tab.'+(r.errors.length?'<div style="color:var(--danger);margin-top:6px">Check: '+r.errors.slice(0,6).map(esc).join(' · ')+'</div>':'');
   };
 }
+/* Older versions cut ExamView questions off at a table (the table, the text after it and sometimes answer choices were lost).
+   Importing the same bank again repairs those questions in place and keeps everything else you changed. Returns a message, or
+   '' when the file isn't the bank you already have (then it's imported as a copy, as before). */
+function tblKey(q){return q.ref?'r:'+q.ref:'t:'+plain(String(q.html||'').split('<table')[0]).replace(/\s+/g,' ').trim().slice(0,160);}
+function repairTables(out,name,course){
+  var by={};state.questions.forEach(function(q){if(q.bank===name&&inCourse(q,course)&&own(q))by[tblKey(q)]=q;});
+  var pairs=out.questions.map(function(n){return [n,by[tblKey(n)]];}).filter(function(p){return p[1];});
+  if(pairs.length<out.questions.length*0.8)return '';
+  var undo=[];
+  pairs.forEach(function(p){var n=p[0],o=p[1];if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
+    undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
+    o.html=n.html;o.type=n.type;o.answer=n.answer;if(n.choices)o.choices=n.choices;else delete o.choices;});
+  if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' with a table in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
+  return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+plural(undo.length,'question')+' with a table: the table and anything after it were missing before. Your other changes are kept.':'Its questions are all up to date.');
+}
 function importBnks(files){
   var res=$('#bnkRes');res.className='result';res.textContent='Reading '+files.length+' file'+(files.length>1?'s':'')+'…';
   var msgs=[],total=0,i=0;
@@ -1769,6 +1784,7 @@ function importBnks(files){
     f.arrayBuffer().then(function(buf){return BNK.parse(buf,f.name);}).then(function(out){
       var g=guessCourse(out.title),course=(g&&state.courses.indexOf(g)>=0)?g:state.course;
       var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&inCourse(q,course);}).length;
+      if(existing){var rp=repairTables(out,name,course);if(rp){msgs.push(rp);return;}}
       if(existing){var k=2;while(state.questions.some(function(q){return q.bank===name+' ('+k+')'&&inCourse(q,course);}))k++;name=name+' ('+k+')';}
       out.questions.forEach(function(q){q.id=uid();q.bank=name;q.course=course;splitNY(q);fillMeta(q);});
       state.questions=state.questions.concat(out.questions);total+=out.questions.length;
