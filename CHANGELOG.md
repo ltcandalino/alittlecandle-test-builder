@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-20
+
 ### Fixed
 - **ExamView tables:** questions with a table lost the table and everything after it, sometimes including an answer choice (264 multiple-choice questions in the test banks had a missing choice, so their marked answer was wrong). Tables now come in as real tables, ruled and centered like the Regents, on screen, in print, and in Word and LaTeX downloads. Import a bank you already have again to repair it: only the questions with a table change, your edits stay, and no copy is made.
 
