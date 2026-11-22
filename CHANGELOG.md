@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-21
+
 ### Added
 - **A question can be in several units.** Type them with commas, like `10, 11`. The Unit filter and **Browse banks** show the question under each unit, and its card says **Units 10, 11**.
 
