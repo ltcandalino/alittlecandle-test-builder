@@ -17,6 +17,8 @@ its lists have the tick box and **Edit** (and **Copy to mine** on a colleague's 
 
 A bank without units or sections opens straight to its questions. Browsing never changes your **Search** filters.
 
+A question taught in more than one unit has its units separated by commas, like **10, 11**. It shows under each of those units when you browse or filter by unit, and its card says **Units 10, 11**.
+
 ## Finding questions
 
 Search by words, or filter by **unit**, **section**, **topic** and **standard**. Click **More filters** for needs attention, bank, type, year, month, cluster, subtopic, source and your own fields; the button shows how many of those are in use.
@@ -32,7 +34,7 @@ Click a question to open it. You can fix the wording, choices or answer, and fil
 | Detail | Example |
 |---|---|
 | Course, Bank, Source | Geometry · GEO Regents · Regents |
-| Unit, Section | 3 · 2 |
+| Unit, Section | 3 · 2 (several units: 10, 11) |
 | Part | Part III (used when grouping a test into parts) |
 | Topic, Subtopic | Triangles · Congruence |
 | Standard, Cluster | G.SRT.B.5 · G-SRT.B |

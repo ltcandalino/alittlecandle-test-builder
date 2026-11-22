@@ -374,6 +374,26 @@ describe('Browse banks (1 Pick questions)', () => {
   });
 });
 
+describe('several units per question', () => {
+  test('unit "10, 11" is found under Unit 10 and Unit 11 in the filter and in Browse banks', async () => {
+    await addQuestions(page, [{ html: 'Sector area', bank: 'GEO', unit: '10, 11', section: '11.2' }, { html: 'Arc only', bank: 'GEO', unit: '10', section: '10.3' },
+      { html: 'Volume only', bank: 'GEO', unit: '11', section: '11.5' }]);
+    await goPlace(page, 'pick', 'search');
+    const units = await page.$$eval('#fu option', e => e.map(o => o.value).filter(Boolean));
+    assert.deepEqual(units, ['10', '11'], 'the Unit menu lists each unit once, not "10, 11"');
+    await page.selectOption('#fu', '11');
+    assert.deepEqual(await page.$$eval('#qlist .qcard', e => e.map(c => c.textContent.includes('Sector') ? 'S' : c.textContent.includes('Volume') ? 'V' : 'A').sort()), ['S', 'V']);
+    assert.match(await page.textContent('#qlist .qcard:has-text("Sector area") .tag.unit'), /Units 10, 11 · Sec 11\.2/);
+    await page.selectOption('#fu', '');
+    await goPlace(page, 'pick', 'browse');
+    await page.click('[data-brbank="GEO"]');
+    assert.deepEqual(await page.$$eval('.br-u b', e => e.map(x => x.textContent)), ['Unit 10', 'Unit 11']);
+    assert.match(await page.textContent('[data-brunit="10"][data-brsec=""]'), /2 questions/);
+    await page.click('[data-brunit="10"][data-brsec="11.2"]');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 1, 'Unit 10 · Section 11.2 has the sector question');
+  });
+});
+
 describe('Your banks list', () => {
   test('long lists show 10 banks, Show all, find a bank, and save counts the ticked banks', async () => {
     await addQuestions(page, Array.from({ length: 15 }, (_, i) => ({ html: 'Q' + i, bank: 'Bank ' + String(i + 1).padStart(2, '0') })));
