@@ -2735,7 +2735,12 @@ function byId(id){for(var i=0;i<state.questions.length;i++)if(state.questions[i]
 function isSel(id){return state.selected.indexOf(id)>=0;}
 // a question can be in several units: unit "10, 11" (her Pacing Guide); filters and Browse banks match any of them
 function unitsOf(q){return String(q.unit||'').split(/\s*,\s*/).filter(Boolean);}
-function uniq(field){var t={};cq().forEach(function(q){var v=q[field];if(v){if(field==='standard'||field==='nyStd'||field==='unit')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
+// Search filters narrow each other (her request 2026-11-22): while facetOn, a menu lists only values that questions matching the OTHER
+// filters have (search text aside), plus the current pick so it never vanishes. Elsewhere (editor lists, Pick at random) it lists everything.
+var facetOn=false,FKEY={standard:'std',subtopic:'sub'};
+function facetPool(key){if(!facetOn)return cq();var f=Object.assign({},ui,{q:''});f[key]='';return cq().filter(function(q){return matches(q,f);});}
+function facetPick(t,key){var v=facetOn&&ui[key];if(v&&v!=='__none'&&String(v).indexOf('team:')<0)t[v]=1;}
+function uniq(field){var t={};facetPick(t,FKEY[field]||field);facetPool(FKEY[field]||field).forEach(function(q){var v=q[field];if(v){if(field==='standard'||field==='nyStd'||field==='unit')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
 function selectedQs(){return state.selected.map(selQ).filter(Boolean);}
 /* ---- Saved tests ----
    state.savedTests: [{id,name,course,created,savedAt,printedAt,settings,selected,questions}]
@@ -3326,18 +3331,21 @@ function _renderBank(){
   }
   var banks=uniq('bank');
   var mc=moreCount();
-  main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  facetOn=true;main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  facetOn=false;
+  // a filter change redraws the menus so the others narrow; focus goes back to the menu just changed
+  var refilter=function(el){var sel=el.id?'#'+el.id:'[data-xff="'+el.dataset.xff+'"]';renderBank();var b=$(sel);if(b)b.focus();};
   $('#moreF').onclick=function(){ui.moreF=!ui.moreF;saveUi();renderBank();var b=$('#moreF');if(b)b.focus();};
   $('#fq').oninput=function(){ui.q=this.value;ui.limit=40;saveUi();drawList();};
-  if($('#fb'))$('#fb').onchange=function(){ui.bank=this.value;ui.limit=40;saveUi();drawList();};
-  if($('#fu'))$('#fu').onchange=function(){ui.unit=this.value;ui.limit=40;saveUi();drawList();};
-  if($('#fsec'))$('#fsec').onchange=function(){ui.section=this.value;ui.limit=40;saveUi();drawList();};
-  $('#ft').onchange=function(){ui.topic=this.value;ui.limit=40;saveUi();drawList();};
-  $('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();drawList();};
-  if($('#fy'))$('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();drawList();};
+  if($('#fb'))$('#fb').onchange=function(){ui.bank=this.value;ui.limit=40;saveUi();refilter(this);};
+  if($('#fu'))$('#fu').onchange=function(){ui.unit=this.value;ui.limit=40;saveUi();refilter(this);};
+  if($('#fsec'))$('#fsec').onchange=function(){ui.section=this.value;ui.limit=40;saveUi();refilter(this);};
+  $('#ft').onchange=function(){ui.topic=this.value;ui.limit=40;saveUi();refilter(this);};
+  $('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();refilter(this);};
+  if($('#fy'))$('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#newQ'))$('#newQ').onclick=function(){openEditor(null);};
-  [['fneed','need'],['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();drawList();};});
-  $$('[data-xff]').forEach(function(el){el.onchange=function(){ui['x:'+el.dataset.xff]=this.value;ui.limit=40;saveUi();drawList();};});
+  [['fneed','need'],['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();refilter(this);};});
+  $$('[data-xff]').forEach(function(el){el.onchange=function(){ui['x:'+el.dataset.xff]=this.value;ui.limit=40;saveUi();refilter(el);};});
   if($('#cleanBtn'))$('#cleanBtn').onclick=openCleanup;
   drawList();
 }
@@ -3464,7 +3472,7 @@ function addField(label){
   var f={id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),label:label};state.fields.push(f);return f;
 }
 function xval(q,id){return q.extra&&q.extra[id]!=null?String(q.extra[id]):'';}
-function uniqX(id){var t={};cq().forEach(function(q){var v=xval(q,id);if(v)t[v]=1;});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
+function uniqX(id){var t={};facetPick(t,'x:'+id);facetPool('x:'+id).forEach(function(q){var v=xval(q,id);if(v)t[v]=1;});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
 // fields that "Change these…" can set on many questions at once; her own fields are 'x:<id>'
 var BULK_F=[['unit','Unit'],['section','Section'],['topic','Topic'],['subtopic','Subtopic'],['standard','Standard'],['nyStd','Old NY standard'],['cluster','Cluster'],['bank','Bank'],['source','Source'],['part','Part'],['points','Points'],['notes','My notes']];
 var LIST_F={standard:', ',nyStd:', ',subtopic:'; '};

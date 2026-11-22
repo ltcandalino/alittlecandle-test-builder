@@ -374,6 +374,25 @@ describe('Browse banks (1 Pick questions)', () => {
   });
 });
 
+describe('filters narrow each other', () => {
+  test('picking Unit 4 leaves only Unit 4 sections and topics; the current pick stays listed', async () => {
+    await addQuestions(page, [{ html: 'Rotate', unit: '4', section: '3', topic: 'Rotations', subtopic: 'rotate a figure' },
+      { html: 'Dilate', unit: '4', section: '5', topic: 'Dilations', subtopic: 'dilate a line' },
+      { html: 'Volume', unit: '11', section: '8', topic: 'Volume', subtopic: 'find the volume of a sphere' }]);
+    await goPlace(page, 'pick', 'search');
+    const vals = sel => page.$$eval(sel + ' option', e => e.map(o => o.value).filter(v => v && v !== '__none'));
+    assert.deepEqual(await vals('#fsec'), ['3', '5', '8']);
+    await page.selectOption('#fu', '4');
+    assert.deepEqual(await vals('#fsec'), ['3', '5'], 'no Section 8 in Unit 4');
+    assert.deepEqual(await vals('#ft'), ['Dilations', 'Rotations']);
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'fu', 'focus stays on the menu just changed');
+    await page.selectOption('#ft', 'Rotations');
+    assert.deepEqual(await vals('#fu'), ['4'], 'Unit menu narrows to the topic too');
+    assert.deepEqual(await vals('#ft'), ['Dilations', 'Rotations'], 'a menu ignores its own pick');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 1);
+  });
+});
+
 describe('several units per question', () => {
   test('unit "10, 11" is found under Unit 10 and Unit 11 in the filter and in Browse banks', async () => {
     await addQuestions(page, [{ html: 'Sector area', bank: 'GEO', unit: '10, 11', section: '11.2' }, { html: 'Arc only', bank: 'GEO', unit: '10', section: '10.3' },

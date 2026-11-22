@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Search filters narrow each other.** Pick Unit 4 and the Section, Topic, Standard and More filters menus list only what Unit 4's questions have (no Section 8). The choice you already made always stays listed.
+
 ## [0.22.0] - 2026-11-21
 
 ### Added

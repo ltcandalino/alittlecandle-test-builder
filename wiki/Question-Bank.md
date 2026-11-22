@@ -23,6 +23,8 @@ A question taught in more than one unit has its units separated by commas, like 
 
 Search by words, or filter by **unit**, **section**, **topic** and **standard**. Click **More filters** for needs attention, bank, type, year, month, cluster, subtopic, source and your own fields; the button shows how many of those are in use.
 
+The filters narrow each other: after you pick **Unit 4**, the other menus only list sections, topics and standards that Unit 4's questions have. What you already picked always stays in its menu.
+
 Every filter you're using shows as a chip under the filters, like **Unit: 3 ✕**. Click a chip to remove that filter, or **Clear filters** to remove them all. **Sort** (next to "Showing … of …") puts the list in bank order, newest added first, by exam date (newest or oldest first), by standard, or by unit and section.
 
 Tick the questions you want in your document. **Select all** puts every question shown (all the matches, not just the first page) on the test; **Deselect all** takes them off. Both have **Undo**. They're added to the list on **2 Set up › Questions** in the order you pick them. Each card shows its unit and section as **Unit 3 · Sec 2**, and a ticked card has a purple outline.
