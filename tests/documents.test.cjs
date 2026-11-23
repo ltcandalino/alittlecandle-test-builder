@@ -403,4 +403,21 @@ describe('courses', () => {
   });
 });
 
+test('a question tall from its text and picture may break across pages (no blank first page)', async () => {
+  // PNG header only: 100 × 93 pixels, enough for the app to read the picture's shape
+  const png = Buffer.concat([Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex'), Buffer.from([0, 0, 0, 100, 0, 0, 0, 93]), Buffer.alloc(8)]).toString('base64');
+  const r = await page.evaluate(png => {
+    const f = window.__tb.fn, img = '<img class="q-img" src="data:image/png;base64,' + png + '" style="width:2.4in">', long = 'Find the value. '.repeat(55) + '<br>'.repeat(14);
+    return {
+      inches: f.htmlInches(img),
+      frq: f.isTall({ type: 'es', answerArea: 'space', space: 2, html: img + long }),
+      short: f.isTall({ type: 'es', answerArea: 'space', space: 2, html: 'Solve for x.' }),
+      mc: f.isTall({ type: 'mc', html: 'Which is true?' }),
+      bigSpace: f.isTall({ type: 'es', answerArea: 'space', space: 6, html: 'Prove it.' }),
+    };
+  }, png);
+  assert.ok(Math.abs(r.inches - 2.4 * 0.93) < 0.01, 'picture height from its PNG shape: ' + r.inches);
+  assert.equal(r.frq, true); assert.equal(r.short, false); assert.equal(r.mc, false); assert.equal(r.bigSpace, true);
+});
+
 test('no page errors (last test)', () => assert.deepEqual(errors, []));
