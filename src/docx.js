@@ -189,7 +189,7 @@ var DOCX=(function(){
     // text inside text boxes (for detecting "Use this space\u2026" and score boxes)
     Array.prototype.forEach.call(p.getElementsByTagNameNS(NS.w,'txbxContent'),function(tb){boxText+=' '+tb.textContent;});
     var text=h.replace(/\u0000IMG\d+\u0000/g,' ').replace(/<[^>]+>/g,'').replace(/&emsp;/g,' ').replace(/&[a-z]+;/g,'x').replace(/\s+/g,' ').trim();
-    return {kind:'p',html:h.replace(/(&emsp;)+$/,''),text:text,label:label,fmt:fmt,numId:numId,ilvl:ilvl,align:align,hasImg:/\u0000IMG/.test(h),boxText:boxText.trim()};
+    return {kind:'p',html:h.replace(/(&emsp;)+$/,'').replace(/^((?:<[^>]+>)*)(?:&emsp;|\s)+/,'$1'),text:text,label:label,fmt:fmt,numId:numId,ilvl:ilvl,align:align,hasImg:/\u0000IMG/.test(h),boxText:boxText.trim()};
   }
   function cellBorders(tc){
     var pr=kid(tc,'w','tcPr'),b=pr&&kid(pr,'w','tcBorders'),s='';

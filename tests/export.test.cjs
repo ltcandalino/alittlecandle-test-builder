@@ -18,7 +18,7 @@ beforeEach(async () => {
     { type: 'mc', html: 'In △ABC, <span class="m-ov">AB</span> ≅ <span class="m-ov">BC</span>. Which angle is congruent to ∠A?', choices: ['∠B', '∠C', '∠ABC', 'none'], answer: 1 },
     { type: 'mc', html: 'Simplify <span class="m-frac"><span class="m-num">6x</span><span class="m-den">3</span></span>.', choices: ['2x', '3x'], answer: 0 },
     { type: 'tf', html: 'Arc <span class="m-acc m-arc">EF</span> is a semicircle.', answer: 'T' },
-    { type: 'sa', html: 'Solve x<sup>2</sup> = 49 for <i>x</i> &gt; 0.', answer: '7', lines: 2 },
+    { type: 'sa', html: 'Solve <span class="m">x<sup>2</sup> = 49</span> for <i>x</i> &gt; 0.', answer: '7', lines: 2 },
     { type: 'es', html: 'Prove it.<table><tr><td>Statements</td><td>Reasons</td></tr></table>', answer: 'SAS', points: 4 },
   ]);
   await select(page, ids);
@@ -65,6 +65,15 @@ describe('Word (.docx)', () => {
     assert.match(doc, /<w:tbl>/, 'tables stay tables');
     assert.match(doc, /Answer Key/, 'keys are included');
     assert.match(doc, /w:pgNumType w:start="1"/, 'page numbers restart for each version');
+    assert.match(doc, /<m:oMath><m:sSup><m:e><m:r><m:t xml:space="preserve">x<\/m:t><\/m:r><\/m:e><m:sup>.*?2.*?<\/m:sup><\/m:sSup>.*?=.*?49.*?<\/m:oMath>/, 'a math span is one Word equation, x² a real superscript');
+    const spacing = doc.match(/<w:spacing [^>]*>/g);
+    assert.ok(spacing.every(x => /w:before="0" w:after="0"/.test(x)), 'no space before or after any paragraph');
+    assert.ok(spacing.filter(x => /lineRule="auto"/.test(x)).every(x => /w:line="276"/.test(x)), 'line spacing multiple 1.15');
+    assert.ok((doc.match(/<w:ind [^>]*>/g) || []).every(x => /w:left="\d+"/.test(x) && !/hanging/.test(x)), 'no hanging indents: only the boxes keep an indent');
+    const heads = Object.entries(z).filter(([n]) => /word\/header\d+\.xml/.test(n)).map(([, d]) => d.toString('utf8'));
+    assert.equal(heads.filter(h => /Name: /.test(h) && /Unit 3/.test(h)).length, 2, 'Name/Date and the title line are in each version’s first-page header');
+    assert.doesNotMatch(doc, /Name: /, 'and not in the body');
+    assert.equal(Object.entries(z).filter(([n, d]) => /word\/footer\d+\.xml/.test(n) && /v\. [12]/.test(d.toString('utf8'))).length, 2, 'first-page footer says the version');
   });
   test('import it back with the app’s own Word importer: the questions come back', async () => {
     await settings(page, { versions: 1 });
