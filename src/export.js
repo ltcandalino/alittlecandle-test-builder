@@ -130,7 +130,7 @@ function makeExporter(A) {
   }
 
   function DocxWriter(imgs) {
-    this.imgs = imgs; this.media = []; this.mediaIds = {}; this.body = ''; this.parts = []; this.rels = []; this.n = 0;
+    this.imgs = imgs; this.media = []; this.mediaIds = {}; this.body = ''; this.parts = []; this.rels = []; this.n = 0; this.nums = [];
   }
   DocxWriter.prototype = {
     rid: function () { return 'rId' + (++this.n + 10); },
@@ -195,17 +195,14 @@ function makeExporter(A) {
         '<pic:nvPicPr><pic:cNvPr id="' + pid + '" name="Picture ' + pid + '"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="' + this.mediaIds[src] + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
         '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
     },
-    // Every body paragraph is indent 0/0, spacing 0 before/after, line 1.15 (her request): indents become tab stops,
-    // and gaps of 6 pt or more become an empty paragraph (BLANK; repeats are collapsed in section()).
+    // Every paragraph is spacing 0 before/after, line 1.15 (her request); gaps of 6 pt or more become an empty paragraph
+    // (BLANK; repeats are collapsed in section()). Question numbers are a Word numbered list (o.numPr), so wrapped lines
+    // line up with the text; the question's other lines are indented to match.
     p: function (content, o) {
       o = o || {};
       var pp = '', gapB = (o.before || 0) >= 120 ? BLANK : '', gapA = (o.after || 0) >= 120 ? BLANK : '';
-      if (o.ind && !o.box) {
-        var L = o.ind.left || 0;
-        if (L > 0) { o.tabs = [['left', L]].concat(o.tabs || []); if (!o.ind.hanging) content = this.tab() + content; }
-        o.ind = null;
-      }
       if (o.keepNext) pp += '<w:keepNext/>';
+      if (o.numPr) pp += o.numPr;
       if (o.border) pp += '<w:pBdr>' + o.border + '</w:pBdr>';
       if (o.shade) pp += '<w:shd w:val="clear" w:color="auto" w:fill="' + o.shade + '"/>';
       if (o.tabs) pp += '<w:tabs>' + o.tabs.map(function (t) { return '<w:tab w:val="' + t[0] + '"' + (t[2] ? ' w:leader="' + t[2] + '"' : '') + ' w:pos="' + Math.round(t[1]) + '"/>'; }).join('') + '</w:tabs>';
@@ -277,7 +274,19 @@ function makeExporter(A) {
     question: function (el) {
       var self = this, num = textOf(el.querySelector(':scope > .pt-num')), body = el.querySelector(':scope > div:not(.pt-num)') || el, IND = 0.4 * TW, h = '';
       var qt = body.querySelector(':scope > .pt-qt'), first = true, before = this.cur.spacing ? 360 : 220;
-      var lead = function (content, o) { var x = self.p((first && num ? self.t(num, { b: true }) + self.tab() : '') + content, Object.assign({ ind: { left: IND, hanging: first && num ? IND : 0 }, before: first ? before : 0, after: 60, keepNext: true }, o || {})); first = false; return x; };
+      // "12." → Word's own numbering (one list per run of numbers; bonus questions and each version start a new one)
+      var m = /^(\d+)\.$/.exec(num), numPr = '';
+      if (m && !el.querySelector('.pt-blank')) {
+        var n = +m[1];
+        if (!this.list || this.list.next !== n) { this.nums.push(n); this.list = { id: this.nums.length }; }
+        this.list.next = n + 1;
+        numPr = '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + this.list.id + '"/></w:numPr>';
+      }
+      var lead = function (content, o) {
+        var x = first && numPr ? self.p(content, Object.assign({ numPr: numPr, before: before, keepNext: true }, o || {}))
+          : self.p((first && num ? self.t(num, { b: true }) + self.tab() : '') + content, Object.assign({ ind: { left: IND, hanging: first && num ? IND : 0 }, before: first ? before : 0, after: 60, keepNext: true }, o || {}));
+        first = false; return x;
+      };
       if (qt) {
         var cur = [];
         // each line (split at <br>) is its own paragraph, so it starts at the question's tab stop
@@ -350,6 +359,7 @@ function makeExporter(A) {
     page: function () { return '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>'; },
     section: function (s, root, last) {
       var lesson = s.doc === 'lesson', W = 7.5 * TW, self = this;
+      this.list = null;
       this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing };
       // tests and quizzes: Name/Date, the title line and teacher/calculator/time go in the first-page header (like her Word template)
       var top = '';
@@ -383,12 +393,14 @@ function makeExporter(A) {
     },
     files: function () {
       var media = this.media, rels = this.rels.concat(media.map(function (m) { return '<Relationship Id="' + m.id + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + m.name + '"/>'; }));
+      if (this.nums.length) rels.push('<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>');
       rels.push('<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>', '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>');
       var head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
       var font = X(appState().settings.font || 'Century Schoolbook');
       var files = [
         { name: '[Content_Types].xml', data: head + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpeg" ContentType="image/jpeg"/>' +
           '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>' +
+          (this.nums.length ? '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>' : '') +
           this.parts.map(function (p) { return '<Override PartName="/' + p.name + '" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.' + p.kind + '+xml"/>'; }).join('') + '</Types>' },
         { name: '_rels/.rels', data: head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
         { name: 'word/_rels/document.xml.rels', data: head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels.join('') + '</Relationships>' },
@@ -398,6 +410,9 @@ function makeExporter(A) {
         { name: 'word/settings.xml', data: head + '<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:defaultTabStop w:val="720"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>' }
       ];
       this.parts.forEach(function (p) { files.push({ name: p.name, data: p.xml }); });
+      // question numbers: "1." bold, number at the margin, text at 0.4 in (wrapped lines too); one w:num per list, restarting at its first number
+      if (this.nums.length) files.push({ name: 'word/numbering.xml', data: head + '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="' + 0.4 * TW + '"/></w:tabs><w:ind w:left="' + 0.4 * TW + '" w:hanging="' + 0.4 * TW + '"/></w:pPr><w:rPr><w:b/></w:rPr></w:lvl></w:abstractNum>' +
+        this.nums.map(function (n, i) { return '<w:num w:numId="' + (i + 1) + '"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="' + n + '"/></w:lvlOverride></w:num>'; }).join('') + '</w:numbering>' });
       media.forEach(function (m) { files.push({ name: 'word/media/' + m.name, data: m.data }); });
       var mediaRels = head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + media.map(function (m) { return '<Relationship Id="' + m.id + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + m.name + '"/>'; }).join('') + '</Relationships>';
       this.parts.forEach(function (p) { if (/r:embed=/.test(p.xml)) files.push({ name: p.name.replace('word/', 'word/_rels/') + '.rels', data: mediaRels }); });
@@ -409,7 +424,7 @@ function makeExporter(A) {
   /* ---------- LaTeX (.zip with the .tex file and its pictures; pdfLaTeX, exam class) ---------- */
   // Unicode symbols that show up in math questions → LaTeX (set up with \newunicodechar in the preamble)
   var UNI = { '∠': '\\angle', '△': '\\triangle', '≅': '\\cong', '∼': '\\sim', '⊥': '\\perp', '∥': '\\parallel', '°': '^{\\circ}', 'π': '\\pi', '√': '\\surd', '≠': '\\neq', '≤': '\\leq', '≥': '\\geq', '±': '\\pm', '×': '\\times', '÷': '\\div', 'θ': '\\theta', '′': '^{\\prime}', '″': '^{\\prime\\prime}',
-    '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta',
+    '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '∘': '\\circ', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta',
     'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\varepsilon', 'λ': '\\lambda', 'μ': '\\mu', 'σ': '\\sigma', 'φ': '\\varphi', 'ω': '\\omega', 'Δ': '\\Delta', 'Σ': '\\Sigma', 'Ω': '\\Omega' };
   var FONT_PKG = { 'Century Schoolbook': '\\usepackage{tgschola}', 'Times New Roman': '\\usepackage{newtxtext}', 'Book Antiqua': '\\usepackage{tgpagella}', 'Georgia': '\\usepackage{tgschola}', 'Cambria': '\\usepackage{tgschola}', 'Garamond': '\\usepackage{ebgaramond}',
     'Arial': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Calibri': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Verdana': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Comic Sans MS': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}',

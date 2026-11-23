@@ -69,7 +69,11 @@ describe('Word (.docx)', () => {
     const spacing = doc.match(/<w:spacing [^>]*>/g);
     assert.ok(spacing.every(x => /w:before="0" w:after="0"/.test(x)), 'no space before or after any paragraph');
     assert.ok(spacing.filter(x => /lineRule="auto"/.test(x)).every(x => /w:line="276"/.test(x)), 'line spacing multiple 1.15');
-    assert.ok((doc.match(/<w:ind [^>]*>/g) || []).every(x => /w:left="\d+"/.test(x) && !/hanging/.test(x)), 'no hanging indents: only the boxes keep an indent');
+    assert.ok((doc.match(/<w:ind [^>]*>/g) || []).every(x => /w:left="\d+"/.test(x) && !/hanging/.test(x)), 'no hanging indents in the paragraphs: the numbering has it');
+    const numbering = z['word/numbering.xml'].toString('utf8');
+    assert.match(numbering, /<w:lvlText w:val="%1\."\/>.*<w:ind w:left="576" w:hanging="576"\/>/, 'question numbers are Word numbering, wrapped lines line up with the text');
+    assert.equal((numbering.match(/<w:startOverride w:val="1"\/>/g) || []).length, 2, 'each version starts again at 1');
+    assert.equal((doc.match(/<w:numPr>/g) || []).length, 10, 'every question (5 per version) is numbered by Word');
     const heads = Object.entries(z).filter(([n]) => /word\/header\d+\.xml/.test(n)).map(([, d]) => d.toString('utf8'));
     assert.equal(heads.filter(h => /Name: /.test(h) && /Unit 3/.test(h)).length, 2, 'Name/Date and the title line are in each version’s first-page header');
     assert.doesNotMatch(doc, /Name: /, 'and not in the body');

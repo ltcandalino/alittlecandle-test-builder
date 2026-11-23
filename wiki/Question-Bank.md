@@ -50,6 +50,8 @@ Use **+ New question** to write one from scratch, or **Save & add another** to e
 
 The editor shows the type, points, unit, section and standard first, then the question box, where the cursor starts at the end of the text, then the answers. Bank, topic, part, subtopic, cluster, your notes, reference, source and exam month/year/question # are under **More details**. It opens by itself when a question has any of them.
 
+The symbol buttons above the question box type math symbols: ∠ △ ≅ ∼ ⊥ ∥ ° π √ ≠ ≤ ≥ ± × ÷ θ ′, the arrow → and the composition symbol ∘ (as in f ∘ g), then marks for segments, lines, rays and arcs, and x² / x₂.
+
 If you press **Esc**, click **Cancel** or click outside the editor after changing something, it asks first: **Keep editing** or **Discard changes**. Nothing you typed is thrown away without asking.
 
 ## Changing many questions at once

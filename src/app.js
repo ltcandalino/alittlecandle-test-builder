@@ -1249,8 +1249,8 @@ function wireToolCards(){
 
 /* ================= editor ================= */
 var ed=null,edIsNew=false,lastNew={};
-var SYMS=['∠','△','≅','∼','⊥','∥','°','π','√','≠','≤','≥','±','×','÷','θ','′'];
-var SYM_NAMES={'∠':'angle','△':'triangle','≅':'congruent','∼':'similar','⊥':'perpendicular','∥':'parallel','°':'degree','π':'pi','√':'square root','≠':'not equal','≤':'less than or equal','≥':'greater than or equal','±':'plus or minus','×':'times','÷':'divided by','θ':'theta','′':'prime'};
+var SYMS=['∠','△','≅','∼','⊥','∥','°','π','√','≠','≤','≥','±','×','÷','θ','′','→','∘'];
+var SYM_NAMES={'∠':'angle','△':'triangle','≅':'congruent','∼':'similar','⊥':'perpendicular','∥':'parallel','°':'degree','π':'pi','√':'square root','≠':'not equal','≤':'less than or equal','≥':'greater than or equal','±':'plus or minus','×':'times','÷':'divided by','θ':'theta','′':'prime','→':'right arrow','∘':'composition (f∘g)'};
 function symbar(){var first=true;function ti(){var t=first?'0':'-1';first=false;return ' tabindex="'+t+'"';}
   return '<div class="symbar" role="toolbar" aria-label="Symbols and math formatting (use the arrow keys)">'+SYMS.map(function(s){return '<button type="button" data-sym="'+s+'"'+ti()+' aria-label="'+(SYM_NAMES[s]||s)+'" title="'+(SYM_NAMES[s]||s)+'">'+s+'</button>';}).join('')+'<span class="sep"></span>'+
   [['m-ov','Segment: select letters first','<span class="m-ov">AB</span>'],['m-line','Line: select letters first','<span class="m-acc m-line">AB</span>'],['m-ray','Ray: select letters first','<span class="m-acc m-ray">AB</span>'],['m-arc','Arc: select letters first','<span class="m-acc m-arc">AB</span>'],['sup','Exponent: select text first','x²'],['sub','Subscript: select text first','x₂']].map(function(w){return '<button type="button" data-wrap="'+w[0]+'" title="'+w[1]+'" aria-label="'+w[1]+'"'+ti()+'>'+w[2]+'</button>';}).join('')+

@@ -8,7 +8,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 - **Word downloads look like your Word exam template.** On tests and quizzes, the first page of each version has its own header (course name, Name and Date, the title line with the unit title, and teacher, calculator and extended time) and its own footer with the version number (v. 1, v. 2). Every paragraph of the test is indent 0" left and right, spacing 0 before and after, line spacing multiple 1.15; space between questions is an empty line you can delete or add to.
+- **Question numbers in Word downloads use Word's numbering**, so the second line of a long question lines up with the question text, not the margin. Each version starts again at 1, and so do bonus questions.
 - **All math in Word downloads is a Word equation** (Equation editor), not just segment and arc marks, fractions and square roots: x² is a real superscript and words like sin or cm stay upright.
+
+### Added
+- Two symbol buttons in the question editor: the right arrow → and the composition symbol ∘ (f ∘ g). Bank folders' `\circ` is now ∘ (`^\circ` stays the degree sign).
 
 ### Fixed
 - Word import ignores tabs at the start of a line, so answer choices that start with a tab come in as choices.

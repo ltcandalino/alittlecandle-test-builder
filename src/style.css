@@ -159,6 +159,7 @@ sup,sub{font-size:.7em;line-height:0}
 .symbar{display:flex;gap:3px;flex-wrap:wrap;margin:0 0 6px}
 .symbar button{padding:2px 8px;font-size:14px;min-width:30px;font-family:"Times New Roman",serif}
 .symbar .sep{width:1px;background:var(--line2);margin:2px 4px}
+.symbar button[data-sym="∘"]{font-size:20px;line-height:1}
 .chrow{display:grid;grid-template-columns:26px 22px 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
 .chrow input[type=radio]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
 .chrow .letter{font-weight:600;color:var(--muted)}

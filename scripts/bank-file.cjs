@@ -22,7 +22,7 @@ function front(text) {
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* ---------- LaTeX (the part bank-folder writes) → the app's math HTML ---------- */
-const SYM = { angle: '∠', cong: '≅', sim: '∼', perp: '⊥', parallel: '∥', pi: 'π', theta: 'θ', triangle: '△', Delta: 'Δ', times: '×', div: '÷', neq: '≠', ne: '≠', le: '≤', leq: '≤', ge: '≥', geq: '≥', pm: '±', approx: '≈', cdot: '·', to: '→', rightarrow: '→', leftarrow: '←', leftrightarrow: '↔', infty: '∞', ell: 'ℓ', therefore: '∴', in: '∈', varnothing: '∅', emptyset: '∅', cap: '∩', cup: '∪', alpha: 'α', beta: 'β', gamma: 'γ', lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', Omega: 'Ω', phi: 'φ', surd: '√', vert: '|', circ: '°', degree: '°', prime: '′', ldots: '…', dots: '…' };
+const SYM = { angle: '∠', cong: '≅', sim: '∼', perp: '⊥', parallel: '∥', pi: 'π', theta: 'θ', triangle: '△', Delta: 'Δ', times: '×', div: '÷', neq: '≠', ne: '≠', le: '≤', leq: '≤', ge: '≥', geq: '≥', pm: '±', approx: '≈', cdot: '·', to: '→', rightarrow: '→', leftarrow: '←', leftrightarrow: '↔', infty: '∞', ell: 'ℓ', therefore: '∴', in: '∈', varnothing: '∅', emptyset: '∅', cap: '∩', cup: '∪', alpha: 'α', beta: 'β', gamma: 'γ', lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', Omega: 'Ω', phi: 'φ', surd: '√', vert: '|', circ: '∘', degree: '°', prime: '′', ldots: '…', dots: '…' };
 const FN = { sin: 1, cos: 1, tan: 1, log: 1, ln: 1 };
 const REL = /^[=<>≤≥≠≈≅∼⊥∥]$/, BIN = /^[+−±×÷]$/;
 function latex(src) {
@@ -56,7 +56,7 @@ function latex(src) {
         continue;
       }
       i++;
-      if (c === '^' || c === '_') { const g = group(), tag = c === '^' ? 'sup' : 'sub'; put(g === '°' ? '°' : g === '′' ? '′' : '<' + tag + '>' + g + '</' + tag + '>'); }
+      if (c === '^' || c === '_') { const g = group(), tag = c === '^' ? 'sup' : 'sub'; put(g === '°' || g === '∘' ? '°' : g === '′' ? '′' : '<' + tag + '>' + g + '</' + tag + '>'); }
       else if (c === '{') { put(seq('}')); i++; }
       else if (c === ' ') { /* LaTeX ignores plain spaces */ }
       else if (c === "'") put('′');
