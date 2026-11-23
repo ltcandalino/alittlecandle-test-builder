@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-11-22
+
 ### Fixed
 - A tall first question (long text and a big picture, like an AP free-response question) no longer leaves page 1 blank: questions whose text, pictures and answer space together are taller than about 7 inches may now continue onto the next page.
 
