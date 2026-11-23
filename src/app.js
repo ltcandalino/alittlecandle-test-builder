@@ -178,8 +178,8 @@ function normalize(s){
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
     if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
-    // older imports showed ExamView's script ℓ (line ℓ, p=2ℓ+2w) as ª
-    if(typeof q.html==='string'&&q.html.indexOf('ª')>=0)q.html=q.html.replace(/ª/g,'ℓ');if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return typeof c==='string'?c.replace(/ª/g,'ℓ'):c;});
+    // older imports showed ExamView's script ℓ (line ℓ, p=2ℓ+2w) as ª and the composition sign (f∘g) as ž
+    if(typeof q.html==='string'&&/[ªž]/.test(q.html))q.html=q.html.replace(/ª/g,'ℓ').replace(/ž/g,'∘');if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return typeof c==='string'?c.replace(/ª/g,'ℓ').replace(/ž/g,'∘'):c;});
     // older imports showed ExamView's parallel sign as € between two segments: AB€CD → AB∥CD
     var par=/(<span class="m-ov">[^<]*<\/span>)€(?=<span class="m-ov">)/g;if(typeof q.html==='string'&&q.html.indexOf('€')>=0)q.html=q.html.replace(par,'$1∥');if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return typeof c==='string'&&c.indexOf('€')>=0?c.replace(par,'$1∥'):c;});
     if(!q.id)q.id=uid();q.points=num(q.points,1);q.bank=q.bank||'My questions';q.topic=q.topic||'';q.standard=q.standard||'';q.unit=q.unit||'';q.section=q.section||'';q.source=q.source||'';q.part=q.part||'';q.notes=q.notes||'';q.nyStd=q.nyStd||'';if(q.visibility!=='public')delete q.visibility;if(!q.owner){delete q.owner;delete q.ownerName;}if(q.extra!==undefined&&(!q.extra||typeof q.extra!=='object'||Array.isArray(q.extra)||!Object.keys(q.extra).length))delete q.extra;q.html=q.html||textToHtml(q.text||'');fillMeta(q);
@@ -1865,11 +1865,18 @@ function repairTables(out,name,course){
   var pairs=out.questions.map(function(n){return [n,by[tblKey(n)]];}).filter(function(p){return p[1];});
   if(pairs.length<out.questions.length*0.8)return '';
   var undo=[];
-  pairs.forEach(function(p){var n=p[0],o=p[1];if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
+  var subs=0,same=function(a,b){return plain(a||'').replace(/\s+/g,'')===plain(b||'').replace(/\s+/g,'');};
+  pairs.forEach(function(p){var n=p[0],o=p[1];
+    // subscripts older versions ran into the text (log2x → log₂x): only when the words are unchanged, so her edits stay
+    var nc=n.choices||[],oc=o.choices||[];
+    if(!/q-grid/.test(n.html)&&/<sub>/.test(n.html+nc.join(''))&&!/<sub>/.test(o.html+oc.join(''))&&same(n.html,o.html)&&nc.length===oc.length&&nc.every(function(c,i){return same(c,oc[i]);})){
+      undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);o.html=n.html;if(n.choices)o.choices=n.choices.slice();subs++;return;}
+    if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
     undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
     o.html=n.html;o.type=n.type;o.answer=n.answer;if(n.choices)o.choices=n.choices;else delete o.choices;});
-  if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' with a table in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
-  return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+plural(undo.length,'question')+' with a table: the table and anything after it were missing before. Your other changes are kept.':'Its questions are all up to date.');
+  var tbls=undo.length-subs,what=[tbls?plural(tbls,'question')+' with a table: the table and anything after it were missing before':'',subs?plural(subs,'question')+' with subscripts (log₂x, aₙ, ₇C₅) that ran into the text before':''].filter(Boolean).join('; ');
+  if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
+  return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+what+'. Your other changes are kept.':'Its questions are all up to date.');
 }
 function importBnks(files){
   var res=$('#bnkRes');res.className='result';res.textContent='Reading '+files.length+' file'+(files.length>1?'s':'')+'…';

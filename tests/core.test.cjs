@@ -46,6 +46,10 @@ describe('ExamView parallel sign', () => {
     const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'l', type: 'es', html: 'Line <span class="m">ª</span> and <span class="m">p<span class="m-op">=</span>2ª</span>' }] }).questions[0]);
     assert.equal(q.html, 'Line <span class="m">ℓ</span> and <span class="m">p<span class="m-op">=</span>2ℓ</span>');
   });
+  test('questions saved with ž show the composition sign ∘', async () => {
+    const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'c', type: 'mc', html: 'Find <span class="m">(fžg)(2)</span>.', choices: ['<span class="m">fžg</span>', 'b'], answer: 0 }] }).questions[0]);
+    assert.equal(q.html, 'Find <span class="m">(f∘g)(2)</span>.'); assert.equal(q.choices[0], '<span class="m">f∘g</span>');
+  });
 });
 
 describe('standards', () => {

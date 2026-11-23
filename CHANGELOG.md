@@ -15,6 +15,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Two symbol buttons in the question editor: the right arrow → and the composition symbol ∘ (f ∘ g). Bank folders' `\circ` is now ∘ (`^\circ` stays the degree sign).
 
 ### Fixed
+- ExamView banks: the composition sign ∘ (f ∘ g, r with y-axis ∘ T) came in as ž; questions you already have are fixed when the app opens.
+- ExamView banks: subscripts (log₂x, aₙ, ₇C₅, r with x-axis under it, T₇,₅) came in as plain text, about 1,800 of them in the old and new banks. Import a bank you already have again to fix them: only questions whose words you haven't changed are updated, and nothing is copied.
 - Word import ignores tabs at the start of a line, so answer choices that start with a tab come in as choices.
 
 ## [0.23.1] - 2026-11-22

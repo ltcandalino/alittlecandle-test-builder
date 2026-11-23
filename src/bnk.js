@@ -48,7 +48,7 @@ var BNK=(function(){
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
-        else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €) and 0xaa the script ℓ (not ª)
+        else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':t===0x9e?'∘':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €), 0xaa the script ℓ (not ª), 0x9e the composition ∘ (not ž)
       }
       return out;
     }
@@ -76,7 +76,7 @@ var BNK=(function(){
         else if(k==='0,30')h+='<span class="m-acc m-arc">'+s[0]+'</span>';
         else if(k==='1,5')h+='<span class="m-sqrt"><span class="m-rad-sign">√</span><span class="m-rad">'+s[0]+'</span></span>';
         else if(k==='2,0')h+='<sup>'+s[0]+'</sup>';
-        else if(k==='3,0')h+='<sub>'+s[0]+'</sub>';
+        else if(k==='3,0'||k==='2,1')h+='<sub>'+s[0].replace(/<span class="m-op">−<\/span>(?=axis)/g,'-')+'</sub>'; // 2,1: subscripts (log₂, aₙ, ₇C₅, r with x-axis, T₇,₅)
         else if(k==='0,0')h+='('+s[0]+')';
         else if(x.n===2&&k==='1,0')h+='<span class="m-frac"><span class="m-num">'+s[0]+'</span><span class="m-den">'+s[1]+'</span></span>';
         else h+=s.join(' ');
