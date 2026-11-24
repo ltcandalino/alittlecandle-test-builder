@@ -177,7 +177,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
 
   // 4. Markdown with LaTeX
   const md = await page.evaluate(qs => {
-    const CH = { '∠': '\\angle ', '°': '^{\\circ}', 'º': '^{\\circ}', '−': '-', '≅': '\\cong ', '∼': '\\sim ', '⊥': '\\perp ', '∥': '\\parallel ', 'π': '\\pi ', 'θ': '\\theta ', '△': '\\triangle ', 'Δ': '\\Delta ', '×': '\\times ', '÷': '\\div ', '≠': '\\neq ', '≤': '\\le ', '≥': '\\ge ', '±': '\\pm ', '≈': '\\approx ', '·': '\\cdot ', '→': '\\to ', '←': '\\leftarrow ', '↔': '\\leftrightarrow ', '∞': '\\infty ', 'ℓ': '\\ell ', '∴': '\\therefore ', '∈': '\\in ', '∅': '\\varnothing ', '∩': '\\cap ', '∪': '\\cup ', 'α': '\\alpha ', 'β': '\\beta ', 'γ': '\\gamma ', 'λ': '\\lambda ', 'μ': '\\mu ', 'σ': '\\sigma ', 'ω': '\\omega ', 'Ω': '\\Omega ', 'φ': '\\phi ', '′': "'", '″': "''", '√': '\\surd ', '\u2009': '\\, ', '\u00a0': '\\ ', ' ': '\\ ', '%': '\\%', '{': '\\{', '}': '\\}', '$': '\\$', '#': '\\#', '&': '\\&', '_': '\\_', '|': '\\vert ' };
+    const CH = { '∠': '\\angle ', '°': '^{\\circ}', 'º': '^{\\circ}', '−': '-', '≅': '\\cong ', '∼': '\\sim ', '~': '\\sim ', '∘': '\\circ ', '⊥': '\\perp ', '∥': '\\parallel ', 'π': '\\pi ', 'θ': '\\theta ', '△': '\\triangle ', 'Δ': '\\Delta ', '×': '\\times ', '÷': '\\div ', '≠': '\\neq ', '≤': '\\le ', '≥': '\\ge ', '±': '\\pm ', '≈': '\\approx ', '·': '\\cdot ', '→': '\\to ', '←': '\\leftarrow ', '↔': '\\leftrightarrow ', '∞': '\\infty ', 'ℓ': '\\ell ', '∴': '\\therefore ', '∈': '\\in ', '∅': '\\varnothing ', '∩': '\\cap ', '∪': '\\cup ', 'α': '\\alpha ', 'β': '\\beta ', 'γ': '\\gamma ', 'λ': '\\lambda ', 'μ': '\\mu ', 'σ': '\\sigma ', 'ω': '\\omega ', 'Ω': '\\Omega ', 'φ': '\\phi ', '′': "'", '″': "''", '√': '\\surd ', '\u2009': '\\, ', '\u00a0': '\\ ', ' ': '\\ ', '%': '\\%', '{': '\\{', '}': '\\}', '$': '\\$', '#': '\\#', '&': '\\&', '_': '\\_', '|': '\\vert ' };
     const unknown = {};
     function tex(n) {
       if (n.nodeType === 3) {
@@ -203,7 +203,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       if (c.contains('m-frac')) return '\\dfrac{' + tex(n.querySelector('.m-num')) + '}{' + tex(n.querySelector('.m-den')) + '}';
       return inner();
     }
-    const mathOf = n => '$' + tex(n).replace(/\^\{([^{}]*)\}\^\{/g, '^{$1').replace(/(\\, *)+(?=['′}^_])/g, '').replace(/\s+/g, ' ').replace(/(\\ )+$/, '').trim() + '$';
+    const mathOf = n => { const t = tex(n).replace(/\^\{([^{}]*)\}\^\{/g, '^{$1').replace(/(\\, *)+(?=['′}^_])/g, '').replace(/\s+/g, ' ').replace(/(\\ )+$/, '').trim(); return t ? '$' + t + '$' : ''; }; // empty equations vanish
     const textOf = d => d.replace(/º/g, '°').replace(/([\\$*_|])/g, '\\$1').replace(/(^|[\s(“"])([b-z])(?=$|[\s,;:?!)”"-]|\.(?!\w))/g, (all, pre, v, at, str) => /\d\s$/.test(str.slice(Math.max(0, at - 2), at + pre.length)) ? all : pre + '$' + v + '$').replace(/(\d+(?:\.\d+)?)?π/g, (_, k) => '$' + (k || '') + '\\pi$');
     function mdOf(html, img) {
       const d = document.createElement('div'); d.innerHTML = html; let s = '';
@@ -233,7 +233,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       const stem = mdOf(q.html, pic), choices = (q.choices || []).map(c => mdOf(c, pic).replace(/\n\n/g, ' ').trim());
       // a written answer with math, pictures or tables (ExamView worked answers) becomes an "## Answer" section
       const apics = [], apic = n => { apics.push({ src: n.getAttribute('src'), w: (/width:([\d.]+)in/.exec(n.getAttribute('style') || '') || [])[1] }); return '@@APIC' + (apics.length - 1) + '@@'; };
-      const rich = typeof q.answer === 'string' && /<|&[a-z]+;/i.test(q.answer), answer = rich ? mdOf(q.answer, apic).replace(/\$\s*\$/g, '').trim() : null;
+      const rich = typeof q.answer === 'string' && /<|&[a-z]+;/i.test(q.answer), answer = rich ? mdOf(q.answer, apic).trim() : null;
       return { stem, choices, pics, answer, apics, rich };
     });
     return { out, unknown: Object.keys(unknown) };
