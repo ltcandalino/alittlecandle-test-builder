@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-23
+
 ### Changed
 - **Coordinates and lists are written with a space after the comma**: (2, −1), {1, 2, 3}, [60, 90]. Big numbers like 25,000 keep their comma. Questions you already have change when the app opens; imports and the editor do it too.
 - **Word downloads look like your Word exam template.** On tests and quizzes, the first page of each version has its own header (course name, Name and Date, the title line with the unit title, and teacher, calculator and extended time) and its own footer with the version number (v. 1, v. 2). Every paragraph of the test is indent 0" left and right, spacing 0 before and after, line spacing multiple 1.15; space between questions is an empty line you can delete or add to.
