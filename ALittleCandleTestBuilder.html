@@ -785,7 +785,7 @@ var BNK=(function(){
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
-        else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':t===0x9e?'∘':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €), 0xaa the script ℓ (not ª), 0x9e the composition ∘ (not ž)
+        else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':t===0x9e?'∘':t===0x9c?'±':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €), 0xaa the script ℓ (not ª), 0x9e the composition ∘ (not ž), 0x9c ± (not œ: 750 ± 2(20))
       }
       return out;
     }

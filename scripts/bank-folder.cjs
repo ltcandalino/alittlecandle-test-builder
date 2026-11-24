@@ -181,10 +181,11 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     const unknown = {};
     function tex(n) {
       if (n.nodeType === 3) {
-        let s = ''; const t = n.data.replace(/(^|[^A-Za-z])m(?=∠)/g, '$1\u0001');
+        let s = ''; const t = n.data.replace(/(^|[^A-Za-z])m(?=∠)/g, '$1\u0001').replace(/([A-Za-z])\u0302/g, '\u0002$1');
         t.split(/([a-z]{3,})/).forEach((part, i) => { // words inside math (like "units") stay upright
           if (i % 2) { s += /^(sin|cos|tan|log|ln)$/.test(part) ? '\\' + part + (part === 'log' && /^\d/.test(t.split(/([a-z]{3,})/)[i + 1] || '') ? '_' : ' ') : '\\text{' + part + '}'; return; } // log3(x): the 3 is the base
-          for (const c of part) { if (c === '\u0001') s += '\\mathrm{m}'; else if (CH[c] !== undefined) s += CH[c]; else if (c.charCodeAt(0) > 126) { unknown[c] = 1; s += c; } else s += c; }
+          let hat = false;
+          for (const c of part) { if (c === '\u0002') { hat = true; continue; } if (hat) { s += '\\hat{' + c + '}'; hat = false; continue; } if (c === '\u0001') s += '\\mathrm{m}'; else if (CH[c] !== undefined) s += CH[c]; else if (c.charCodeAt(0) > 126) { unknown[c] = 1; s += c; } else s += c; }
         });
         return s;
       }
@@ -230,7 +231,10 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     const out = qs.map(q => {
       const pics = []; const pic = n => { pics.push({ src: n.getAttribute('src'), w: (/width:([\d.]+)in/.exec(n.getAttribute('style') || '') || [])[1] }); return '@@PIC' + (pics.length - 1) + '@@'; };
       const stem = mdOf(q.html, pic), choices = (q.choices || []).map(c => mdOf(c, pic).replace(/\n\n/g, ' ').trim());
-      return { stem, choices, pics };
+      // a written answer with math, pictures or tables (ExamView worked answers) becomes an "## Answer" section
+      const apics = [], apic = n => { apics.push({ src: n.getAttribute('src'), w: (/width:([\d.]+)in/.exec(n.getAttribute('style') || '') || [])[1] }); return '@@APIC' + (apics.length - 1) + '@@'; };
+      const rich = typeof q.answer === 'string' && /<|&[a-z]+;/i.test(q.answer), answer = rich ? mdOf(q.answer, apic).replace(/\$\s*\$/g, '').trim() : null;
+      return { stem, choices, pics, answer, apics, rich };
     });
     return { out, unknown: Object.keys(unknown) };
   }, bank.qs);
@@ -263,10 +267,15 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     fields.forEach(k => { const v = q[k]; if (v !== '' && v != null && !(k === 'answer' && !(q.type === 'mc' || q.type === 'bm'))) meta[k] = k === 'answer' ? (v >= 0 ? v + 1 : '') : v; });
     meta.type = { mc: 'multiple choice', bm: 'bimodal', tf: 'true/false', sa: 'short answer', es: 'open response' }[q.type] || q.type;
     if (q.type === 'tf') meta.answer = q.answer === 'T' ? 'true' : q.answer === 'F' ? 'false' : '';
-    else if (!(q.type === 'mc' || q.type === 'bm') && q.answer) meta['answer notes'] = q.answer;
+    else if (!(q.type === 'mc' || q.type === 'bm') && q.answer && !m.rich) meta['answer notes'] = q.answer;
     const lines = Object.entries(meta).filter(([k]) => !(k in kept)).map(([k, v]) => k + ': ' + yq(v)).concat(Object.entries(kept).map(([k, v]) => k + ': ' + v));
     let txt = '---\n' + lines.join('\n') + '\n---\n\n' + place(m.stem) + '\n';
     if (m.choices.length) txt += '\n' + m.choices.map((ch, k) => (k + 1) + '. ' + place(ch)).join('\n') + '\n';
+    if (m.answer && /[A-Za-z0-9@]/.test(m.answer)) txt += '\n## Answer\n\n' + m.answer.replace(/@@APIC(\d+)@@/g, (_, k) => {
+      const p = m.apics[+k], ext = (/^data:image\/(\w+)/.exec(p.src) || [, 'png'])[1].replace('jpeg', 'jpg'), file = name + '-answer' + (+k ? '-' + (+k + 1) : '') + '.' + ext;
+      if (p.src.startsWith('data:')) fs.writeFileSync(path.join(OUT, 'images', 'examview', file), Buffer.from(p.src.split(',')[1], 'base64'));
+      return '![picture](../images/examview/' + file + '){width=' + (p.w || '2') + 'in}';
+    }) + '\n';
     fs.writeFileSync(path.join(OUT, 'questions', name + '.md'), txt);
   });
   fs.readdirSync(path.join(OUT, 'questions')).filter(f => f.endsWith('.md') && !used[f.slice(0, -3)]).forEach(f => fs.unlinkSync(path.join(OUT, 'questions', f)));

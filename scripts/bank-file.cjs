@@ -43,6 +43,7 @@ function latex(src) {
         if (n === ',') put(' '); else if (n === ' ') put(' '); else if (n === '\\') put('<br>');
         else if ('%{}$#&_'.includes(n)) put(esc(n));
         else if (n === 'overline') put('<span class="m-ov">' + group() + '</span>');
+        else if (n === 'hat') put(group() + '\u0302'); // p̂
         else if (n === 'overleftrightarrow') put('<span class="m-acc m-line">' + group() + '</span>');
         else if (n === 'overrightarrow') put('<span class="m-acc m-ray">' + group() + '</span>');
         else if (n === 'overset') { group(); put('<span class="m-acc m-arc">' + group() + '</span>'); } // \overset{\frown}{AB}
@@ -106,7 +107,9 @@ const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.ends
   const { meta, body } = front(fs.readFileSync(path.join(DIR, 'questions', f), 'utf8'));
   const pic = (file, w) => { const full = path.resolve(path.join(DIR, 'questions'), file); if (!fs.existsSync(full)) return '<span class="q-missing">[picture]</span>';
     pics++; const ext = path.extname(full).slice(1).toLowerCase().replace('jpg', 'jpeg'); return '<img class="q-img" src="data:image/' + ext + ';base64,' + fs.readFileSync(full).toString('base64') + '" style="width:' + w + 'in" alt="">'; };
-  const lines = body.trim().split('\n'), ch = []; while (lines.length && /^\d+\. /.test(lines[lines.length - 1])) ch.unshift(lines.pop().replace(/^\d+\. /, ''));
+  // "## Answer" at the end: the written answer (math, pictures, tables), like the question itself
+  const parts = body.split(/\n## Answer\n/), ansMd = parts[1] ? parts[1].trim() : '';
+  const lines = parts[0].trim().split('\n'), ch = []; while (lines.length && /^\d+\. /.test(lines[lines.length - 1])) ch.unshift(lines.pop().replace(/^\d+\. /, ''));
   const type = TYPE[meta.type] || meta.type || 'es', q = { id: meta.id, type, html: blocks(lines.join('\n'), pic), bank: bankName, courses: courses.slice() };
   if (ch.length) q.choices = ch.map(c => inline(c, pic));
   ['ref', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'answerArea'].forEach(k => { if (meta[k] != null && meta[k] !== '') q[k] = String(meta[k]); });
@@ -115,7 +118,7 @@ const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.ends
   Object.keys(meta).filter(k => !BUILT_IN.has(k) && meta[k] !== '').forEach(k => { const id = 'f_' + k.toLowerCase().replace(/[^a-z0-9]+/g, '_'); if (!FIELDS.has(id)) FIELDS.set(id, k); (q.extra = q.extra || {})[id] = String(meta[k]); });
   if (type === 'mc' || type === 'bm') q.answer = meta.answer ? +meta.answer - 1 : -1;
   else if (type === 'tf') q.answer = meta.answer === 'true' ? 'T' : meta.answer === 'false' ? 'F' : '';
-  else q.answer = meta['answer notes'] || '';
+  else q.answer = ansMd ? blocks(ansMd, pic) : meta['answer notes'] || '';
   (q.html + (q.choices || []).join('')).replace(/\\[A-Za-z]+/g, m => { unknown.add(m); return m; });
   return q;
 });
