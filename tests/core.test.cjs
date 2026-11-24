@@ -46,6 +46,20 @@ describe('ExamView parallel sign', () => {
     const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'l', type: 'es', html: 'Line <span class="m">ª</span> and <span class="m">p<span class="m-op">=</span>2ª</span>' }] }).questions[0]);
     assert.equal(q.html, 'Line <span class="m">ℓ</span> and <span class="m">p<span class="m-op">=</span>2ℓ</span>');
   });
+  test('coordinates get a space after the comma; thousands do not', async () => {
+    const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'k', type: 'mc', html: 'Point <span class="m">A(−6,−3)</span> and V(t)=96,949(1.04), (0,200), [60,90], {1,2,3}, <img src="data:image/png;base64,a,b">', choices: ['<span class="m">(2,−1)</span>', '1,539,233'], answer: 0 }] }).questions[0]);
+    assert.equal(q.html, 'Point <span class="m">A(−6, −3)</span> and V(t)=96,949(1.04), (0, 200), [60, 90], {1, 2, 3}, <img src="data:image/png;base64,a,b">');
+    assert.deepEqual(q.choices, ['<span class="m">(2, −1)</span>', '1,539,233']);
+  });
+  test('written answers with pictures and math are shown cleaned; plain answers stay text', async () => {
+    const r = await page.evaluate(() => { const T = window.__tb.fn;
+      const qs = [{ id: 'a', type: 'es', html: 'Q', answer: 'Mean: <img src="data:image/png;base64,AA" onerror="window.bad=1"><br><span class="m">p̂<sub>1</sub></span>', points: 2 },
+        { id: 'b', type: 'es', html: 'Q2', answer: 'x < 3 & y', points: 2 }];
+      window.__tb.state.questions.push(...qs); const items = T.labelItems(qs.map(q => ({ q })));
+      return { key: T.keyHtml(items, 0), bad: !!window.bad }; });
+    assert.match(r.key, /Mean: <img src="data:image\/png;base64,AA"[^>]*>/); assert.doesNotMatch(r.key, /onerror/); assert.equal(r.bad, false);
+    assert.match(r.key, /p̂<sub>1<\/sub>/); assert.match(r.key, /x &lt; 3 &amp; y/);
+  });
   test('questions saved with ž show the composition sign ∘', async () => {
     const q = await page.evaluate(() => window.__tb.normalize({ questions: [{ id: 'c', type: 'mc', html: 'Find <span class="m">(fžg)(2)</span>.', choices: ['<span class="m">fžg</span>', 'b'], answer: 0 }] }).questions[0]);
     assert.equal(q.html, 'Find <span class="m">(f∘g)(2)</span>.'); assert.equal(q.choices[0], '<span class="m">f∘g</span>');

@@ -45,6 +45,10 @@ var BNK=(function(){
         if(t===0x0b){i++;out.push({t:'E',v:i32()});continue;}
         if(t===6){i++;out.push({t:'c',c:' '});continue;}
         if(t===13){i++;out.push({t:'br'});continue;} // next line (systems of equations, stacked lines)
+        if(t===3&&(u[i+1]===0x17||u[i+1]===0x18)){ // a mark on the character before: 0x17 bar (x̄), 0x18 hat (p̂)
+          var last=out[out.length-1];
+          if(last&&last.t==='c'){if(u[i+1]===0x17)out[out.length-1]={t:'T',n:1,lo:5,hi:0,slots:[[last]]};else last.c+='\u0302';}
+          i+=2;continue;}
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
@@ -208,39 +212,46 @@ var BNK=(function(){
         var points=R.i32(fi+4);
         var strs=[],o=fi+16,sEnd=Math.min(fi+16+LL,E,d.length);
         while(o<sEnd-1){var r=R.u16str(o);if(r.o<=o)break;o=r.o;if(r.s&&/[A-Za-z0-9]/.test(r.s))strs.push(r.s);}
-        var S=sEnd,T=R.i32(S);
-        var text=null,tend=0;
-        for(var q=S+4;q<S+400;q+=4){
-          var a=R.i32(q),b=R.i32(q+4),c=R.i32(q+8);
-          if(b===1&&c===0&&a>=0&&a<300){
-            var t0=q+12,c0=d[t0],c1=d[t0+1];
-            if((c0||c1)&&c1<0x30){var rr=R.u16str(t0);text=rr.s;tend=rr.o;break;}
-          }
-        }
-        if(text===null)throw new Error('no text');
-        var cps=[];for(var ci=0;ci<text.length;ci++)if(text.charCodeAt(ci)===0x0f)cps.push(ci);
-        var objHtml=[],imgs=0,eqs=0;
-        if(cps.length){
-          var pat=int3(cps[0],0,0),tp=tend,found=-1;
-          while((tp=find(d,pat,tp,S+T+8))>=0){
-            // a real table's entries point at objects inside the file (text can look like a table entry too)
-            var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<0||S+eo+8>d.length||S+eo+4+R.i32(S+eo)>d.length)ok=false;}
-            if(ok){found=tp;break;}tp++;
-          }
-          if(found<0)throw new Error('no object table');
-          for(var oj=0;oj<cps.length;oj++){
-            var e=found+72*oj,ow=R.i32(e+12),oh=R.i32(e+16),off=R.i32(e+68);
-            var L=R.i32(S+off),ds=S+off+4,de=ds+L;
-            if(R.i32(ds)===1&&R.i32(ds+12)===40){
-              var png=dibToPng(d,ds+12,de);imgs++;
-              objHtml.push(png?'<img class="q-img" src="'+png.dataUrl+'" style="width:'+(ow/1440).toFixed(3)+'in" alt="">':'<span class="q-missing">[picture]</span>');
-            }else{
-              var pe=parseEq(d,ds,de);eqs++;
-              if(pe.warn.length)warnings.push((strs[0]||('#'+(k+1)))+': '+pe.warn.join(','));
-              objHtml.push('<span class="m">'+eqHtml(pe.tree)+'</span>');
+        // a text block: its length, the text (\x0f marks objects), then a table of the objects (pictures, equations).
+        // The question is the first block; for open-response questions the answer is a second block right after it.
+        var block=function(S){
+          var T=R.i32(S),text=null,tend=0;
+          for(var q=S+4;q<S+400&&q+12<E;q+=4){
+            var a=R.i32(q),b=R.i32(q+4),c=R.i32(q+8);
+            if(b===1&&c===0&&a>=0&&a<300){
+              var t0=q+12,c0=d[t0],c1=d[t0+1];
+              if((c0||c1)&&c1<0x30){var rr=R.u16str(t0);text=rr.s;tend=rr.o;break;}
             }
           }
-        }
+          if(text===null)return null;
+          var cps=[];for(var ci=0;ci<text.length;ci++)if(text.charCodeAt(ci)===0x0f)cps.push(ci);
+          var objHtml=[];
+          if(cps.length){
+            var pat=int3(cps[0],0,0),tp=tend,found=-1;
+            while((tp=find(d,pat,tp,S+T+8))>=0){
+              // a real table's entries point at objects inside the file (text can look like a table entry too)
+              var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<0||S+eo+8>d.length||S+eo+4+R.i32(S+eo)>d.length)ok=false;}
+              if(ok){found=tp;break;}tp++;
+            }
+            if(found<0)throw new Error('no object table');
+            for(var oj=0;oj<cps.length;oj++){
+              var e=found+72*oj,ow=R.i32(e+12),off=R.i32(e+68);
+              var L=R.i32(S+off),ds=S+off+4,de=ds+L;
+              if(R.i32(ds)===1&&R.i32(ds+12)===40){
+                var png=dibToPng(d,ds+12,de);
+                objHtml.push(png?'<img class="q-img" src="'+png.dataUrl+'" style="width:'+(ow/1440).toFixed(3)+'in" alt="">':'<span class="q-missing">[picture]</span>');
+              }else{
+                var pe=parseEq(d,ds,de);
+                if(pe.warn.length)warnings.push((strs[0]||('#'+(k+1)))+': '+pe.warn.join(','));
+                objHtml.push('<span class="m">'+eqHtml(pe.tree)+'</span>');
+              }
+            }
+          }
+          return {text:text,objHtml:objHtml,end:S+T};
+        };
+        var S=sEnd,B=block(S);
+        if(!B)throw new Error('no text');
+        var text=B.text,objHtml=B.objHtml;
         // split stem / choices
         var ch0=-1;for(var c0i=text.indexOf('\x10');c0i>=0;c0i=text.indexOf('\x10',c0i+1))if(/^\s*\(?[a-hA-H1-8][).]\x11/.test(text.slice(c0i+1,c0i+8))){ch0=c0i;break;} // a \x10 that isn't followed by a) starts a table
         var stem=ch0>=0?text.slice(0,ch0):text,rest=ch0>=0?text.slice(ch0+1):'';
@@ -260,13 +271,15 @@ var BNK=(function(){
         // classify fields
         var fd=classify(strs),ref=fd.ref,std=fd.std,topic=fd.topic,sub=fd.sub,labelPts=fd.points;
         var isMC=choices.length>=2;
+        var ansHtml='';
+        if(!isMC){try{var AB=B.end+8<E?block(B.end):null;if(AB&&/\S/.test(AB.text))ansHtml=textHtml(AB.text,AB.objHtml,0).html;}catch(e){}} // the written answer (rubric, worked solution)
         var tf=isMC&&choices.length===2&&/^true$/i.test(choices[0].replace(/<[^>]+>/g,'').trim())&&/^false$/i.test(choices[1].replace(/<[^>]+>/g,'').trim());
         var ans=hh[3];
         var qObj={
           type:tf?'tf':isMC?'mc':'es',
           html:st.html,
           choices:isMC&&!tf?choices:undefined,
-          answer:tf?(ans===0?'T':ans===1?'F':''):isMC?((ans>=0&&ans<choices.length)?ans:-1):'',
+          answer:tf?(ans===0?'T':ans===1?'F':''):isMC?((ans>=0&&ans<choices.length)?ans:-1):ansHtml,
           points:points>0?points:(labelPts||1),
           bank:title,ref:ref,standard:std.join(', '),topic:topic,subtopic:sub.join('; '),
           space:isMC?undefined:Math.max(1.5,Math.min(9,Math.round((hh[3]/1440)*4)/4||3)),

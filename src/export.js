@@ -158,8 +158,10 @@ function makeExporter(A) {
     },
     // math runs -> OMML: letters italic (Word's own style), words upright, x<sup>2</sup> -> a real superscript on its base
     omRuns: function (rs) {
-      var self = this, out = [], OP = /^[=+\u2212\-<>\u2264\u2265\u2260\u2245\u223c\u2248\u00d7\u00f7\u00b7\u00b1,]$/;
-      var mr = function (t) { return '<m:r>' + (/^[A-Za-z]{2,}$/.test(t) ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : '') + '<m:t xml:space="preserve">' + X(t) + '</m:t></m:r>'; };
+      var self = this, out = [], OP = /^[=+\u2212\-<>\u2264\u2265\u2260\u2245\u223c\u2248\u00d7\u00f7\u00b7\u00b1]$/;
+      var mr = function (t) {
+        if (/^[A-Za-z]\u0302$/.test(t)) return '<m:acc><m:accPr><m:chr m:val="\u0302"/></m:accPr><m:e><m:r><m:t>' + t[0] + '</m:t></m:r></m:e></m:acc>'; // p̂
+        return '<m:r>' + (/^[A-Za-z]{2,}$/.test(t) ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : '') + '<m:t xml:space="preserve">' + X(t) + '</m:t></m:r>'; };
       (rs || []).forEach(function (x) {
         if (x.math) { out.push({ x: self.omml(x) }); return; }
         if (!x.text) return;
@@ -168,7 +170,7 @@ function makeExporter(A) {
           out.push({ x: '<m:' + (x.sup ? 'sSup' : 'sSub') + '><m:e>' + base + '</m:e><m:' + (x.sup ? 'sup' : 'sub') + '>' + mr(x.text.trim()) + '</m:' + (x.sup ? 'sup' : 'sub') + '></m:' + (x.sup ? 'sSup' : 'sSub') + '>' });
           return;
         }
-        (x.text.match(/[A-Za-z]{2,}|[A-Za-z]|\d+(?:\.\d+)?|\s+|[\s\S]/g) || []).forEach(function (t) { out.push({ t: t, x: mr(t) }); });
+        (x.text.match(/[A-Za-z]\u0302|[A-Za-z]{2,}|[A-Za-z]|\d+(?:\.\d+)?|\s+|[\s\S]/g) || []).forEach(function (t) { out.push({ t: t, x: mr(t) }); });
       });
       // spaces next to operators or at the ends are Word's job; spaces between words stay
       return out.filter(function (o, i) { return !/^\s+$/.test(o.t || '') || (i > 0 && i < out.length - 1 && !OP.test(out[i - 1].t || '') && !OP.test(out[i + 1].t || '') && out[i - 1].t && out[i + 1].t); }).map(function (o) { return o.x; }).join('');
@@ -474,10 +476,10 @@ function makeExporter(A) {
         return t;
       }).join('');
     },
-    uniText: function (s) { var self = this; return texEsc(s).replace(/[^\x00-\x7f\u00a0-\u00ff\u2013\u2014\u2018\u2019\u201c\u201d\u2026]/g, function (c) { if (UNI[c]) { self.used[c] = 1; return c; } return '?'; }); },
+    uniText: function (s) { var self = this; return texEsc(s).replace(/([A-Za-z])\u0302/g, '\\ensuremath{\\hat{$1}}').replace(/[^\x00-\x7f\u00a0-\u00ff\u2013\u2014\u2018\u2019\u201c\u201d\u2026]/g, function (c) { if (UNI[c]) { self.used[c] = 1; return c; } return '?'; }); },
     math: function (r) {
       var self = this;
-      var e = function (rs) { return (rs || []).map(function (x) { if (x.math) return self.math(x); if (!x.text) return ''; var t = texMathText(x.text).replace(/[^\x00-\x7f]/g, function (c) { return UNI[c] ? '{' + UNI[c] + '}' : '?'; }); return x.sup ? '^{' + t + '}' : x.sub ? '_{' + t + '}' : '\\mathrm{' + t + '}'; }).join(''); };
+      var e = function (rs) { return (rs || []).map(function (x) { if (x.math) return self.math(x); if (!x.text) return ''; var t = texMathText(x.text).replace(/([A-Za-z])\u0302/g, '\\hat{$1}').replace(/[^\x00-\x7f]/g, function (c) { return UNI[c] ? '{' + UNI[c] + '}' : '?'; }); return x.sup ? '^{' + t + '}' : x.sub ? '_{' + t + '}' : '\\mathrm{' + t + '}'; }).join(''); };
       if (r.math === 'eq') return e(r.kids);
       if (r.math === 'bar') return '\\overline{' + e(r.kids) + '}';
       if (r.math === 'acc') return (r.chr === '\u20d7' ? '\\overrightarrow{' : r.chr === '\u0311' ? '\\overset{\\frown}{' : '\\overleftrightarrow{') + e(r.kids) + '}';

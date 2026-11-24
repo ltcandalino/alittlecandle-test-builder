@@ -7,11 +7,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- **Coordinates and lists are written with a space after the comma**: (2, −1), {1, 2, 3}, [60, 90]. Big numbers like 25,000 keep their comma. Questions you already have change when the app opens; imports and the editor do it too.
 - **Word downloads look like your Word exam template.** On tests and quizzes, the first page of each version has its own header (course name, Name and Date, the title line with the unit title, and teacher, calculator and extended time) and its own footer with the version number (v. 1, v. 2). Every paragraph of the test is indent 0" left and right, spacing 0 before and after, line spacing multiple 1.15; space between questions is an empty line you can delete or add to.
 - **Question numbers in Word downloads use Word's numbering**, so the second line of a long question lines up with the question text, not the margin. Each version starts again at 1, and so do bonus questions.
 - **All math in Word downloads is a Word equation** (Equation editor), not just segment and arc marks, fractions and square roots: x² is a real superscript and words like sin or cm stay upright.
 
 ### Added
+- ExamView banks: written-response answers (worked solutions, with their pictures, math and tables) come in as the answer key notes. They show on the bank card, in the answer key and in the editor, where an answer with pictures is an editable box like the question box.
+- ExamView banks: x̄ (x-bar) and p̂ (p-hat) are read; before they came in as plain x and p.
 - Two symbol buttons in the question editor: the right arrow → and the composition symbol ∘ (f ∘ g). Bank folders' `\circ` is now ∘ (`^\circ` stays the degree sign).
 
 ### Fixed

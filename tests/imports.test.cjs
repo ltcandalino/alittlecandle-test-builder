@@ -113,6 +113,13 @@ describe('ExamView (.bnk)', () => {
         assert.equal(all.filter(h => /ž/.test(h)).length, 0, 'no ž left');
         if (/GE2013-2014/.test(file)) assert.match(r.questions.find(q => q.ref === '081336ge').html, /r<sub>x-axis<\/sub>∘T<sub>7,5<\/sub>/);
       });
+      test('written-response answers are read (the second text block of a question)', () => {
+        if (!/^BFW/.test(path.basename(file))) return; // JMAP banks have no written answers
+        const es = r.questions.filter(q => q.type === 'es');
+        assert.ok(es.length && es.every(q => q.answer), 'every open question has its answer');
+        if (/Ch 1 Lessons 1\.5/.test(file)) assert.match(es[0].answer, /^\(a\) .*The amounts of total oil recovered typically vary/);
+        if (/Ch 7 Lessons/.test(file)) assert.match(r.questions.map(q => q.html).join(''), /<span class="m-ov">x<\/span>/, 'x̄ is x with a bar');
+      });
       test('equation line breaks are understood', (t) => {
         assert.deepEqual(r.warnings.filter(w => /\btag13\b/.test(w)), []);
         // other equation codes the reader doesn't know yet are listed, not failed (see AGENTS.md backlog)
@@ -154,7 +161,7 @@ describe('importing a bank again repairs subscripts older versions ran into the 
     const msg = await imp();
     assert.match(msg, /nothing was added.*subscripts/);
     const qs = await p2.evaluate(() => Object.fromEntries(window.__tb.state.questions.filter(q => /^0[18]1336ge$/.test(q.ref)).map(q => [q.ref, q.html])));
-    assert.match(qs['081336ge'], /r<sub>x-axis<\/sub>∘T<sub>7,5<\/sub>/);
+    assert.match(qs['081336ge'], /r<sub>x-axis<\/sub>∘T<sub>7, 5<\/sub>/);
     assert.match(qs['011336ge'], /\(my edit\)$/); assert.doesNotMatch(qs['011336ge'], /<sub>/, 'an edited question is left alone');
     assert.deepEqual(e2, []); await context.close();
   });

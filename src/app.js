@@ -108,6 +108,9 @@ function $$(s,el){return Array.prototype.slice.call((el||document).querySelector
 function num(v,d){var n=parseFloat(v);return isFinite(n)?n:d;}
 function ptsLabel(p){return p+' '+(p==1?'pt':'pts');}
 function textToHtml(t){return esc(String(t||'').trim()).replace(/\r?\n/g,'<br>');}
+// written answers are plain text, or HTML with pictures and math (ExamView worked solutions); HTML is always cleaned first
+function isHtmlAns(a){return typeof a==='string'&&/<(img|span|br|table|sub|sup|b|i|div)\b|&[a-z]+;/i.test(a);}
+function ansHtml(a){return isHtmlAns(a)?sanitize(a):textToHtml(a);}
 var plainCache=new Map(),qCache=new WeakMap();
 function plainQ(q){var c=qCache.get(q);if(c&&c.h===q.html&&c.c===q.choices)return c;var t=plain(q.html);c={h:q.html,c:q.choices,t:t,all:t+' '+(q.choices||[]).map(plain).join(' ')};qCache.set(q,c);return c;}
 function plain(html){
@@ -149,7 +152,19 @@ function sanitize(html){
     });
   }
   var out=document.createElement('div');walk(tpl.content,out);
-  return out.innerHTML.replace(/(<br>)+$/,'').trim();
+  return commaSpace(out.innerHTML.replace(/(<br>)+$/,'').trim());
+}
+// a space after every comma: (2,−1) → (2, −1), {1,2,3} → {1, 2, 3}. Thousands (25,000, 1,539,233) stay, except a pair
+// in brackets like (0,200) or [60,90], which is a point or an interval. Text only, never inside a tag.
+function commaSpace(h){
+  if(typeof h!=='string'||h.indexOf(',')<0)return h;
+  return h.split(/(<[^>]*>)/).map(function(p,i){
+    return i%2?p:p.replace(/,(?=[^\s,&])/g,function(m,o,str){
+      var b=str.slice(0,o),a=str.slice(o+1);
+      if(/\d$/.test(b)&&/^\d{3}(?!\d)/.test(a)&&!(/[(\[][−-]?[\d.]+$/.test(b)&&/^\d{3}[)\]]/.test(a)))return m;
+      return ', ';
+    });
+  }).join('');
 }
 
 /* ================= state & storage ================= */
@@ -178,6 +193,8 @@ function normalize(s){
   s.questions=Array.isArray(s.questions)?s.questions.filter(function(q){return q&&TYPES[q.type];}):[];
   s.questions.forEach(function(q){
     if(typeof BNK!=='undefined'&&BNK.repairFields&&BNK.repairFields(q))fillMeta(q); // fields mixed up by older versions
+    // coordinates and lists with a space after the comma: (x, y)
+    q.html=commaSpace(q.html);if(Array.isArray(q.choices))q.choices=q.choices.map(commaSpace);if(typeof q.answer==='string')q.answer=commaSpace(q.answer);
     // older imports showed ExamView's script ℓ (line ℓ, p=2ℓ+2w) as ª and the composition sign (f∘g) as ž
     if(typeof q.html==='string'&&/[ªž]/.test(q.html))q.html=q.html.replace(/ª/g,'ℓ').replace(/ž/g,'∘');if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return typeof c==='string'?c.replace(/ª/g,'ℓ').replace(/ž/g,'∘'):c;});
     // older imports showed ExamView's parallel sign as € between two segments: AB€CD → AB∥CD
@@ -400,7 +417,7 @@ function qBody(it,A){
   else if(ov!=='')h+=areaHtml(ov);
   else if(q.type==='es'&&q.answerArea==='space'){var sp=Math.max(0,num(q.space,3));if(sp>0)h+='<div class="pt-space" style="height:'+sp+'in"></div>';}
   else{var nl=Math.max(0,num(q.lines,q.type==='sa'?1:8));if(nl>0)h+='<div class="pt-lines">'+Array(nl+1).join('<div></div>')+'</div>';}
-  if(A&&(q.type==='sa'||q.type==='es')&&q.answer)h+='<div class="pt-keynote">Key: '+textToHtml(q.answer)+'</div>';
+  if(A&&(q.type==='sa'||q.type==='es')&&q.answer)h+='<div class="pt-keynote">Key: '+ansHtml(q.answer)+'</div>';
   return h+gapHtml();
 }
 // rough printed height of a question's own text and pictures, in inches (a PNG's shape is read from its header)
@@ -488,8 +505,8 @@ function keyHtml(items,v){
     if(q.inImage){if(it.answer>=0){l=plain(q.choices[it.answer]);a='<i style="color:#666">choice shown in the question picture</i>';}else a='<i>(no answer set)</i>';}
     else if(isMC(q.type)){if(it.answer>=0){l=it.open?'':letterOf(it.answer);a=it.choices[it.answer]+(it.open?' <i style="color:#666;font-size:9pt">(asked without choices)</i>':'');}else a='<i>(no answer set)</i>';}
     else if(q.type==='tf'){l=q.answer==='T'?'T':q.answer==='F'?'F':'';a=q.answer==='T'?'True':q.answer==='F'?'False':'<i>(no answer set)</i>';}
-    else if(q.type==='sa'){a=q.answer?textToHtml(q.answer):'<i>(no key)</i>';}
-    else{a=q.answer?textToHtml(q.answer):'<i>Score with your rubric</i>';}
+    else if(q.type==='sa'){a=q.answer?ansHtml(q.answer):'<i>(no key)</i>';}
+    else{a=q.answer?ansHtml(q.answer):'<i>Score with your rubric</i>';}
     var ref=[[q.unit,q.section].filter(Boolean).join(', '),q.standard,[q.source,examLabel(q)||(q.source?'':q.ref)].filter(Boolean).join(' ')].filter(Boolean).map(esc).join(' · ');
     if(s.keyNotes&&q.notes)a+='<div class="pt-mynote">Note: '+textToHtml(q.notes)+'</div>';
     h+='<tr><td class="n">'+esc(it.keyLabel)+'</td><td class="l">'+esc(l)+'</td><td>'+a+'</td><td class="p">'+ptsLabel(q.points)+'</td>'+(s.keyStd?'<td class="s">'+ref+'</td>':'')+'</tr>';
@@ -569,7 +586,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -751,7 +768,7 @@ function qCard(q){
   if(q.inImage)body+='<div class="keyline">Choices are in the picture · Answer: <b>'+(q.answer>=0?esc(plain(q.choices[q.answer])):'not set')+'</b></div>';
   else if(isMC(q.type))body+='<ol class="choices qbody">'+q.choices.map(function(c,i){return '<li class="'+(i===q.answer?'correct':'')+'"><b>'+LETTERS[i]+'.</b><span>'+c+'</span></li>';}).join('')+'</ol>'+(q.answer<0?'<div class="keyline" style="color:var(--danger)">No correct answer set</div>':'');
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
-  else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': <b>'+esc(q.answer)+'</b></div>';
+  else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': '+(isHtmlAns(q.answer)?'<div class="qbody">'+ansHtml(q.answer)+'</div>':'<b>'+esc(q.answer)+'</b>')+'</div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
   var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(picking()?((!q.owner||q.canEdit)?'<button class="small ghost" data-edit="'+q.id+'">Edit</button>':'')+(q.owner?'<button class="small ghost" data-dup="'+q.id+'" title="Make your own copy to change; the original stays as it was">Copy to mine</button>':''):q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
@@ -1339,7 +1356,7 @@ function collect(){
   ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;setCourses(ed,$$('#e-courses input:checked').map(function(x){return x.value;}));ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
   var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var vs=$('#e-vis');if(vs){if(vs.value==='public')ed.visibility='public';else delete ed.visibility;}var x={};Object.keys(ed.extra||{}).forEach(function(k){if(!fieldById(k))x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
   if(isMC(ed.type))$$('[data-ct]').forEach(function(el){ed.choices[+el.dataset.ct]=el.innerHTML;});
-  var a=$('#e-ans');if(a)ed.answer=a.value;
+  var a=$('#e-ans');if(a)ed.answer=a.isContentEditable?sanitize(a.innerHTML):a.value;
   var l=$('#e-lines');if(l){var lv=parseInt(l.value,10);ed.lines=Math.max(0,Math.min(40,isNaN(lv)?1:lv));}
   var sp=$('#e-space');if(sp)ed.space=Math.max(0,Math.min(9,num(sp.value,3)));
   var aa=$('input[name=area]:checked');if(aa)ed.answerArea=aa.value;
@@ -1353,7 +1370,7 @@ function drawSpec(){
   }else if(ed.type==='sa'){
     h='<div class="fields"><label><span class="lbl">Answer for the key</span><input type="text" id="e-ans" value="'+esc(ed.answer)+'"></label><label style="max-width:220px"><span class="lbl">Writing lines on the test</span><select id="e-lines">'+[[0,'None (blanks are in the question)'],[1,'1'],[2,'2'],[3,'3'],[4,'4']].map(function(n){return '<option value="'+n[0]+'"'+(n[0]==ed.lines?' selected':'')+'>'+n[1]+'</option>';}).join('')+'</select></label></div>';
   }else{
-    h='<div class="fields"><label><span class="lbl">Notes for the answer key <span class="hint" style="font-weight:400">(optional)</span></span><textarea id="e-ans" rows="2">'+esc(ed.answer)+'</textarea></label><div><span class="lbl">Space for the student’s work</span><div class="checks" style="grid-template-columns:auto auto;justify-content:start;gap:8px 22px"><label><input type="radio" name="area" value="space"'+(ed.answerArea==='space'?' checked':'')+'><span>Blank space, <input type="number" id="e-space" min="0" max="9" step="0.25" value="'+esc(ed.space!=null?ed.space:3)+'" style="width:70px"> inches</span></label><label><input type="radio" name="area" value="lines"'+(ed.answerArea!=='space'?' checked':'')+'><span>Lines, <input type="number" id="e-lines" min="1" max="40" value="'+esc(ed.lines||8)+'" style="width:64px"> of them</span></label></div></div></div>';
+    h='<div class="fields"><label><span class="lbl">Notes for the answer key <span class="hint" style="font-weight:400">(optional)</span></span>'+(isHtmlAns(ed.answer)?'<div id="e-ans" class="rich ans-rich" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Notes for the answer key">'+sanitize(ed.answer)+'</div>':'<textarea id="e-ans" rows="2">'+esc(ed.answer)+'</textarea>')+'</label><div><span class="lbl">Space for the student’s work</span><div class="checks" style="grid-template-columns:auto auto;justify-content:start;gap:8px 22px"><label><input type="radio" name="area" value="space"'+(ed.answerArea==='space'?' checked':'')+'><span>Blank space, <input type="number" id="e-space" min="0" max="9" step="0.25" value="'+esc(ed.space!=null?ed.space:3)+'" style="width:70px"> inches</span></label><label><input type="radio" name="area" value="lines"'+(ed.answerArea!=='space'?' checked':'')+'><span>Lines, <input type="number" id="e-lines" min="1" max="40" value="'+esc(ed.lines||8)+'" style="width:64px"> of them</span></label></div></div></div>';
   }
   sp.innerHTML=h;wireRich(sp);
   if(isMC(ed.type)){
@@ -1889,6 +1906,7 @@ function importBnks(files){
     }
     var f=files[i++];
     f.arrayBuffer().then(function(buf){return BNK.parse(buf,f.name);}).then(function(out){
+      out.questions.forEach(function(q){q.html=commaSpace(q.html);if(Array.isArray(q.choices))q.choices=q.choices.map(commaSpace);if(typeof q.answer==='string')q.answer=commaSpace(q.answer);});
       var g=guessCourse(out.title),course=(g&&state.courses.indexOf(g)>=0)?g:state.course;
       var name=out.title,existing=state.questions.filter(function(q){return q.bank===name&&inCourse(q,course);}).length;
       if(existing){var rp=repairTables(out,name,course);if(rp){msgs.push(rp);return;}}

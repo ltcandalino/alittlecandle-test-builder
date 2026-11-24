@@ -659,3 +659,5 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 .sel li.dragging{opacity:.45}
 .sel li.drop-a{box-shadow:inset 0 2px 0 var(--accent)}
 .sel li.drop-b{box-shadow:inset 0 -2px 0 var(--accent)}
+.ans-rich{max-height:22em;overflow:auto}
+.ans-rich img,.keyline .qbody img{max-width:100%;height:auto}
