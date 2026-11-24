@@ -3734,6 +3734,10 @@ function importBankData(list){
   // (an ExamView file), is updated in place: it keeps its id (saved tests, picks), its unit/section/notes unless the file
   // sets them, and her own fields; the file's topic, subtopic and standards replace the old ones
   var refN={},byRef={};state.questions.forEach(function(q,i){if(own(q)&&q.ref){var k=q.bank+'\u0001'+q.ref;refN[k]=(refN[k]||0)+1;byRef[k]=i;}});
+  // a file that combines banks (another bank name): the same question in the same course is found by its reference, or by
+  // its exact text when it has none, as long as only one of yours and one in the file match
+  var sameKey=function(q,c){return q.ref?'r\u0001'+c+'\u0001'+q.ref:'t\u0001'+c+'\u0001'+q.type+'\u0001'+plain(q.html||'').replace(/\s+/g,' ').trim();};
+  var usedH={},crsN={},byCrs={};state.questions.forEach(function(q,i){if(!own(q))return;coursesOf(q).forEach(function(c){var k=sameKey(q,c);crsN[k]=(crsN[k]||0)+1;byCrs[k]=i;});});
   list.forEach(function(it){
     var d=it.data;if(!isBankFile(d)){bad.push(it.name);return;}
     var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine)map[f.id]=mine.id;}});
@@ -3745,9 +3749,11 @@ function importBankData(list){
       if(!q.bank)q.bank=d.bank||'My questions';
     });
     qs=normalize({questions:qs,courses:state.courses.slice(),course:state.course}).questions;
-    var fileN={};qs.forEach(function(q){if(q.ref){var k=q.bank+'\u0001'+q.ref;fileN[k]=(fileN[k]||0)+1;}});
+    var fileN={},fileC={};qs.forEach(function(q){if(q.ref){var k=q.bank+'\u0001'+q.ref;fileN[k]=(fileN[k]||0)+1;}coursesOf(q).forEach(function(c){var kc=sameKey(q,c);fileC[kc]=(fileC[kc]||0)+1;});});
     qs.forEach(function(q){
       var i=byId[q.id],rk=q.ref&&q.bank+'\u0001'+q.ref;
+      if(i==null&&!(rk&&refN[rk]===1&&fileN[rk]===1))coursesOf(q).some(function(c){var kc=sameKey(q,c);if(crsN[kc]===1&&fileC[kc]===1&&plain(q.html||'').trim()&&byId[q.id]==null){var j=byCrs[kc];if(usedH[j]||!q.ref&&state.questions[j].ref)return false;usedH[j]=1;rk=null;i=j;var h=state.questions[i];q.id=h.id;
+        ['unit','section','source','notes'].forEach(function(k){if(h[k]&&!q[k])q[k]=h[k];});if(h.extra)q.extra=Object.assign({},q.extra||{},h.extra);if(h.visibility)q.visibility=h.visibility;return true;}return false;});
       if(i==null&&rk&&refN[rk]===1&&fileN[rk]===1){i=byRef[rk];var h=state.questions[i];q.id=h.id;
         ['unit','section','source','notes'].forEach(function(k){if(h[k]&&!q[k])q[k]=h[k];}); // her own sorting stays unless the file sets it; topics and standards come from the file
         if(h.extra)q.extra=Object.assign({},q.extra||{},h.extra);if(h.visibility)q.visibility=h.visibility;}

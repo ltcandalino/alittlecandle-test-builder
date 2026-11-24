@@ -247,6 +247,19 @@ describe('bank files', () => {
     });
     assert.deepEqual(r, { added: 1, updated: 1, id: 'mine1', html: 'New', unit: '6', topic: 'Trigonometry', sub: 'find a side using a trig ratio', answer: 2, n: 1 }, 'her unit stays; the file\'s new topic replaces the old one');
   });
+  test('a combined bank file (new bank name) moves the questions you have into it: by reference, or by exact text without one', async () => {
+    await reset();
+    const r = await page.evaluate(() => {
+      const T = window.__tb, c = T.state.course, Q = (id, bank, ref, html, extra) => Object.assign({ id, type: 'mc', html, choices: ['a', 'b'], answer: 0, bank, ref, courses: [c] }, extra || {});
+      T.state.questions.push(...T.normalize({ questions: [Q('a1', 'AI 2013', '061501ai', 'One', { unit: '3' }), Q('a2', 'AI 2016', '061601ai', 'Two'), Q('a3', 'AI 2013', '', 'What is x?'),
+        Q('d1', 'AI 2013', '081599ai', 'Dup'), Q('d2', 'My copy', '081599ai', 'Dup')] }).questions); // the same reference twice: never guessed
+      const res = T.fn.importBankData([{ name: 'all.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'AI all', questions: [
+        Q('f1', 'AI all', '061501ai', 'One', { topic: 'Lines' }), Q('f2', 'AI all', '061601ai', 'Two'), Q('f3', 'AI all', '', 'What is <i>x</i>?'), Q('f4', 'AI all', '081599ai', 'Dup')] } }]);
+      const by = {}; T.state.questions.forEach(q => (by[q.bank] = by[q.bank] || []).push(q.id));
+      return { added: res.added, updated: res.updated, by, a1: (({ unit, topic }) => ({ unit, topic }))(T.state.questions.find(q => q.id === 'a1')) };
+    });
+    assert.deepEqual(r, { added: 1, updated: 3, by: { 'AI all': ['a1', 'a2', 'a3', 'f4'], 'AI 2013': ['d1'], 'My copy': ['d2'] }, a1: { unit: '3', topic: 'Lines' } });
+  });
   test('a backup file is not taken as a bank file', async () => {
     await reset();
     const r = await page.evaluate(() => window.__tb.fn.importBankData([{ name: 'backup.json', data: { app: 'test-builder', version: 1, state: { questions: [] } } }]));

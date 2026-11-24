@@ -6,6 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Opening a bank file that combines banks moves your questions into it** instead of adding copies: a question you already have is found by its exam reference (or its exact text when it has none) in the same course, even when its bank has another name. Only one-to-one matches count.
+
 ## [0.24.0] - 2026-11-23
 
 ### Changed

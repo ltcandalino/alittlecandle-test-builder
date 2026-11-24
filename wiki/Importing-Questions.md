@@ -76,6 +76,11 @@ original), **Rename** and **Delete** (click twice; Undo brings it back).
 **Opening a bank file of a bank you already have** updates it: a question with the same exam reference (like `062502geo`)
 is replaced by the file's version, keeping your units, sections and your own fields, and no copy is made.
 
+**A bank file that combines several banks** (like `Algebra1CC2013-2024`, made from five Algebra I banks) moves the questions
+you already have into the combined bank: each one is found by its exam reference, or by its exact text when it has none, even
+though its bank had another name. Nothing is copied. A question is only matched when exactly one of yours and one in the file
+fit, so two different questions are never merged; anything left over stays in its old bank, where you can check it.
+
 ## Keeping the original files
 
 The app saves the questions it pulls out of a file, not the file itself. Keep your `.bnk`, `.pdf` and `.docx` files somewhere safe, such as a NAS, and choose them from there when importing.
