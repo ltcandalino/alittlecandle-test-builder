@@ -113,6 +113,10 @@ describe('ExamView (.bnk)', () => {
         assert.equal(all.filter(h => /ž/.test(h)).length, 0, 'no ž left');
         if (/GE2013-2014/.test(file)) assert.match(r.questions.find(q => q.ref === '081336ge').html, /r<sub>x-axis<\/sub>∘T<sub>7,5<\/sub>/);
       });
+      test('superscripts and subscripts in plain text are kept (cm³, H₀)', () => {
+        if (/GEO2024-2026/.test(file)) { assert.match(r.questions.find(q => q.ref === '012614geo').html, /333 cm<sup>3<\/sup>\. {1,2}To the/); assert.match(r.questions.find(q => q.ref === '082532geo').html, /1000 cm<sup>3<\/sup>/); }
+        if (/Ch 10 Test Bank/.test(file)) assert.ok(r.questions.some(q => /H<sub>0<\/sub>/.test(q.html)));
+      });
       test('written-response answers are read (the second text block of a question)', () => {
         if (!/^BFW/.test(path.basename(file))) return; // JMAP banks have no written answers
         const es = r.questions.filter(q => q.type === 'es');
@@ -148,6 +152,15 @@ describe('ExamView (.bnk)', () => {
   }
 });
 
+test('text styles after the text: superscripts and subscripts are marked, not punctuation or other cells', async () => {
+  const out = await page.evaluate(() => {
+    const text = 'is 5 cm3. H0: x\x11y', runs = [[0, 0], [7, 1], [8, 0], [11, 2], [13, 0], [14, 2], [17, 0]], styles = [[11, 0, 0, 400, 0, 0], [11, 8, 0, 400, 0, 0], [11, 20, 0, 700, 0, 0]];
+    const dv = new DataView(new ArrayBuffer(400)); dv.setInt32(20, runs.length, true); dv.setInt32(24, styles.length, true);
+    let o = 101; runs.forEach(r => { dv.setInt32(o, r[0], true); dv.setInt32(o + 4, r[1], true); o += 12; }); styles.forEach(s => s.forEach(v => { dv.setInt32(o, v, true); o += 4; }));
+    return BNK._markScripts(text, new Uint8Array(dv.buffer), { i32: x => dv.getInt32(x, true) }, 0, 60, 400).replace(/[\ue001-\ue004]/g, c => ['^(', ')', '_(', ')'][c.charCodeAt(0) - 0xe001]);
+  });
+  assert.equal(out, 'is 5 cm^(3). H_(0): _(x)\x11_(y)');
+});
 describe('importing a bank again repairs subscripts older versions ran into the text', () => {
   const ge = privateFixtures('.bnk').find(f => /GE2013-2014/.test(f));
   test('re-import GE2013-2014: unedited questions get their subscripts, edited ones are kept', { skip: !ge && 'needs GE2013-2014EXAMs.bnk in tests/fixtures/private/' }, async () => {

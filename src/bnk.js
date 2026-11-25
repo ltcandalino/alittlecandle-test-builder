@@ -134,6 +134,30 @@ var BNK=(function(){
         return '<td'+(r.length===1&&ncol>1?' colspan="'+ncol+'"':'')+'>'+(bold&&x?'<b>'+x+'</b>':x)+'</td>';}).join('')+'</tr>';}).join('')+'</table>';
     return {html:h,next:oi};
   }
+  /* Text styles come after the text: n runs [position, style, 0], then m styles [size, flags, 0, weight 400|700, font, 0] (24 bytes each);
+     n and m are at S+20 and S+24. Flags: 1 bold, 2 underline, 4 italic, 8 superscript, 16 subscript. Superscripts and subscripts
+     (cm3, H0) are marked in the text with -, never across cells, choices or line breaks. */
+  // a few questions have the 3 of cm3 as a plain digit in ExamView too
+  function unitPowers(t){return t.replace(/(^|[^A-Za-z])(mi|cm|in|ft|km|yd|mm)([23])(?![A-Za-z0-9])/g,'$1$2\ue001$3\ue002');}
+  function markScripts(text,d,R,S,from,to){
+    var n=R.i32(S+20),m=R.i32(S+24),P=from,found=-1;
+    if(!(n>0&&n<5000&&m>0&&m<500))return text;
+    for(to=Math.min(to,d.length)-12*n-24*m;P<=to;P++){
+      if(d[P]||d[P+1]||d[P+2]||d[P+3])continue;
+      var ok=true,last=-1,j,a,st;
+      for(j=0;ok&&j<n;j++){a=R.i32(P+12*j);st=R.i32(P+12*j+4);if(a<=last||a>text.length||st<0||st>=m||R.i32(P+12*j+8)!==0)ok=false;last=a;}
+      for(j=0;ok&&j<m;j++){var sp=P+12*n+24*j,sz=Math.abs(R.i32(sp)),fl=R.i32(sp+4),wt=R.i32(sp+12);if((wt!==400&&wt!==700)||fl<0||fl>=1024||!sz||sz>=200)ok=false;}
+      if(ok){found=P;break;}
+    }
+    if(found<0)return text;
+    var out='',end=0;
+    for(var k=0;k<n;k++){
+      var b=R.i32(found+12*k),e=k+1<n?R.i32(found+12*k+12):text.length,f=R.i32(found+12*n+24*R.i32(found+12*k+4)+4)&24;
+      out+=text.slice(end,b);end=e;
+      out+=f===8||f===16?text.slice(b,e).replace(/[^\x00-\x0e\x10-\x1f]+/g,function(seg){var x=/^(\s*)([\s\S]*?)([\s:;.,]*)$/.exec(seg);return x[2]?x[1]+(f===8?'':'')+x[2]+(f===8?'':'')+x[3]:seg;}):text.slice(b,e);
+    }
+    return out+text.slice(end);
+  }
   function textHtml(s,objHtml,start){
     var h='',oi=start;
     for(var i=0;i<s.length;i++){
@@ -142,6 +166,7 @@ var BNK=(function(){
       if(c===0x0f){h+=objHtml[oi++]||'';}
       else if(c===0x0d||c===0x0b){h+='<br>';}
       else if(c===9){h+='&emsp;';}
+      else if(c>=0xe001&&c<=0xe004){h+=['<sup>','</sup>','<sub>','</sub>'][c-0xe001];}
       else if(c>=0xf000&&c<=0xf0ff){var m=SYM[c-0xf000];h+=m!==undefined?esc(m):esc(String.fromCharCode(c-0xf000));}
       else if(c<0x20){}
       else h+=esc(s[i]);
@@ -247,7 +272,7 @@ var BNK=(function(){
               }
             }
           }
-          return {text:text,objHtml:objHtml,end:S+T};
+          return {text:unitPowers(markScripts(text,d,R,S,tend,S+T+8)),objHtml:objHtml,end:S+T};
         };
         var S=sEnd,B=block(S);
         if(!B)throw new Error('no text');
@@ -291,6 +316,6 @@ var BNK=(function(){
     });
     return {title:title,questions:qs,warnings:warnings,found:marks.length};
   }
-  return {parse:parse,classify:classify,repairFields:repairFields,_parseInner:parseInner,_eqHtml:eqHtml,_parseEq:parseEq};
+  return {parse:parse,classify:classify,repairFields:repairFields,_parseInner:parseInner,_eqHtml:eqHtml,_parseEq:parseEq,_markScripts:markScripts};
 })();
 if(typeof module!=='undefined')module.exports=BNK;

@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+- ExamView banks: superscripts and subscripts typed in plain text are kept (cm³, H₀, Q₁, the 16ᵗʰ term). They came in as cm3, H0, Q1, 16th before. Units like ft2 and in3 become ft², in³ even when ExamView has a plain digit. Importing the same `.bnk` again fixes questions whose words you haven't changed and keeps your pictures.
+- Word downloads: an exponent on a unit (cm³) is a plain superscript, not an equation with an empty box.
+
 ## [0.26.0] - 2026-11-24
 
 ### Changed

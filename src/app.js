@@ -1989,14 +1989,16 @@ function repairTables(out,name,course){
   var undo=[];
   var subs=0,same=function(a,b){return plain(a||'').replace(/\s+/g,'')===plain(b||'').replace(/\s+/g,'');};
   pairs.forEach(function(p){var n=p[0],o=p[1];
-    // subscripts older versions ran into the text (log2x → log₂x): only when the words are unchanged, so her edits stay
+    // subscripts and superscripts older versions ran into the text (log2x → log₂x, cm3 → cm³): only when the words are unchanged, so her edits stay
     var nc=n.choices||[],oc=o.choices||[];
-    if(!/q-grid/.test(n.html)&&/<sub>/.test(n.html+nc.join(''))&&!/<sub>/.test(o.html+oc.join(''))&&same(n.html,o.html)&&nc.length===oc.length&&nc.every(function(c,i){return same(c,oc[i]);})){
-      undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);o.html=n.html;if(n.choices)o.choices=n.choices.slice();subs++;return;}
+    var all=function(q,ch){return q.html+ch.join('')+(typeof q.answer==='string'?q.answer:'');},marks=function(h){return (h.match(/<su[bp]>/g)||[]).length;},txtAns=typeof n.answer==='string'&&typeof o.answer==='string'&&isHtmlAns(n.answer)&&same(n.answer,o.answer);
+    if((!/q-grid/.test(n.html)||/q-grid/.test(o.html))&&marks(all(n,nc))>marks(all(o,oc))&&same(n.html,o.html)&&nc.length===oc.length&&nc.every(function(c,i){return same(c,oc[i]);})){
+      var pics=function(nh,oh){var im=String(oh||'').match(/<img[^>]*>/g)||[],k=0;return nh.replace(/<img[^>]*>/g,function(x){return im[k++]||x;});}; // keep the pictures she has (they may be better ones)
+      undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);o.html=pics(n.html,o.html);if(n.choices)o.choices=n.choices.map(function(c,i){return pics(c,oc[i]);});if(txtAns)o.answer=pics(n.answer,o.answer);subs++;return;}
     if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
     undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
     o.html=n.html;o.type=n.type;o.answer=n.answer;if(n.choices)o.choices=n.choices;else delete o.choices;});
-  var tbls=undo.length-subs,what=[tbls?plural(tbls,'question')+' with a table: the table and anything after it were missing before':'',subs?plural(subs,'question')+' with subscripts (log₂x, aₙ, ₇C₅) that ran into the text before':''].filter(Boolean).join('; ');
+  var tbls=undo.length-subs,what=[tbls?plural(tbls,'question')+' with a table: the table and anything after it were missing before':'',subs?plural(subs,'question')+' with superscripts or subscripts (cm³, log₂x, aₙ) that ran into the text before':''].filter(Boolean).join('; ');
   if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
   return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+what+'. Your other changes are kept.':'Its questions are all up to date.');
 }

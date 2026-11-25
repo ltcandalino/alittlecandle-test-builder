@@ -165,6 +165,10 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   `0x01` templates (nslots + selector: 5,0 overline; 6,7 line ↔; 0,30 arc; 1,5 sqrt; 2,0 sup;
   2,1 sub (1,805× in her banks; 3,0 never seen); 0x9e = ∘ composition, 0x80 = ∥, 0xaa = ℓ; 0,0 parens; 2 slots 1,0 fraction), `0x0b E0` = △, `0x06` thin space.
 
+- **Text styles** (`markScripts`): block header S+8 text length, S+20 runs n, S+24 styles m, S+28 fonts; after the text and paragraph data come n runs
+  [pos, style, 0] (12 bytes), m styles [size, flags, 0, weight 400|700, font, 0] (24 bytes), font names (64 bytes). Flags 1 bold, 2 underline, 4 italic,
+  8 superscript, 16 subscript. Only superscript/subscript are used so far (italic 16,787, bold 1,567, underline 34 runs in her banks are ignored).
+
 ### PDF import
 pdf.js runs with a fake worker (module workers from blob URLs fail on `file://`): the worker module
 is imported and set as `globalThis.pdfjsWorker`. Question detection: numbered lines, choice labels
@@ -269,6 +273,9 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       \x11\x11 row, ends at \x11\x11 + \r/\x10/end; title row → colspan, bold header row (first column when ≤2 rows and >3 cols), unit
       superscripts (mi2). `<table class="q-tbl q-grid">` (sanitize keeps q-grid; CSS ruled + centered; Word/LaTeX 1.5 in per column, centered).
       582 of 11,833 questions in her banks, 264 MC got a lost choice back; nothing else changed. Re-import repairs in place: `repairTables`/`tblKey`.
+- [ ] ExamView Symbol/Greek letters in some equations come in as plain letters (found 2026-11-24): χ² as c² (29 BFW questions), μ as m (~38), θ as q (Math B).
+- [ ] Questions whose ExamView equation or picture can't be read (blank in the text): 011704aii, 062211aii, 012415aii, 012306ai (box plot), 0815-09, 0818-24, 0624-20 (geo).
+- [ ] Bold/italic/underline in ExamView text (*nearest tenth*, *not*) could be read too: see Text styles. Her call.
 - [ ] ExamView equation codes not understood yet (shown as test diagnostics, the math around them still reads): 3 (251×),
       16 (148×), 17 (65×), 23 (24×), 24 (14×), 2 (3×), mostly in older banks (GE 2008–2016, Sequential III, Math A/B,
       Ch 9 Test Bank). Probably matrices/piles/limits; look at those questions next to ExamView output.
@@ -507,3 +514,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-24**: her request: read her Geometry Unit 4 exam (`~/Documents/TestBuilderResource/Templates/`, Word + PDF) and write formatting rules: `EXAM-FORMAT.md`, with her answers. It overrides earlier choices for tests/quizzes (½-in margins 2026-11-15; 1.15 body and the teacher line on every copy 2026-11-23). No app change yet.
 - **2026-11-24**: her go-ahead: built the exam layout (see Architecture notes) in preview, print, Word, LaTeX. Checked page by page with a copy of her Unit 4 structure and 19 GEO2024-2026 questions (print PDF, LibreOffice, pdfLaTeX, accommodated copy). Not checked in Microsoft Word itself. `labels` default is now lowerdot (saved courses keep theirs). Spotted: a GEO2024-2026 question prints "333 cm3" (lost superscript in the bank).
 - **2026-11-24**: released v0.26.0 (CI, Release green; her local site healthz 0.26.0). Public site (James) still v0.20.1.
+- **2026-11-24**: her request: fix "333 cm3" and check her banks. Cause: `bnk.js` never read text styles (1,480 superscript/subscript runs in 102 banks). Fixed (old vs new: 336 questions, only <sup>/<sub> added), `repairTables` also repairs superscripts, answers, and keeps her pictures. Rebuilt the BFW bank file (285 questions), 17 Regents bank folders + files, and the 3 combined files; compared with a backup: no labels or words changed. The 13 Algebra folders also got the equation-gluing fix made for Geometry on 2026-11-23 (100+ written answers). `bfw_read.cjs` path updated (she moved the BFW .bnk files to ExamView banks). Her site needs the bank files opened again; not released yet.

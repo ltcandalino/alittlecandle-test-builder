@@ -37,6 +37,7 @@ function makeExporter(A) {
       var tag = c.tagName.toLowerCase(), cls = c.className || '';
       if (tag === 'br') return out.push({ br: 1 });
       if (tag === 'img') return out.push({ img: c.getAttribute('src'), w: inches(c.style.width), h: inches(c.style.height) });
+      if (/(^|\s)m(\s|$)/.test(cls) && c.children.length && Array.prototype.every.call(c.childNodes, function (k) { return /^(SUP|SUB)$/.test(k.nodeName) && !k.children.length; })) { out = out.concat(inlines(c, st)); return; } // the 3 in cm3: text, not an equation without a base
       if (/(^|\s)m(\s|$)/.test(cls)) return out.push({ math: 'eq', kids: inlines(c, {}) });
       if (/\bm-ov\b/.test(cls)) return out.push({ math: 'bar', kids: inlines(c, {}) });
       if (/\bm-acc\b/.test(cls)) return out.push({ math: 'acc', chr: /m-ray/.test(cls) ? '⃗' : /m-arc/.test(cls) ? '̑' : '⃡', kids: inlines(c, {}) });
