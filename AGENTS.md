@@ -232,7 +232,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 ## Status (2026-11-12)
 
-- **v0.25.0 released 2026-11-23** (combined bank files move her questions into the new bank: match by course + reference or exact text). Her local site updated.
+- **v0.26.0 released 2026-11-24** (tests and quizzes follow `EXAM-FORMAT.md` in preview, print, Word, LaTeX). Her local site updated (healthz 0.26.0). Before it, **v0.25.0 released 2026-11-23** (combined bank files move her questions into the new bank: match by course + reference or exact text). Her local site updated.
   Before it, **v0.24.0** (Word: first-page header/footer, Word numbering, 0/0/1.15 paragraphs, all math as equations; (x, y) commas; ExamView written answers, subscripts, ∘, ±, x̄, p̂; → and ∘ buttons). Her local site updated. Before it, **v0.23.1** (tall first question no longer leaves page 1 blank).
   Before it, **v0.23.0** (filters narrow each other). Before it, **v0.22.0** (several units per question). Her public site (updated by James) runs v0.20.1.
   Before it, **v0.21.0** (bank files bring their topics/subtopics/standards to questions you already have). Before it, **v0.20.1** (ExamView ℓ, PDF question numbers past graphs). Before it, **v0.20.0** (bank files update questions by bank + reference). Before it, **v0.19.0** (reorder by drag or number in printed order, Sort menu). Before it, **v0.18.0** (ExamView tables read + re-import repair, ∥ instead of €). Before it, **v0.17.0** (print only from 3 Print, click-to-pick, Select all/Deselect all, Search first, Duplicate / Copy to mine for banks). Before it, **v0.16.0** (preview as letter-size pages). Before it, **v0.15.0** (design review 2026-11-17 steps 1–4: three steps, Print recap, picking only picks, polish). Before it, **v0.14.0** (Plan 4 stage 2: Browse banks). Before it, **v0.13.0** (left rail, sub-tabs). Before it, **v0.12.0** (Spacing). Before it, **v0.11.1** (tidier Import & backup: one Your banks list with ⋯ menus, CSV removed). Before it, **v0.11.0** (Plan 3 step 2: groups, team banks with editors, Share; ½-inch margins; borderless Review).
@@ -297,7 +297,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       changed, synced and in backups).
 
 - [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser released v0.14.0. Plan 4 done.
-- [x] Exam layout from `EXAM-FORMAT.md` (2026-11-24), unreleased: waiting for her look and a release.
+- [x] Exam layout from `EXAM-FORMAT.md` (2026-11-24), released in v0.26.0. Waiting for her look in Microsoft Word.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -506,3 +506,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-23**: merged the 5 AIICCSS bank files into `Bank files/Algebra2CC2015-2026 bank file.json` (919 q). JMAP gives two different 2018-2019 questions ref 081924aii (black bears / inverse of x/(x+2)). Her site: the 2026 bank is there twice ("… (2)" = older import, no units: she should delete it first, or its 37 refs are ambiguous and the combined file adds the 2026 questions as new) and 2018-2019 has 224 (the 081924aii pair twice; 2 old copies will be left in that bank to delete).
 - **2026-11-24**: her request: read her Geometry Unit 4 exam (`~/Documents/TestBuilderResource/Templates/`, Word + PDF) and write formatting rules: `EXAM-FORMAT.md`, with her answers. It overrides earlier choices for tests/quizzes (½-in margins 2026-11-15; 1.15 body and the teacher line on every copy 2026-11-23). No app change yet.
 - **2026-11-24**: her go-ahead: built the exam layout (see Architecture notes) in preview, print, Word, LaTeX. Checked page by page with a copy of her Unit 4 structure and 19 GEO2024-2026 questions (print PDF, LibreOffice, pdfLaTeX, accommodated copy). Not checked in Microsoft Word itself. `labels` default is now lowerdot (saved courses keep theirs). Spotted: a GEO2024-2026 question prints "333 cm3" (lost superscript in the bank).
+- **2026-11-24**: released v0.26.0 (CI, Release green; her local site healthz 0.26.0). Public site (James) still v0.20.1.
