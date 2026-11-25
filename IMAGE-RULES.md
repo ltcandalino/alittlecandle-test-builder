@@ -148,6 +148,15 @@ wrong grid (−5 to 5 instead of −4 to 6) and was fixed. eMath and BFW are res
 are the least certain and need the question's data. Every picture was also looked at in all three fonts; labels that touched a line in
 one font were moved for all.
 
+### First bank: GEO2024-2026 (drawn 2026-11-25, waiting for review)
+
+`Picture trial/GEO2024-2026/`: 88 of 105 pictures (`tex/`, `svg/` with the pictures' own names, `GEO2024-2026 pictures.pdf`). 79 come straight from the
+exam PDFs' drawing data (`tools/extract.mjs` → `gen.py` → `emit.py`), 9 by hand (`manual.py`: 0126-30 and the 8 spring samples, which have no exam PDF or cut).
+82 match 95% both ways; the other 6 differ because the old picture has a stray mark (0126-05), a lighter gray (0625-09) or ExamView's black grid (4 samples).
+Checked: every point letter, number and coordinate against the question text (`qcheck.py`); labels against figure lines in all three fonts (`collide.py`, `coll2.py`).
+Added to the rules: on a grid, letters with their white boxes are drawn first and the figure over them, so no box hides a line. **Draft:** the samples' grids use
+14.7 boxes, like the exam's 20 × 20 grids. Not drawn: 5 scenes or photos (0126-08, 0625-02, 0625-34, 0626-04, 0825-33) and 12 answers (decisions 4 and 5).
+
 ## 4. Patterns by type
 
 Inside `plane`, coordinates are graph boxes; elsewhere they are points (1 pt = 1/72 in).
@@ -243,4 +252,4 @@ Decided 2026-11-25: the label font is each user's setting; every picture at exam
 4. **Handwritten answers:** redraw clean, keep the scans, or leave the answers out of the first round?
 5. **Photos, scenes, calculator screens:** keep as pictures?
 6. **Older ExamView banks** (about 3,297 more pictures): part of this, or later?
-7. **First bank:** suggested Geometry NG 2024–2026 (105 pictures, 84 cut from exam PDFs).
+7. **GEO2024-2026:** review the 88 new pictures (first bank, drawn 2026-11-25).

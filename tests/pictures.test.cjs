@@ -19,4 +19,11 @@ test('LaTeX pictures compile to SVG at the right size', { skip: has('dvilualatex
     const ids = [...s.matchAll(/\bid='([^']+)'/g)].map(m => m[1]); assert.equal(new Set(ids).size, ids.length);
     [...s.matchAll(/href='#([^']+)'/g)].forEach(m => assert.ok(ids.includes(m[1]), m[1])); });
   const by = svg[0].split("<g class='v'").slice(1).map(x => x.replace(/[sta]-/g, '')); assert.notEqual(by[0], by[1]); assert.notEqual(by[1], by[2]);
+  // a folder of single pictures: each SVG is named like its file, whatever the order
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'picdir-'));
+  fs.writeFileSync(path.join(dir, '0126-03.tex'), '\\begin{tikzpicture}\\draw(0,0)--(50,0);\\end{tikzpicture}\n');
+  fs.writeFileSync(path.join(dir, 'spr24-01.tex'), '\\begin{tikzpicture}\\draw(0,0)--(200,0);\\end{tikzpicture}\n');
+  execFileSync('bash', [path.join(__dirname, '../scripts/picture-svg.sh'), dir, dir + '/svg'], { stdio: 'pipe' });
+  const w = n => width(fs.readFileSync(path.join(dir, 'svg', n), 'utf8'));
+  assert.ok(Math.abs(w('0126-03.svg') - 54) < 2, String(w('0126-03.svg'))); assert.ok(Math.abs(w('spr24-01.svg') - 204) < 2);
 });

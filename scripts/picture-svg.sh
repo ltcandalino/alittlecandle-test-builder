@@ -2,10 +2,22 @@
 # LaTeX pictures -> SVG files. Each tikzpicture becomes one SVG: file-1.svg, file-2.svg, ... (two digits from ten pictures up).
 # Text becomes outlines, so no font is needed to view it. Each SVG holds the picture in all three label fonts and shows Arial;
 # picture.svg#schoolbook and picture.svg#times show the others (picture-merge.py).
-#   scripts/picture-svg.sh pictures.tex [out folder]
+#   scripts/picture-svg.sh pictures.tex [out folder]   or   scripts/picture-svg.sh folder [out folder]
+# A folder holds one tikzpicture per .tex file, named like the picture (0126-03.tex -> 0126-03.svg).
 set -euo pipefail
 export PATH="/Library/TeX/texbin:$PATH"
-here="$(cd "$(dirname "$0")" && pwd)"; src="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; out="${2:-$(dirname "$src")}"
+here="$(cd "$(dirname "$0")" && pwd)"
+if [ -d "$1" ]; then
+  dir="$(cd "$1" && pwd)"; out="${2:-$dir}"; mkdir -p "$out"; w="$(mktemp -d)"; trap 'rm -rf "$w"' EXIT
+  { echo '\documentclass[tikz,multi=tikzpicture,dvisvgm,border=2bp]{standalone}\usepackage{pictures}\begin{document}'
+    for f in "$dir"/*.tex; do cat "$f"; done; echo '\end{document}'; } > "$w/p.tex"
+  "$0" "$w/p.tex" "$w/svg"; i=0
+  n="$(ls "$w/svg" | wc -l)"; ls "$w/svg" > "$w/made"; ls "$dir"/*.tex > "$w/want"
+  [ "$n" -eq "$(wc -l < "$w/want")" ] || { echo "pictures and files don't match"; exit 1; }
+  paste "$w/made" "$w/want" | while IFS=$'\t' read -r a b; do mv "$w/svg/$a" "$out/$(basename "$b" .tex).svg"; done
+  exit 0
+fi
+src="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; out="${2:-$(dirname "$src")}"
 mkdir -p "$out"; out="$(cd "$out" && pwd)"; tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 name="$(basename "$src" .tex)"; cd "$tmp"
 for font in arial schoolbook times; do
