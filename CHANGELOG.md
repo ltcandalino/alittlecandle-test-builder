@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-24
+
 ### Fixed
 - **ExamView banks: Greek letters are Greek.** π came in as p (2p for 2π), θ as q, μ as m, χ² as c², σ as s in almost every bank.
 - **ExamView banks: equations and pictures that came in blank are read**, in question text, answer choices and written answers (for example "If , what is the value of x?"). Prime marks in equations (A′, A″) and the parallelogram sign ▱ are kept too.
