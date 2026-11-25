@@ -1,4 +1,4 @@
-# Picture rules (draft 1, 2026-11-25)
+# Picture rules (draft 2, 2026-11-25)
 
 Rules for drawing every picture in Leigh's question banks in LaTeX and saving it as SVG, so SVG files can later replace the
 picture files. **Nothing has been replaced.** The sizes below are measured from the drawing commands inside all 80 Regents exam
@@ -75,7 +75,7 @@ in a neighboring type. The totals are exact.
 22 are calculator screens, 39 are drawn scenes, 13 are photos (section 5).
 
 **Why it helps most in some banks:** 939 pictures print at under 150 dots per inch, the usual least for sharp print: 746 of BFW's
-836, 119 of 660 in Geometry CC, 59 in Algebra CC. An SVG is sharp at any size. The 56 trial SVGs take 0.6 MB, their originals 1.9 MB.
+836, 119 of 660 in Geometry CC, 59 in Algebra CC. An SVG is sharp at any size. The 56 trial SVGs (three fonts each) take 2.0 MB, their originals 1.9 MB.
 
 ## 2. Rules for every picture
 
@@ -93,9 +93,9 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
 | Curve arrow | 9.2 × 6.8 pt | Algebra I |
 | Data point / labeled point or center | 4 pt / 5 pt across, filled | 4 and 5 pt |
 | Open point | 4 pt, white, 0.5 pt edge | |
-| Labels (points, sides, angles, axis letters) | Arial 11 pt upright; line names italic | 11 pt on all diagrams; 12 pt is the question text |
-| Axis numbers | Arial 11 pt, 10 on crowded graphs, 8 when every box is numbered | |
-| Axis titles | Arial 11 pt, **bold** name, regular unit: **Age** (in years) | |
+| Labels (points, sides, angles, axis letters) | 11 pt in the font the user picks; line names italic | 11 pt Arial on all diagrams; 12 pt is the question text |
+| Axis numbers | 11 pt, 10 on crowded graphs, 8 when every box is numbered | |
+| Axis titles | 11 pt, **bold** name, regular unit: **Age** (in years) | |
 | Hidden edges | 1 pt, dash 4 on 4 off | 4,4 |
 | Dashed boundary (< or >) | 1.5 pt, dash 8 on 4 off | 8,4 |
 | Rotation or auxiliary lines | 1 pt, dash 2 on 2 off | 2,2 |
@@ -111,8 +111,17 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
 - **Label distance:** a vertex letter's center is 9 pt from its point, away from the figure. A letter on a grid gets a white
   background. No label touches a line.
 - **Color:** none. Colors in the originals (BFW, calculator) become the grays above; two neighboring bars always differ in gray.
-- **Size. Draft:** draw at the size the exam prints it, and set the bank's width to the SVG's own width. Today's cuts print at
-  55–79% of exam size (middle value, by bank; eMath 99%), so 11 pt labels come out 6 to 9 pt.
+- **Font. Decided 2026-11-25:** each user picks the label font in their own settings: **Arial**, **Century Schoolbook** or **Times**.
+  Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. Characters a font lacks
+  (′ ℓ) come from Times. Arial is what shows when nothing is picked (**Draft**).
+- **One SVG holds all three fonts**, each as outlines: `picture.svg` shows Arial, `picture.svg#schoolbook` and `picture.svg#times` the
+  others, at the same size. Tried in Chrome 158 with embedded pictures, server addresses and the canvas the downloads use; Firefox and
+  Safari not tried. A browser that ignores the `#` part shows Arial.
+- **Size. Decided 2026-11-25:** every picture is drawn at exam size, blank grids too, and the bank's width becomes the SVG's own width. From a
+  Regents PDF: the size on the exam. No exam PDF (581 from ExamView, all of BFW): **Draft**, 11 pt labels with the figure in the proportion
+  the original has to its labels. Effect: the 975 Regents PDF cuts go from a middle width of 2.35 to 2.95 in and height of 1.77 to 2.31 in,
+  so tests get longer. 3 of 213 choices are wider than a 2 × 2 choice column (2.87 in), and 3 pictures are a little wider than an open-response column (6.49 in):
+  those shrink to fit.
 - **Text** becomes outlines (`--no-fonts`): the SVG looks the same on every computer without the font.
 - **Files:** one `.tex` and one `.svg` per picture, named like today's picture (`0126-03.tex`, `0126-03.svg`). The `.tex` is the
   master; nobody edits the SVG by hand.
@@ -132,11 +141,12 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
       (trial: 100 dots, 200 in the histogram) and compare with the totals in the question.
    4. Print one page in black and white.
 
-Trial result: 34 of 56 match at least 95% both ways: 25 of 29 cut from Regents PDFs, 6 of 8 Regents pictures from ExamView, 3 of 7 eMath,
-0 of 12 BFW. eMath and BFW are restyled on purpose (Times to Arial, color to gray, other bar or box heights). **Below 95% means find out why:** the lowest PDF one
-turned out to be drawn on the wrong grid (−5 to 5 instead of −4 to 6) and was fixed. The 4 still below differ in hatch lines, label
-sizes or the axis zigzag; the 2 ExamView ones are blurry or hand-drawn. Points read by eye off blurry statistics
-pictures (the two BFW scatter and box plots) are the least certain and need the question's data.
+Trial result (Arial): 33 of 56 match at least 95% both ways. Of the 29 cut from Regents PDFs 24 do; the other 5 differ in hatch lines,
+label sizes, the axis zigzag, or a label moved off a line. **Below 95% means find out why:** the lowest PDF one turned out to be drawn on the
+wrong grid (−5 to 5 instead of −4 to 6) and was fixed. eMath and BFW are restyled on purpose (color to gray, other bar or box heights), the
+2 ExamView ones are blurry or hand-drawn. Points read by eye off blurry statistics pictures (the two BFW scatter and box plots)
+are the least certain and need the question's data. Every picture was also looked at in all three fonts; labels that touched a line in
+one font were moved for all.
 
 ## 4. Patterns by type
 
@@ -160,7 +170,7 @@ Takes: points, label directions, marks, lengths.
 ```latex
 \coordinate(A)at(0,0);\coordinate(B)at(100,0);\coordinate(C)at(100,60);\draw(A)--(B)--(C)--cycle;
 \rightangle{A}{B}{C} \ticks{A}{C}[2] \parallelmark{A}{B} \anglearc{B}{A}{C}{16}[2] \dimline{0,-20}{100,-20}{10 cm}
-\lbl{A}{200}{A}                      % letter A, in the 200° direction
+\lbl{A}{200}{A}                      % letter A, in the 200° direction; a letter placed by hand: \V{A}
 \draw[axis](0,0)--(80,20);           % line with two arrows; [ray1] = ray
 ```
 Check: marks and their count; "not to scale" figures keep the original's shape, not the true measures.
@@ -215,6 +225,7 @@ come from reading the code.
 | Word and LaTeX downloads | picture is turned into a PNG at **96 dots per inch of its natural size** (147 × 121 px): blurry | in `prepareImages` (`src/export.js`) draw SVGs at 300 dpi; later real SVG in Word, or the TikZ code in LaTeX |
 | Server picture storage | upload of `.svg` **refused (403)** | allow `svg` in `docker/server.js` (upload, read, type). Send it with a sandbox security header: an SVG opened by its own address can run scripts |
 | Sync (`hostImages`, `src/sync.js`) | SVGs aren't moved to picture storage, so they stay inside the question; they do sync | add `svg+xml` there, and to `lite()` (change check) |
+| Label font (new) | no setting | a personal setting (Arial, Century Schoolbook, Times) saved with the account; add `#schoolbook` or `#times` to SVG picture addresses when drawing the page, printing and downloading. Stored questions keep the plain address, so colleagues see their own font |
 | Question height | `htmlInches` guesses an SVG's height as 3/4 of its width | read the SVG's width and height |
 | `scripts/bank-file.cjs` | writes `data:image/svg`, not a valid type | write `svg+xml` |
 | `scripts/bank-folder.cjs` | a re-run cuts the PNG again | keep the SVG |
@@ -224,11 +235,12 @@ come from reading the code.
 
 ## 7. Decisions for Leigh
 
-1. **Labels:** Arial 11 pt like the Regents, for every bank (drawn so in the trial)? eMath uses bold italic Times; her tests use Century Schoolbook.
-2. **Size:** exam size (11 pt labels), or today's width on the page (smaller labels)?
-3. **BFW color → black and gray**, as drawn in the trial?
-4. **Typed math and tables** (339): turn them into text and real tables instead of SVG?
-5. **Handwritten answers:** redraw clean, keep the scans, or leave the answers out of the first round?
-6. **Photos, scenes, calculator screens:** keep as pictures?
-7. **Older ExamView banks** (about 3,297 more pictures): part of this, or later?
-8. **First bank:** suggested Geometry NG 2024–2026 (105 pictures, all with exam PDFs).
+Decided 2026-11-25: the label font is each user's setting; every picture at exam size.
+
+1. **Which font to start with** before someone picks one: Arial, as drawn?
+2. **BFW color → black and gray**, as drawn in the trial?
+3. **Typed math and tables** (339): turn them into text and real tables instead of SVG?
+4. **Handwritten answers:** redraw clean, keep the scans, or leave the answers out of the first round?
+5. **Photos, scenes, calculator screens:** keep as pictures?
+6. **Older ExamView banks** (about 3,297 more pictures): part of this, or later?
+7. **First bank:** suggested Geometry NG 2024–2026 (105 pictures, 84 cut from exam PDFs).

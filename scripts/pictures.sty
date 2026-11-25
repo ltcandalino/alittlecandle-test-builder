@@ -3,17 +3,26 @@
 \ProvidesPackage{pictures}[2026/11/25 A Little Candle Test Builder picture rules]
 \RequirePackage{tikz,fontspec,amsmath}
 \usetikzlibrary{calc,arrows.meta,intersections}
-\IfFontExistsTF{Arial}{\setmainfont{Arial}}{\setmainfont{TeX Gyre Heros}}   % vertex, axis and number labels on the Regents are Arial
-\IfFontExistsTF{Arial}{\setsansfont{Arial}}{\setsansfont{TeX Gyre Heros}}
+% The label font is each user's choice (decided 2026-11-25). picture-svg.sh draws the picture once per font:
+% \picfont = arial (default) | schoolbook | times. \V{A} = a letter (point, variable, axis, line name): bold italic in Times, upright in the others.
+\providecommand\picfont{arial}
+\directlua{luaotfload.add_fallback("symbols",{"Times New Roman:mode=node;","TeX Gyre Termes:mode=node;"})} % ′ ℓ θ where the font has none
+\newcommand\usefont@[2]{\IfFontExistsTF{#1}{\setmainfont{#1}[RawFeature={fallback=symbols}]}{\setmainfont{#2}[RawFeature={fallback=symbols}]}}
+\def\pf@s{schoolbook}\def\pf@t{times}
+\ifx\picfont\pf@s \usefont@{Century Schoolbook}{TeX Gyre Schola}
+\else\ifx\picfont\pf@t \usefont@{Times New Roman}{TeX Gyre Termes}
+\else \usefont@{Arial}{TeX Gyre Heros}\fi\fi
+\ifx\picfont\pf@t \newcommand\V[1]{{\bfseries\itshape #1}}\newcommand\labelweight{\bfseries}
+\else \newcommand\V[1]{#1}\newcommand\labelweight{}\fi
 % ---- sizes and colors -------------------------------------------------------------------------------------------------
-\newcommand\fs[1]{\fontsize{#1bp}{#1bp}\selectfont}            % \fs{11} = 11-point text
+\newcommand\fs[1]{\fontsize{#1bp}{#1bp}\selectfont\labelweight}            % \fs{11} = 11-point text
 \definecolor{gridgray}{HTML}{C4C5C7}   % grid lines
 \definecolor{fillA}{HTML}{D8D9DA}      % light shading (sector, shaded region)
 \definecolor{fillB}{HTML}{C4C5C7}      % medium (bars, second face of a solid)
 \definecolor{fillC}{HTML}{85878B}      % dark (third face, darker bar)
 \newlength\cell \setlength\cell{12.1bp}                        % one grid box; \setlength\cell{...} inside a picture
 \tikzset{
-  every picture/.style={x=1bp,y=1bp,line width=1bp,line join=miter,line cap=butt,font=\fs{11}},
+  every picture/.style={x=1bp,y=1bp,line width=1bp,line join=miter,line cap=butt,font=\fs{11}\labelweight},
   every node/.style={inner sep=0,outer sep=0},
   lab/.style={anchor=base,yshift=-3.9bp},                      % a label centered on its point (cap height of 11 pt = 7.9)
   thin1/.style={line width=.5bp},                              % right-angle squares, tick marks, dimension and leader lines
@@ -29,12 +38,14 @@
   grid/.style={line width=1bp,gridgray},
   flip/.style={x=#1bp,y=-#1bp},                                % coordinates measured on a picture in pixels (y down), #1 bp per pixel
 }
+% \axname{Age}[ (in years)]: an axis title, name bold and unit regular in every font
+\NewDocumentCommand\axname{mO{}}{{\bfseries #1}{\mdseries #2}}
 % ---- points ------------------------------------------------------------------------------------------------------------
 \newcommand\datum[1]{\fill (#1) circle[radius=2bp];}           % data point, 4 bp across
 \newcommand\point[1]{\fill (#1) circle[radius=2.5bp];}         % labeled point or center, 5 bp across
 \newcommand\opendot[1]{\filldraw[line width=.5bp,fill=white] (#1) circle[radius=2bp];}
 % \lbl{point}{direction in degrees}{text}[distance]
-\NewDocumentCommand\lbl{mmmO{9}}{\node[lab] at ($(#1)+(#2:#4bp)$) {#3};}
+\NewDocumentCommand\lbl{mmmO{9}}{\node[lab] at ($(#1)+(#2:#4bp)$) {\V{#3}};}
 % \pfrac{1}{2} or \pfrac[1]{1}{2}: a stacked fraction (mixed number) in the label font
 \NewDocumentCommand\pfrac{O{}mm}{\mbox{#1\,$\vcenter{\hbox{\tabcolsep=1bp\renewcommand\arraystretch{.9}\begin{tabular}{@{}c@{}}#2\\\hline\rule{0pt}{9bp}#3\end{tabular}}}$}}   % center it on its tick: anchor=center
 % ---- marks ---------------------------------------------------------------------------------------------------------------
@@ -56,8 +67,8 @@
 \newenvironment{plane}[4]{\begin{scope}[x=\cell,y=\cell]\def\xa{#1}\def\xb{#2}\def\ya{#3}\def\yb{#4}%
   \draw[grid] (#1,#3) grid[step=\cell] (#2,#4);}{\end{scope}}
 \NewDocumentCommand\planeaxes{O{x}O{y}}{\draw[axis] ($(\xa,0)+(-8.8bp,0)$) -- ($(\xb,0)+(8.8bp,0)$);\draw[axis] ($(0,\ya)+(0,-8.8bp)$) -- ($(0,\yb)+(0,8.8bp)$);\planelabels{#1}{#2}}
-\NewDocumentCommand\planeaxesQ{O{x}O{y}}{\draw[ray1] (\xa,\ya) -- ($(\xb,\ya)+(8.8bp,0)$);\draw[ray1] (\xa,\ya) -- ($(\xa,\yb)+(0,8.8bp)$);\node[anchor=base west] at ($(\xb,\ya)+(11bp,-2.8bp)$) {#1};\node[anchor=base] at ($(\xa,\yb)+(0,13bp)$) {#2};}
-\newcommand\planelabels[2]{\node[anchor=base west] at ($(\xb,0)+(11bp,-2.8bp)$) {#1};\node[anchor=base] at ($(0,\yb)+(0,13bp)$) {#2};}
+\NewDocumentCommand\planeaxesQ{O{x}O{y}}{\draw[ray1] (\xa,\ya) -- ($(\xb,\ya)+(8.8bp,0)$);\draw[ray1] (\xa,\ya) -- ($(\xa,\yb)+(0,8.8bp)$);\node[anchor=base west] at ($(\xb,\ya)+(11bp,-2.8bp)$) {\V{#1}};\node[anchor=base] at ($(\xa,\yb)+(0,13bp)$) {\V{#2}};}
+\newcommand\planelabels[2]{\node[anchor=base west] at ($(\xb,0)+(11bp,-2.8bp)$) {\V{#1}};\node[anchor=base] at ($(0,\yb)+(0,13bp)$) {\V{#2}};}
 % \hatch{clip path}{slope angle of the hatch lines}[spacing]: shading for inequalities, 0.5 bp lines
 \NewDocumentCommand\hatch{mmO{6.5}}{\begin{scope}\clip #1;\begin{scope}[x=1bp,y=1bp,rotate=#2]\foreach \k in {-90,...,90} {\draw[thin1] (-600,\k*#3) -- (600,\k*#3);}\end{scope}\end{scope}}
 % ---- statistics ----------------------------------------------------------------------------------------------------------

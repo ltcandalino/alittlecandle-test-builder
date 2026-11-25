@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
-- Draft rules for drawing the banks' pictures in LaTeX as SVG (`IMAGE-RULES.md`, `scripts/pictures.sty`, `scripts/picture-svg.sh`). The app itself hasn't changed.
+- Draft rules for drawing the banks' pictures in LaTeX as SVG (`IMAGE-RULES.md`, `scripts/pictures.sty`, `scripts/picture-svg.sh`), each SVG with the labels in Arial, Century Schoolbook and Times. The app itself hasn't changed.
 
 ## [0.27.0] - 2026-11-24
 
