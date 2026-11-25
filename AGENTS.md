@@ -71,6 +71,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `PLAN.md` | Approved feature plan: accommodations, display settings, saved tests. |
 | `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
 | `DESIGN.md` | App screen design system ("The Teacher's Desk": tokens, Candle Purple, rules), from `/impeccable document`; sidecar `.impeccable/design.json`. Printout styles follow her Word templates instead. |
+| `EXAM-FORMAT.md` | Her rules for how tests and quizzes are laid out (measured from her Unit 4 exam + her answers 2026-11-24). Not in the app yet. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
@@ -290,6 +291,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       changed, synced and in backups).
 
 - [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser released v0.14.0. Plan 4 done.
+- [ ] Exam layout from `EXAM-FORMAT.md` (2026-11-24): margins 1/0.75 in, borderless tables, Δ, boxes; preview, Print, Word, LaTeX. Waiting for her go-ahead.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -496,3 +498,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-23**: released v0.25.0 (CI, Release green; her local site healthz 0.25.0). Public site (James) still v0.20.1.
 - **2026-11-23**: merged the 4 GEOCCSS bank files into `Bank files/GeometryCC2014-2025 bank file.json` (875 q, fields JMAP topic/subtopic + Also uses); her site holds them from ExamView (0 shared ids, refs unique), tested: opening it on v0.25.0 updates 875, adds 0.
 - **2026-11-23**: merged the 5 AIICCSS bank files into `Bank files/Algebra2CC2015-2026 bank file.json` (919 q). JMAP gives two different 2018-2019 questions ref 081924aii (black bears / inverse of x/(x+2)). Her site: the 2026 bank is there twice ("… (2)" = older import, no units: she should delete it first, or its 37 refs are ambiguous and the combined file adds the 2026 questions as new) and 2018-2019 has 224 (the 081924aii pair twice; 2 old copies will be left in that bank to delete).
+- **2026-11-24**: her request: read her Geometry Unit 4 exam (`~/Documents/TestBuilderResource/Templates/`, Word + PDF) and write formatting rules: `EXAM-FORMAT.md`, with her answers. It overrides earlier choices for tests/quizzes (½-in margins 2026-11-15; 1.15 body and the teacher line on every copy 2026-11-23). No app change yet.
