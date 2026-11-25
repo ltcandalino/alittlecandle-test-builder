@@ -150,7 +150,7 @@ wrong grid (−5 to 5 instead of −4 to 6) and was fixed. eMath and BFW are res
 are the least certain and need the question's data. Every picture was also looked at in all three fonts; labels that touched a line in
 one font were moved for all.
 
-### First bank: GEO2024-2026 (drawn 2026-11-25, waiting for review)
+### First bank: GEO2024-2026 (drawn and approved 2026-11-25)
 
 `Picture trial/GEO2024-2026/`: 88 of 105 pictures (`tex/`, `svg/` with the pictures' own names, `GEO2024-2026 pictures.pdf`). 79 come straight from the
 exam PDFs' drawing data (`tools/extract.mjs` → `gen.py` → `emit.py`), 9 by hand (`manual.py`: 0126-30 and the 8 spring samples, which have no exam PDF or cut).
@@ -248,7 +248,7 @@ come from reading the code.
 
 ## 7. Decisions for Leigh
 
-Decided 2026-11-25: the label font is each user's setting; every picture at exam size.
+Decided 2026-11-25: the label font is each user's setting; every picture at exam size; the 88 GEO2024-2026 pictures are approved (none replaced in the bank yet).
 
 1. **Which font to start with** before someone picks one: Arial, as drawn?
 2. **BFW color → black and gray**, as drawn in the trial?
@@ -256,4 +256,3 @@ Decided 2026-11-25: the label font is each user's setting; every picture at exam
 4. **Handwritten answers:** redraw clean, keep the scans, or leave the answers out of the first round?
 5. **Photos, scenes, calculator screens:** keep as pictures?
 6. **Older ExamView banks** (about 3,297 more pictures): part of this, or later?
-7. **GEO2024-2026:** review the 88 new pictures (first bank, drawn 2026-11-25).
