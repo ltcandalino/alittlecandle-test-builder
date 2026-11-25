@@ -1,0 +1,73 @@
+% Shared rules for every picture (IMAGE-RULES.md section 2), as LaTeX. Lengths are bp: 72 bp = 1 inch, the point the Regents PDFs use.
+% Make an SVG:  scripts/picture-svg.sh file.tex [out folder]   (one SVG per tikzpicture)
+\ProvidesPackage{pictures}[2026/11/25 A Little Candle Test Builder picture rules]
+\RequirePackage{tikz,fontspec,amsmath}
+\usetikzlibrary{calc,arrows.meta,intersections}
+\IfFontExistsTF{Arial}{\setmainfont{Arial}}{\setmainfont{TeX Gyre Heros}}   % vertex, axis and number labels on the Regents are Arial
+\IfFontExistsTF{Arial}{\setsansfont{Arial}}{\setsansfont{TeX Gyre Heros}}
+% ---- sizes and colors -------------------------------------------------------------------------------------------------
+\newcommand\fs[1]{\fontsize{#1bp}{#1bp}\selectfont}            % \fs{11} = 11-point text
+\definecolor{gridgray}{HTML}{C4C5C7}   % grid lines
+\definecolor{fillA}{HTML}{D8D9DA}      % light shading (sector, shaded region)
+\definecolor{fillB}{HTML}{C4C5C7}      % medium (bars, second face of a solid)
+\definecolor{fillC}{HTML}{85878B}      % dark (third face, darker bar)
+\newlength\cell \setlength\cell{12.1bp}                        % one grid box; \setlength\cell{...} inside a picture
+\tikzset{
+  every picture/.style={x=1bp,y=1bp,line width=1bp,line join=miter,line cap=butt,font=\fs{11}},
+  every node/.style={inner sep=0,outer sep=0},
+  lab/.style={anchor=base,yshift=-3.9bp},                      % a label centered on its point (cap height of 11 pt = 7.9)
+  thin1/.style={line width=.5bp},                              % right-angle squares, tick marks, dimension and leader lines
+  curve/.style={line width=1.5bp},                             % graphed functions and lines, figures on a grid
+  hidden/.style={dash pattern=on 4bp off 4bp},                 % hidden edges, altitudes, auxiliary lines
+  boundary/.style={curve,dash pattern=on 8bp off 4bp},         % dashed boundary of < or >
+  axis tip/.tip={Stealth[length=6.7bp,width=5bp,inset=1.7bp,line width=0bp]},
+  curve tip/.tip={Stealth[length=9.2bp,width=6.8bp,inset=3bp,line width=0bp]},
+  dim tip/.tip={Stealth[length=4.7bp,width=3.5bp,inset=1.2bp,line width=0bp]},
+  axis/.style={line width=1bp,{axis tip}-{axis tip}},
+  ray1/.style={line width=1bp,-{axis tip}},
+  both/.style={curve,{curve tip}-{curve tip}}, one/.style={curve,-{curve tip}},
+  grid/.style={line width=1bp,gridgray},
+  flip/.style={x=#1bp,y=-#1bp},                                % coordinates measured on a picture in pixels (y down), #1 bp per pixel
+}
+% ---- points ------------------------------------------------------------------------------------------------------------
+\newcommand\datum[1]{\fill (#1) circle[radius=2bp];}           % data point, 4 bp across
+\newcommand\point[1]{\fill (#1) circle[radius=2.5bp];}         % labeled point or center, 5 bp across
+\newcommand\opendot[1]{\filldraw[line width=.5bp,fill=white] (#1) circle[radius=2bp];}
+% \lbl{point}{direction in degrees}{text}[distance]
+\NewDocumentCommand\lbl{mmmO{9}}{\node[lab] at ($(#1)+(#2:#4bp)$) {#3};}
+% \pfrac{1}{2} or \pfrac[1]{1}{2}: a stacked fraction (mixed number) in the label font
+\NewDocumentCommand\pfrac{O{}mm}{\mbox{#1\,$\vcenter{\hbox{\tabcolsep=1bp\renewcommand\arraystretch{.9}\begin{tabular}{@{}c@{}}#2\\\hline\rule{0pt}{9bp}#3\end{tabular}}}$}}   % center it on its tick: anchor=center
+% ---- marks ---------------------------------------------------------------------------------------------------------------
+% \rightangle{A}{V}{B}[size]: square at V
+\NewDocumentCommand\rightangle{mmmO{10}}{\draw[thin1] ($(#2)!#4bp!(#1)$) -- ($(#2)!#4bp!(#1)+(#2)!#4bp!(#3)-(#2)$) -- ($(#2)!#4bp!(#3)$);}
+% \anglearc{A}{V}{B}{radius}[how many arcs]: counterclockwise from ray VA to ray VB
+\NewDocumentCommand\anglearc{mmmmO{1}}{\foreach \k in {1,...,#5} {\draw[thin1] let \p1=($(#1)-(#2)$),\p2=($(#3)-(#2)$),\n1={atan2(\y1,\x1)},\n2={atan2(\y2,\x2)},\n3={\n2<\n1?\n2+360:\n2} in ($(#2)+(\n1:{#4bp+3bp*(\k-1)})$) arc[start angle=\n1,end angle=\n3,radius={#4bp+3bp*(\k-1)}];}}
+% \ticks{A}{B}[how many]: equal-length marks, 7 bp long, 3 bp apart
+\NewDocumentCommand\ticks{mmO{1}}{\path let \p1=($(#2)-(#1)$),\n1={atan2(\y1,\x1)} in coordinate (tkm) at ($(#1)!.5!(#2)$) \pgfextra{\foreach \k in {1,...,#3} {\draw[thin1,x=1bp,y=1bp,shift={(tkm)},rotate=\n1] ({3*(\k-(#3+1)/2)},-3.5) -- ++(0,7);}};}
+% \parallelmark{A}{B}[how many]: arrowheads pointing from A to B at the middle
+\NewDocumentCommand\parallelmark{mmO{1}}{\path let \p1=($(#2)-(#1)$),\n1={atan2(\y1,\x1)} in coordinate (pkm) at ($(#1)!.5!(#2)$) \pgfextra{\foreach \k in {1,...,#3} {\fill[x=1bp,y=1bp,shift={(pkm)},rotate=\n1,shift={({6*(\k-(#3+1)/2)},0)}] (3.3,0) -- (-3.3,2.5) -- (-1.7,0) -- (-3.3,-2.5) -- cycle;}};}
+% \dimline{A}{B}{text}: 0.5 bp line from A to B with 12 bp end bars and the text in a white gap
+\NewDocumentCommand\dimline{mmm}{\coordinate (dla) at (#1);\coordinate (dlb) at (#2);\draw[thin1] (dla) -- (dlb) node[midway,fill=white,inner xsep=2bp,inner ysep=1bp] {#3};
+  \path let \p1=($(dlb)-(dla)$),\n1={atan2(\y1,\x1)} in \pgfextra{\foreach \c in {dla,dlb} {\draw[thin1,x=1bp,y=1bp,shift={(\c)},rotate=\n1] (0,-6) -- (0,6);}};}
+% \compass{center}{radius}{from degrees}{to degrees}: a compass arc
+\newcommand\compass[4]{\draw[thin1] ($(#1)+(#3:#2bp)$) arc[start angle=#3,end angle=#4,radius=#2bp];}
+% ---- coordinate planes: inside, coordinates are in boxes: (3,-2) ----------------------------------------------------------
+% \begin{plane}{xmin}{xmax}{ymin}{ymax} ... \end{plane}; \planeaxes[x label][y label]; first quadrant: \planeaxesQ
+\newenvironment{plane}[4]{\begin{scope}[x=\cell,y=\cell]\def\xa{#1}\def\xb{#2}\def\ya{#3}\def\yb{#4}%
+  \draw[grid] (#1,#3) grid[step=\cell] (#2,#4);}{\end{scope}}
+\NewDocumentCommand\planeaxes{O{x}O{y}}{\draw[axis] ($(\xa,0)+(-8.8bp,0)$) -- ($(\xb,0)+(8.8bp,0)$);\draw[axis] ($(0,\ya)+(0,-8.8bp)$) -- ($(0,\yb)+(0,8.8bp)$);\planelabels{#1}{#2}}
+\NewDocumentCommand\planeaxesQ{O{x}O{y}}{\draw[ray1] (\xa,\ya) -- ($(\xb,\ya)+(8.8bp,0)$);\draw[ray1] (\xa,\ya) -- ($(\xa,\yb)+(0,8.8bp)$);\node[anchor=base west] at ($(\xb,\ya)+(11bp,-2.8bp)$) {#1};\node[anchor=base] at ($(\xa,\yb)+(0,13bp)$) {#2};}
+\newcommand\planelabels[2]{\node[anchor=base west] at ($(\xb,0)+(11bp,-2.8bp)$) {#1};\node[anchor=base] at ($(0,\yb)+(0,13bp)$) {#2};}
+% \hatch{clip path}{slope angle of the hatch lines}[spacing]: shading for inequalities, 0.5 bp lines
+\NewDocumentCommand\hatch{mmO{6.5}}{\begin{scope}\clip #1;\begin{scope}[x=1bp,y=1bp,rotate=#2]\foreach \k in {-90,...,90} {\draw[thin1] (-600,\k*#3) -- (600,\k*#3);}\end{scope}\end{scope}}
+% ---- statistics ----------------------------------------------------------------------------------------------------------
+% \scaleline{from}{to}{step}{bp per unit}[labels font]: number line with ticks, for dot and box plots (origin at value 0)
+\NewDocumentCommand\boxplot{mmmmmmO{16}}{% \boxplot{y}{min}{Q1}{median}{Q3}{max}[height]; x unit set by the scope
+  \draw (#2,#1) -- (#3,#1) (#5,#1) -- (#6,#1);\draw ($(#2,#1)+(0,-4bp)$) -- ($(#2,#1)+(0,4bp)$) ($(#6,#1)+(0,-4bp)$) -- ($(#6,#1)+(0,4bp)$);
+  \draw ($(#3,#1)+(0,-#7/2)$) rectangle ($(#5,#1)+(0,#7/2)$);\draw ($(#4,#1)+(0,-#7/2)$) -- ($(#4,#1)+(0,#7/2)$);}
+% \normalcurve{mean x}{sd in bp}{height in bp}: from -3.2 sd to 3.2 sd, baseline y=0
+\newcommand\normalcurve[3]{\draw[curve] plot[domain=-3.2:3.2,samples=121] ({#1+#2*\x},{#3*exp(-\x*\x/2)});}
+\newcommand\normalshade[5]{\fill[fillB] ({#1+#2*(#4)},0) -- plot[domain=#4:#5,samples=80] ({#1+#2*\x},{#3*exp(-\x*\x/2)}) -- ({#1+#2*(#5)},0) -- cycle;}
+% \axisbreak: zigzag; \breakx at the start of a horizontal axis (from (0,0) rightwards), \breaky at the start of a vertical one
+\newcommand\breakx{(0,0) -- (4,-5) -- (8,7) -- (12,0)}
+\endinput

@@ -72,6 +72,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
 | `DESIGN.md` | App screen design system ("The Teacher's Desk": tokens, Candle Purple, rules), from `/impeccable document`; sidecar `.impeccable/design.json`. Printout styles follow her Word templates instead. |
 | `EXAM-FORMAT.md` | Her rules for how tests and quizzes are laid out (measured from her Unit 4 exam + her answers 2026-11-24), and where the app differs. |
+| `IMAGE-RULES.md` | Draft rules for drawing every bank picture in LaTeX → SVG: survey, measured Regents style, patterns, what the app needs first. `scripts/pictures.sty` + `scripts/picture-svg.sh` (dvilualatex → dvisvgm); trial in `~/Documents/TestBuilderResource/Picture trial/` (exam content, not in the repo). |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
@@ -305,6 +306,8 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 - [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser released v0.14.0. Plan 4 done.
 - [x] Exam layout from `EXAM-FORMAT.md` (2026-11-24), released in v0.26.0. Waiting for her look in Microsoft Word.
+- [ ] Pictures as SVG (`IMAGE-RULES.md`, draft 1 2026-11-25): waiting on the 8 decisions in its section 7; then one bank at a time, then the app changes in section 6.
+- [ ] Noticed 2026-11-25: sync (`hostImages`) moves pictures in questions and choices to picture storage, but not pictures in answers; those stay inside the question.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -518,3 +521,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-24**: her OK: Greek letters and blank equations. Bigger than expected: font -10 (Greek) was read as Latin (π → p in almost every bank) and a wrong object-table match left ~2,500 equations/pictures blank, mostly written answers (2,066 questions). Both fixed plus primes (3+0x10/0x11), ▱, web links; reader warnings 519 → 14; old vs new on 102 banks: 2,751 questions changed, nothing lost. `repairTables` (re-import) now fixes Greek, primes, blanks, scripts where the words are unchanged. Rebuilt all 18 Regents folders/files, the 3 combined files and BFW; compared with a backup (no labels changed, 0 blank equations left). The seven known-blank questions are all filled from ExamView itself. Not released yet.
 - **2026-11-24**: released v0.27.0 (CI, Release green; her local site healthz 0.27.0). Public site (James) still v0.20.1.
 - **2026-11-24**: merged the 2 Next Gen Algebra I bank files into `Bank files/Algebra1NG2023-2027 bank file.json` (250 q: 5 fall 2023 samples + June 2024–June 2026, 35 each; fields JMAP topic/subtopic; no shared ids, refs or texts). Tested on v0.27.0: over the ExamView imports or the 2 bank files it updates 250, adds 0. Her own site not checked or changed.
+- **2026-11-25**: the user's request: rules to draw all bank pictures in LaTeX as SVG. `IMAGE-RULES.md` draft 1: all 2,922 different pictures sorted by eye into 35 types (2,509 drawable, 339 typed math/tables, 22 calculator screens, 39 scenes, 13 photos), style measured from the vector data of the 80 Regents PDFs, 56 trial pictures beside the originals (`~/Documents/TestBuilderResource/Picture trial/`), SVG traced through the app (kept by `sanitize`, print, bank files; server upload refused, Word/LaTeX at 96 dpi). `tests/pictures.test.cjs` (skipped without TeX Live). No app change, no picture replaced.

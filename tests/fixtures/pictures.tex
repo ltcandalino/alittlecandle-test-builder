@@ -1,0 +1,17 @@
+% Every command of scripts/pictures.sty once (made-up figures, no exam content). Patterns explained in IMAGE-RULES.md.
+\documentclass[tikz,multi=tikzpicture,dvisvgm,border=2bp]{standalone}
+\usepackage{pictures}
+\begin{document}
+% triangle with marks, 100 bp wide
+\begin{tikzpicture}\coordinate(A)at(0,0);\coordinate(B)at(100,0);\coordinate(C)at(100,60);\draw(A)--(B)--(C)--cycle;
+\rightangle{A}{B}{C}\ticks{A}{C}[2]\parallelmark{A}{B}\anglearc{B}{A}{C}{16}[2]\dimline{0,-20}{100,-20}{10 cm}
+\lbl{A}{200}{A}\lbl{B}{-45}{B}\lbl{C}{45}{C}\end{tikzpicture}
+% graph on a 10 by 10 grid with shading
+\begin{tikzpicture}\begin{plane}{-5}{5}{-5}{5}\hatch{(-5,-5)rectangle(0,5)}{-30}\planeaxes\draw[both]plot[domain=-2.6:2.6](\x,{\x*\x-3});\draw[boundary](0,-5)--(0,5);\datum{1,-2}\point{2,1}\opendot{3,3}\end{plane}\end{tikzpicture}
+% first quadrant, medium grid
+\begin{tikzpicture}\setlength\cell{18bp}\begin{plane}{0}{6}{0}{6}\planeaxesQ[t][d(t)]\draw[one](0,1)--(5,4);\end{plane}\end{tikzpicture}
+% construction, hidden edge, number line with a fraction
+\begin{tikzpicture}\draw(0,0)--(80,0);\compass{0,0}{50}{-30}{30}\draw[hidden](0,20)--(80,20);\draw[axis](-10,-30)--(90,-30);\node at(40,-52){\pfrac[1]{1}{2}};\end{tikzpicture}
+% statistics
+\begin{tikzpicture}\normalshade{0}{30}{80}{.5}{3.2}\normalcurve{0}{30}{80}\draw(-100,0)--(100,0);\begin{scope}[x=10bp,yshift=-40bp]\boxplot{0}{1}{3}{5}{6}{9}\end{scope}\end{tikzpicture}
+\end{document}
