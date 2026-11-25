@@ -1,7 +1,7 @@
 # Exam formatting rules
 
 Read from Leigh's *Geometry Unit 4 Exam Transformations v1 SY2627* (Word settings, checked against the 6-page PDF),
-2026-11-24, with her answers the same day. **Not in the app yet.** For tests and quizzes, in the preview, Print/PDF, Word and
+2026-11-24, with her answers the same day. Built into the app 2026-11-24, for tests and quizzes, in the preview, Print/PDF, Word and
 LaTeX. Measurements are Word's own numbers; **Decided** marks where her answer replaces what that exam does.
 
 ## 1. Page
@@ -129,21 +129,15 @@ multiple-choice page. First MC page: level with the first question; following MC
   line, white. `Score:` 12 pt; under it `___/32`, 32 pt. Its right edge is 8 in from the left edge of the page.
 - The total adds up the parts: 6 + 14 + 8 + 4 = 32.
 
-## 9. What the app does differently today
+## 9. Where the app differs a little from that exam
 
-| | Her exam | App now |
-|---|---|---|
-| Margins | 1 in top/bottom, 0.75 in sides | 0.5 in all round |
-| Body line spacing | question text single, stacked and 2 × 2 choices 1.15 | 1.15 everywhere (her request 2026-11-23) |
-| MC questions | borderless 0.4 + 5.9 in table | numbered paragraphs, full width |
-| Open questions | borderless 0.51 + 6.61 in table | numbered paragraphs, full width |
-| Computations box | right margin, gray, not italic, every MC page | inside the text, black, italic, only at the start of the part |
-| Unit title | bold | italic |
-| Teacher / calculator / time line | accommodated copy only | every copy, when filled in |
-| Triangles | Δ | △ |
-| Bonus | bold italic, not numbered | bold, numbered from 1 |
-| Score box | fixed at the page corner, `___/32` at 32 pt | after the last question, `/32` at 26 pt, 1.9 × 1.2 in |
-| Parts | new page each (checkbox, on to begin with) | run on |
+- On multiple-choice pages after the first, print and preview put the computations box level with the page's first question
+  (1 in from the top); Word puts it at 0.83 in, like hers.
+- The score box ends at the bottom margin (10 in), above the page number; hers ends at 10.5 in and covers the number. If it
+  would land on a page by itself, it goes beside the last question when that corner is free (as in hers).
+- No work grid is added under choices: the app has no such picture unless the question has one.
+- Very short = up to 9 characters (four across); up to 28 = two by two; longer = one under another.
+- Part directions keep the wording set in the app.
 
 ## 10. Slips in that exam (not rules)
 

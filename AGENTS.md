@@ -71,7 +71,7 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
 | `PLAN.md` | Approved feature plan: accommodations, display settings, saved tests. |
 | `PRODUCT.md` | Product record for design work (users, goals, principles), written with her via `/impeccable init`. |
 | `DESIGN.md` | App screen design system ("The Teacher's Desk": tokens, Candle Purple, rules), from `/impeccable document`; sidecar `.impeccable/design.json`. Printout styles follow her Word templates instead. |
-| `EXAM-FORMAT.md` | Her rules for how tests and quizzes are laid out (measured from her Unit 4 exam + her answers 2026-11-24). Not in the app yet. |
+| `EXAM-FORMAT.md` | Her rules for how tests and quizzes are laid out (measured from her Unit 4 exam + her answers 2026-11-24), and where the app differs. |
 | `wiki/` | User guide, published by `.github/workflows/wiki.yml`. |
 | `.github/workflows/docker.yml` | Build, smoke-test and push image to `ghcr.io/<owner>/<repo>`. |
 | `tests/*.test.cjs` | Test suite (node:test + Playwright), helpers in `tests/helpers.cjs`, sample files in `tests/fixtures/`. |
@@ -142,9 +142,15 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   first page, so with "Print each version separately" each version is its own print job, chained on
   `afterprint` (`printJobs` → `runJobs`). Header SVGs are preloaded as `<img class="pre-img">` and
   decoded before printing, or nested images (lesson icons) can be missing.
-- Page geometry (her choice 2026-11-15): every type `.5in` all round, 540 pt content width (`pageGeom`); header 0.25in from the
-  top edge, body starts below it (`topFor` sets the @page margin-top per header; Word header=0.25in, LaTeX `includehead`).
-  Review tables have no borders (CSS, Word `nil`, LaTeX no rules); answer keys keep their light lines.
+- Page geometry: reviews, lessons, keys `.5in` all round, 540 pt (2026-11-15). Tests/quizzes (`EXAM-FORMAT.md`, 2026-11-24): 1 in / 0.75 in, 504 pt;
+  `@page` margins are `1in .25in 1in .625in` and the section is 7 in wide with `margin-left:.125in`, so the boxes in the right margin don't make Chrome
+  shrink the page. `pageGeom()` {m,w,left,out,hd,top,bot}; `topFor`, header padding and preview all use it.
+- Exam layout: `examHtml` gives each question `x-mc|x-op|x-sh|x-bn` (+ `x-box` = computations box); `examQt` places pictures (`q-two`/`q-side`, `q-mid`),
+  credits and (a)(b)(c) `q-part`s; `picIn` needs a picture's size (PNG header, else `picLoad`; `picsReady()` before print/download). `fitExam(m)` on a
+  laid-out copy repeats the box (`cl-again`) per page and pads the score box to the page bottom (`scoreBeside` → `.cl-score.over`); used by the preview,
+  `fitPrint` (runJobs) and `fitHtml` (downloads). `pvBreaks` must match Chrome. Word: `row`/`qparts`/`bare` tables, boxes are `wps` text boxes (`float`),
+  a boxed part is its own section (header with the box); choices are Word lists (abstractNum 1). LaTeX: eso-pic `\compbox` via `\afterpage`, `\scorebox`.
+- Review tables have no borders (CSS, Word `nil`, LaTeX no rules); answer keys keep their light lines.
 - Layouts were matched to the user's Word templates: Geometry Unit Exam, Geometry Unit Review, Lesson.
   Lesson heading fonts are Mac fonts (Papyrus, Noteworthy, Chalkduster, Baskerville, Bradley Hand)
   with fallbacks; purple `#8064A2`; review MC header shading `#E5DFEC`.
@@ -291,7 +297,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
       changed, synced and in backups).
 
 - [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser released v0.14.0. Plan 4 done.
-- [ ] Exam layout from `EXAM-FORMAT.md` (2026-11-24): margins 1/0.75 in, borderless tables, Δ, boxes; preview, Print, Word, LaTeX. Waiting for her go-ahead.
+- [x] Exam layout from `EXAM-FORMAT.md` (2026-11-24), unreleased: waiting for her look and a release.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -499,3 +505,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-23**: merged the 4 GEOCCSS bank files into `Bank files/GeometryCC2014-2025 bank file.json` (875 q, fields JMAP topic/subtopic + Also uses); her site holds them from ExamView (0 shared ids, refs unique), tested: opening it on v0.25.0 updates 875, adds 0.
 - **2026-11-23**: merged the 5 AIICCSS bank files into `Bank files/Algebra2CC2015-2026 bank file.json` (919 q). JMAP gives two different 2018-2019 questions ref 081924aii (black bears / inverse of x/(x+2)). Her site: the 2026 bank is there twice ("… (2)" = older import, no units: she should delete it first, or its 37 refs are ambiguous and the combined file adds the 2026 questions as new) and 2018-2019 has 224 (the 081924aii pair twice; 2 old copies will be left in that bank to delete).
 - **2026-11-24**: her request: read her Geometry Unit 4 exam (`~/Documents/TestBuilderResource/Templates/`, Word + PDF) and write formatting rules: `EXAM-FORMAT.md`, with her answers. It overrides earlier choices for tests/quizzes (½-in margins 2026-11-15; 1.15 body and the teacher line on every copy 2026-11-23). No app change yet.
+- **2026-11-24**: her go-ahead: built the exam layout (see Architecture notes) in preview, print, Word, LaTeX. Checked page by page with a copy of her Unit 4 structure and 19 GEO2024-2026 questions (print PDF, LibreOffice, pdfLaTeX, accommodated copy). Not checked in Microsoft Word itself. `labels` default is now lowerdot (saved courses keep theirs). Spotted: a GEO2024-2026 question prints "333 cm3" (lost superscript in the bank).

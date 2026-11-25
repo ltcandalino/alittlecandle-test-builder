@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- **Tests and quizzes follow your exam format** (measured from your Unit 4 exam; the rules are in `EXAM-FORMAT.md`), in the preview, on paper, and in Word and LaTeX downloads: 1-inch top and bottom and ¾-inch side margins; single-spaced questions; multiple choice and open response in tables without borders; choices four across, two by two or one under another; a picture beside sentence choices when it's small and square, otherwise centered; credits like [2] right under the question's words; (a), (b), (c) parts in bold and indented; unit title in bold; the work-space box in the right margin of every multiple-choice page; the score box (___/33) in the bottom right corner of the last page; bonus questions without numbers. Reviews, lessons and answer keys look as before.
+- **Teacher, calculator and time print on the accommodated copy only.**
+- Triangles print as Δ on tests, quizzes and their keys (△ in the bank, reviews and lessons).
+- Answer choices in Word downloads are real Word lettered lists. New courses start with a. b. c. d. labels; courses you already use keep theirs.
+
+### Added
+- **Start each part on a new page** (2 Set up › Page style), on to begin with.
+- Word import reads choices beside a picture and choices numbered (1) (2) (3) (4) as a Word list.
+
+### Fixed
+- Points like (6, 6) no longer split across two lines on tests.
+
 ## [0.25.0] - 2026-11-23
 
 ### Changed

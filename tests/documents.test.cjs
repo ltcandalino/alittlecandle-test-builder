@@ -86,8 +86,12 @@ describe('Test and Quiz', () => {
     const v = await version(1);
     assert.ok(v.slice(0, 4).every(x => x.pk === 'Part I'), v.map(x => x.pk).join(','));
   });
-  test('first page: title, unit title, teacher, calculator, time', async () => {
-    const t = text(await html(0));
+  test('first page: title and unit title; teacher, calculator and time on the accommodated copy only', async () => {
+    let t = text(await html(0));
+    assert.doesNotMatch(t, /Ms\. C|Desmos|extended time/);
+    await page.evaluate(() => { window.__tb.state.settings.accom = { on: true, version: 0 }; });
+    t = text(await page.evaluate(() => window.__tb.fn.accHtml()));
+    await page.evaluate(() => { delete window.__tb.state.settings.accom; });
     assert.match(t, /Name:/); assert.match(t, /Quarter 1 – Unit 3 Exam/); assert.match(t, /Lines/);
     assert.match(t, /Ms\. C/); assert.match(t, /Desmos/); assert.match(t, /1\.5× extended time/);
   });
@@ -107,12 +111,12 @@ describe('Test and Quiz', () => {
     assert.match(h, /cl-comp/);
     assert.match(h, /cl-cred">\[4\]/);
   });
-  test('bonus questions go last, numbered from 1, and are not in the score', async () => {
+  test('bonus questions go last, without numbers, and are not in the score', async () => {
     await settings(page, { bonus: { [ids[5]]: true } });
     const v = await version(1);
     assert.equal(v[v.length - 1].id, ids[5]); assert.equal(v[v.length - 1].bonus, true);
     const t = text(await html(1));
-    assert.match(t, /Bonus 1\. ES six/);
+    assert.match(t, /Bonus ES six/);
     assert.match(t, /\/12\b/, 'score box should leave out the 4-point bonus (16 - 4)');
     const key = await page.evaluate(() => window.__tb.fn.keyHtml(window.__tb.fn.buildVersion(1), 1));
     assert.match(key, /Bonus 1/);
@@ -127,10 +131,10 @@ describe('Test and Quiz', () => {
     it = (await version(0)).find(x => x.html === 'BM seven');
     assert.equal(it.open, false);
   });
-  test('header picture has the course name; first page is bold', async () => {
+  test('header picture has the course name, bold on every page', async () => {
     const h = await page.evaluate(() => window.__tb.fn.headers());
     assert.match(h.first.svg, />Geometry</); assert.match(h.first.svg, /font-weight="bold"/);
-    assert.match(h.rest.svg, />Geometry</); assert.doesNotMatch(h.rest.svg, /font-weight="bold"/);
+    assert.match(h.rest.svg, />Geometry</); assert.match(h.rest.svg, /font-weight="bold"/);
   });
   test('course name falls back to the course', async () => {
     await settings(page, { headerText: '' });
@@ -209,17 +213,73 @@ describe('Lesson', () => {
     assert.deepEqual(await fn(page, 'lessonTools'), ['compass', 'trace']);
     await settings(page, { toolCompass: false, toolTrace: false }); assert.equal(await count(), 0);
   });
-  test('every document type prints with 0.5in margins; Review tables have no borders', async () => {
+  test('tests and quizzes: 1 in and 0.75 in margins; other documents 0.5 in; Review tables have no borders', async () => {
     for (const doc of ['test', 'quiz', 'review', 'lesson']) {
       await settings(page, { docType: doc });
-      assert.deepEqual(await fn(page, 'pageGeom'), { m: '.5in', w: 540, hd: 18 }, doc);
-      const css = await page.evaluate(() => window.__tb.printJobs('all')[0].css);
-      assert.match(css, /margin:\.5in;margin-top:\d+(\.\d+)?pt/, doc);
+      const g = await fn(page, 'pageGeom'), exam = doc === 'test' || doc === 'quiz';
+      assert.deepEqual([g.m, g.w, g.left, g.top], exam ? ['1in .25in 1in .625in', 504, 54, 72] : ['.5in', 540, 36, 36], doc);
+      const jobs = await page.evaluate(() => window.__tb.printJobs('both').map(j => j.css));
+      assert.match(jobs[0], exam ? /margin:1in \.25in 1in \.625in;margin-top:72pt/ : /margin:\.5in;margin-top:\d+(\.\d+)?pt/, doc);
+      assert.match(jobs[jobs.length - 1], /margin:\.5in;@bottom-left/, doc + ': keys stay at half an inch');
     }
     await settings(page, { docType: 'review' });
     const b = await page.evaluate(() => { const r = document.createElement('div'); r.innerHTML = '<table class="rv"><tr><td>x</td></tr></table>'; document.body.appendChild(r); const s = getComputedStyle(r.querySelector('td')).borderTopStyle; r.remove(); return s; });
     assert.equal(b, 'none');
     await settings(page, { docType: 'lesson' });
+  });
+});
+
+describe('exam layout (EXAM-FORMAT.md)', () => {
+  const dom = (js) => page.evaluate(js);
+  const pic = (w, h) => page.evaluate(([w, h]) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return '<img class="q-img" src="' + c.toDataURL('image/png') + '" style="width:' + w / 200 + 'in">'; }, [w, h]);
+  const body = async (q, kind) => { // the printed question
+    const id = await page.evaluate(q => { const T = window.__tb, x = Object.assign({ id: T.uid(), course: T.state.course, bank: 'L', type: 'mc', points: 2, html: '', choices: [], answer: 0, lines: 0, space: 1, answerArea: 'space' }, q); T.state.questions.push(x); T.state = T.normalize(T.state); window.__keepSel = T.state.selected; T.state.selected = [x.id]; return x.id; }, q);
+    const h = await html(0);
+    await page.evaluate(id => { const T = window.__tb; T.state.selected = window.__keepSel; T.state.questions = T.state.questions.filter(x => x.id !== id); }, id);
+    return h;
+  };
+  const long = ['a reflection over the line y = x and more', 'a reflection over the line y = 2 and more', 'a rotation about the origin of 90 degrees', 'a translation two units to the right'];
+  before(async () => { await settings(page, { docType: 'test', group: true, bonus: {}, computeBox: true, showCredits: true, versions: 1, accom: { on: false } }); });
+  test('a square picture goes beside sentence choices; a wide one is centered above; four short choices stay above', async () => {
+    const sq = await pic(400, 400), wide = await pic(500, 240);
+    assert.match(await body({ html: 'Which?<br>' + sq, choices: long }), /<div class="pt-qt">Which\?<\/div><div class="q-two"><div><ul class="pt-ch c1">.*<div class="q-side"><img/);
+    const w = await body({ html: 'Which?<br>' + wide, choices: long });
+    assert.match(w, /Which\?<img class="q-img q-mid"/); assert.doesNotMatch(w, /q-two/);
+    assert.doesNotMatch(await body({ html: 'Which?<br>' + sq, choices: ['1', '2', '3', '4'] }), /q-two/);
+    assert.match(await body({ html: 'Which?', choices: ['(1, 2)', '(3, 4)', '(5, 6)', '(7, 8)'] }), /pt-ch c4/);
+  });
+  test('open response: credits under the words, then the picture; (a) (b) become parts after the credits', async () => {
+    const sq = await pic(400, 400);
+    assert.match(await body({ type: 'es', html: 'Graph it.<br>' + sq }), /<div class="pt-qt">Graph it\.<\/div><div class="cl-cred">\[2\]<\/div><div class="pt-more"><img/);
+    const p = await body({ type: 'es', html: 'Use M(1, 2).<br>(a) Graph it.<br><br><b>(b)</b> Label it.<br>' + sq + '<br>(c) Explain.' });
+    assert.match(p, /Use M\(1, 2\)\.<\/div><div class="cl-cred">\[2\]<\/div><div class="pt-more"><div class="q-part"><b>\(a\)<\/b><div>Graph it\.<\/div><\/div><div class="q-part"><b>\(b\)<\/b><div>(<b><\/b> ?)?Label it\.<br><img[^>]*><\/div><\/div><div class="q-part"><b>\(c\)<\/b><div>Explain\.<\/div>/);
+    assert.doesNotMatch(await body({ type: 'es', html: 'Is (a) bigger than (b)?' }), /q-part/);
+  });
+  test('triangles print as Δ; the bank keeps △', async () => {
+    assert.match(await body({ type: 'es', html: 'Prove △ABC ≅ △DEF.' }), /Prove ΔABC ≅ ΔDEF/);
+    await settings(page, { docType: 'review' }); assert.match(await body({ type: 'es', html: 'Prove △ABC.' }), /△ABC/); await settings(page, { docType: 'test' });
+  });
+  test('each part starts on a new page unless turned off', async () => {
+    assert.match(await html(0), /cl-part cl-first/);
+    const n = async () => ((await html(0)).match(/cl-newpage/g) || []).length;
+    assert.ok(await n() >= 1);
+    await settings(page, { partPages: false }); assert.equal(await n(), 0);
+    await settings(page, { partPages: true });
+  });
+  test('pages: the computations box on every multiple-choice page, the score box at the bottom of the last page', async () => {
+    const r = await page.evaluate(() => {
+      const T = window.__tb, keep = T.state.selected, ids = [];
+      for (let i = 0; i < 12; i++) { const x = { id: T.uid(), course: T.state.course, bank: 'L', type: 'mc', points: 2, html: 'Question ' + i, choices: ['a long sentence that is one choice', 'a long sentence that is another', 'a long sentence that is a third', 'a long sentence, the last one'], answer: 0, lines: 0, space: 0 }; T.state.questions.push(x); ids.push(x.id); }
+      T.state.selected = ids;
+      const m = document.createElement('div'); m.className = 'pt pt-classic pt-test pt-measure'; m.style.width = '504pt'; document.body.appendChild(m);
+      m.innerHTML = T.fn.testHtml(T.fn.buildVersion(0), 0);
+      const segs = T.fn.fitExam(m), t0 = m.getBoundingClientRect().top;
+      const comps = [...m.querySelectorAll('.cl-comp')].map(c => c.getBoundingClientRect().top - t0), sc = m.querySelector('.cl-score').getBoundingClientRect().bottom - t0;
+      const out = { pages: segs.length, perPage: segs.map(([a, b]) => comps.filter(y => y >= a - 1 && y < b).length), used: sc - segs[segs.length - 1][0] };
+      m.remove(); T.state.selected = keep; T.state.questions = T.state.questions.filter(q => !ids.includes(q.id)); return out;
+    });
+    assert.ok(r.pages >= 2, r.pages + ' pages'); assert.deepEqual(r.perPage, Array(r.pages).fill(1));
+    assert.ok(Math.abs(r.used - 864) < 8, 'the score box ends at the bottom margin (9 in of text): ' + r.used);
   });
 });
 

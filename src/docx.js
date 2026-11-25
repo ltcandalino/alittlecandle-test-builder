@@ -277,6 +277,7 @@ var DOCX=(function(){
     if(cur)qs.push(cur);
     return qs.map(function(q){return buildQuestion(q,ctx);});
   }
+  function isChoice(label,fmt){return !!label&&(/Letter/.test(fmt||'')||/^\(\d\)$/.test(label));} // a. b. c. or (1) (2) (3) lists
   function buildQuestion(q,ctx){
     var stem=[],choices=[],points=null,curChoice=null,emptyRun=0,trailingEmpty=0,lastWasChoice=false,blanks=false;
     q.items.forEach(function(it){
@@ -284,14 +285,18 @@ var DOCX=(function(){
         // a nested table: choices inside it, or a table that belongs to the question (like a proof)
         var hasLetters=false;
         // check without advancing counters: look for letter-numbered paragraphs
-        Array.prototype.forEach.call(it.el.getElementsByTagNameNS(NS.w,'numPr'),function(np){var ni=kid(np,'w','numId'),il=kid(np,'w','ilvl');var l=ctx.num.level(ni?attr(ni,'val'):'',il?+attr(il,'val'):0);if(l&&/Letter/.test(l.fmt))hasLetters=true;});
+        Array.prototype.forEach.call(it.el.getElementsByTagNameNS(NS.w,'numPr'),function(np){var ni=kid(np,'w','numId'),il=kid(np,'w','ilvl');var l=ctx.num.level(ni?attr(ni,'val'):'',il?+attr(il,'val'):0);if(l&&(/Letter/.test(l.fmt)||l.text==='(%1)'))hasLetters=true;});
         if(hasLetters&&!choices.length){
-          // each cell holds a choice
-          kids(it.el,'w','tr').forEach(function(tr){kids(tr,'w','tc').forEach(function(tc){
-            var html='',got=false;
-            (function cell(el){for(var c=el.firstElementChild;c;c=c.nextElementSibling){if(c.namespaceURI===NS.w&&c.localName==='p'){var pi=paraInfo(c,ctx);if(pi.label&&/Letter/.test(pi.fmt||''))got=true;if(pi.html.replace(/&emsp;|\s/g,''))html+=(html?'<br>':'')+pi.html;}}})(tc);
-            if(got||html)choices.push(html.replace(/^(<br>)+|(<br>)+$/g,''));
-          });});
+          // each cell holds a choice, or several (choices beside a picture); a cell without a letter next to lettered ones is the question's picture
+          kids(it.el,'w','tr').forEach(function(tr){
+            var cells=kids(tr,'w','tc').map(function(tc){
+              var list=[],got=false;
+              for(var c=tc.firstElementChild;c;c=c.nextElementSibling)if(c.namespaceURI===NS.w&&c.localName==='p'){var pi=paraInfo(c,ctx),has=pi.html.replace(/&emsp;|\s/g,'');
+                if(isChoice(pi.label,pi.fmt)){got=true;list.push(pi.html);}else if(has){if(list.length)list[list.length-1]+=(list[list.length-1]?'<br>':'')+pi.html;else list.push(pi.html);}}
+              return {list:list,got:got};});
+            var any=cells.some(function(x){return x.got;});
+            cells.forEach(function(x){x.list.forEach(function(h){if(any&&!x.got&&/\u0000IMG/.test(h))stem.push(h);else choices.push(h.replace(/^(<br>)+|(<br>)+$/g,''));});});
+          });
           lastWasChoice=true;trailingEmpty=0;
         }else{
           stem.push(tableHtml(it.el,ctx));trailingEmpty=0;
@@ -302,7 +307,7 @@ var DOCX=(function(){
       if(JUNK.test(t)&&!it.hasImg){return;}
       if(/^\[\s*\d+(\.\d+)?\s*\]$/.test(t)){points=+t.replace(/[^\d.]/g,'');if(!it.hasImg)return;it=Object.assign({},it,{html:it.html.replace(/\[\s*\d+(\.\d+)?\s*\]/,''),text:''});}
       var ptsInline=t.match(/\[(\d+)\]\s*$/);
-      if(it.label&&/Letter/.test(it.fmt||'')){curChoice={html:it.html};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
+      if(isChoice(it.label,it.fmt)){curChoice={html:it.html};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
       var typedCh=!it.label&&t.match(/^\(?([a-hA-H]|[1-8])[.)]\s+\S/);
       if(typedCh&&(stem.length||choices.length)&&(/[a-hA-H]/.test(typedCh[1])?typedCh[1].toLowerCase().charCodeAt(0)-97:+typedCh[1]-1)===choices.length&&(/\(/.test(t[0])||/[a-hA-H]/.test(typedCh[1]))){
         // several choices on one line, separated by tabs: "(1) a<tab>(2) b<tab>(3) c"

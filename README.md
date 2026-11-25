@@ -38,9 +38,9 @@ to keep a copy or move to another computer.
 - **Question types:** multiple choice, bimodal (print with or without choices), true/false,
   short answer, extended response.
 - **Document types**, each with the course name and a bar at the top of every page:
-  - **Test / Quiz** – Quarter/Unit title line, teacher, calculator, time accommodation,
-    Parts I–IV with directions and totals, credits like [2], computation box, bonus questions,
-    score box, "v. 1" footer.
+  - **Test / Quiz** – Quarter/Unit title line, Parts I–IV with directions and totals, borderless question
+    tables, credits like [2], computation box, bonus questions, score box, "v. 1" footer; teacher, calculator and
+    time on the accommodated copy. The rules are in [EXAM-FORMAT.md](EXAM-FORMAT.md).
   - **Review** – table of Short/Extended Response and Multiple Choice questions with references.
   - **Lesson** – compass/ruler/tracing paper pictures, "I am learning to", Warm Up!, Notes,
     Essential Concept, Examples, Success Criteria, Practice, and a Q#W##D### / Source footer.

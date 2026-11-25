@@ -305,21 +305,58 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 /* classic layout */
 .pt-classic .cl-row{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 2pt}
 .pt-classic .cl-name{margin:4pt 0 4pt}
+.pt-test .cl-row,.pt-quiz .cl-row,.pt-test .cl-name,.pt-quiz .cl-name{margin:0}
 .pt-classic .cl-line{display:inline-block;border-bottom:1px solid #000;height:11pt;vertical-align:baseline}
-.pt-classic .cl-title{margin-bottom:10pt}
-.pt-classic .cl-part{margin:16pt 0 8pt;break-after:avoid;break-inside:avoid}
-.pt-classic .cl-pname{text-align:center;font-weight:700}
-.pt-classic .cl-dir{font-weight:700;line-height:1.55;margin-top:2pt}
-.pt-classic .cl-tot{float:right;margin-left:12pt}
-.pt-classic .cl-dir::after{content:"";display:table;clear:both}
-.pt-classic .cl-comp{float:right;border:1px solid #000;font-style:italic;font-weight:700;font-size:8pt;width:1.3in;text-align:center;padding:2pt 4pt;margin:0 0 6pt 10pt;line-height:1.2}
-.pt-classic .cl-q{margin-top:14pt}
-.pt-classic .cl-cred{float:right;margin-left:10pt}
 .pt-classic .pt-ch li b{font-weight:700}
 .pt-classic .pt-num{min-width:22pt}
-.cl-scorewrap{display:flex;justify-content:flex-end;margin-top:18pt;break-inside:avoid}
-.cl-score{border:1.2px solid #000;width:1.9in;height:1.2in;padding:5pt 7pt;display:flex;flex-direction:column;justify-content:space-between;font-size:11pt}
-.cl-score-n{text-align:right;font-size:26pt;line-height:1}
+.pt-test .cl-title,.pt-quiz .cl-title{margin:0 0 3pt}
+/* tests and quizzes: measured from her Unit 4 exam, see EXAM-FORMAT.md */
+.pt.pt-test,.pt.pt-quiz{line-height:1.2}
+.pt-version.pt-test,.pt-version.pt-quiz{width:7in;margin-left:.125in}
+.pt-classic .cl-acc{display:grid;grid-template-columns:1fr 1fr 1fr;margin:1.2em 0 3pt}
+.pt-classic .cl-acc i:nth-child(2){text-align:center}
+.pt-classic .cl-acc i:nth-child(3){text-align:right}
+.pt-classic .cl-part{margin:1.2em 0;break-after:avoid;break-inside:avoid}
+.pt-classic .cl-part.cl-first{margin-top:0}
+.pt-classic .cl-part.cl-newpage{margin-top:0;break-before:page}
+.pt-classic .cl-pname{text-align:center;font-weight:700}
+.pt-classic .cl-dir{font-weight:700}
+.pt-classic .cl-tot{float:right;margin-left:12pt}
+.pt-classic .cl-dir::after{content:"";display:table;clear:both}
+.pt-classic .cl-q{margin:0 0 2.4em;column-gap:0;position:relative}
+.pt-classic .cl-title+.cl-q,.pt-classic .cl-acc+.cl-q,.pt-classic .pt-ins+.cl-q,.pt-classic .pt-ins+.cl-part{margin-top:1.2em}
+.pt-classic .x-mc{--nw:calc(.4in * var(--accz,1));grid-template-columns:var(--nw) calc(6.3in - var(--nw))}
+.pt-classic .x-op{--nw:calc(.51in * var(--accz,1));grid-template-columns:var(--nw) calc(7in - var(--nw));margin-bottom:1.2em}
+.pt-classic .x-sh{grid-template-columns:minmax(.25in,max-content) 1fr}
+.pt-classic .x-sh>.pt-num{padding-right:3pt}
+.pt-classic .x-bl{--nw:calc(.85in * var(--accz,1))}
+.pt-classic .x-mc>*,.pt-classic .x-op>*{padding:0 .075in}
+.pt-classic .x-mc>.pt-num,.pt-classic .x-op>.pt-num{padding-right:0}
+.pt-classic .x-bn{display:block}
+.pt-classic .x-mc .pt-ch{margin-top:1.2em}
+.pt-classic .cl-q>.pt-num{min-width:0}
+.pt-classic .cl-q .pt-ch{gap:0}
+.pt-classic .cl-q .pt-ch li{gap:0}
+.pt-classic .cl-q .pt-ch li b{min-width:.25in;padding-right:3pt;box-sizing:border-box;font-weight:700;flex:none}
+.pt-classic .cl-q .pt-ch.c1,.pt-classic .cl-q .pt-ch.c2{line-height:1.38}
+.pt-classic .cl-q .pt-ch.c2 li,.pt-classic .cl-q .pt-ch.c4 li{padding-left:.075in}
+.pt-classic .q-two{display:grid;grid-template-columns:1fr auto;column-gap:.15in;align-items:start}
+.pt-classic .q-side{padding-top:1.2em}
+.pt-classic .q-side img{margin:0}
+.pt-classic .q-mid{display:block;margin:4pt auto}
+.pt-classic .pt-more{margin-top:3pt}
+.pt-classic .q-part{display:grid;grid-template-columns:minmax(.25in,max-content) 1fr;margin-top:1.2em}
+.pt-classic .q-part:first-child{margin-top:0}
+.pt-classic .q-part>b{white-space:nowrap;padding-right:2pt}
+.pt-classic .cl-cred{text-align:right}
+.pt-classic .cl-comp{position:absolute;left:6.27in;top:0;width:1.23in;height:.4in;box-sizing:border-box;border:.75pt solid #bfbfbf;font-weight:700;font-size:8pt;text-align:center;padding:.05in 0;line-height:1.2}
+.pt-classic .cl-bonus{font-weight:700;font-style:italic;margin:1.2em 0 0;break-after:avoid}
+.pt-test:not(.acc) .m,.pt-test:not(.acc) .m-ov,.pt-test:not(.acc) .m-acc,.pt-test:not(.acc) .m-frac,.pt-quiz:not(.acc) .m,.pt-quiz:not(.acc) .m-ov,.pt-quiz:not(.acc) .m-acc,.pt-quiz:not(.acc) .m-frac{font-family:Cambria,"Cambria Math",var(--ptf,serif)}
+.pt-test .m-ov,.pt-test .m-acc,.pt-quiz .m-ov,.pt-quiz .m-acc{font-style:italic}
+.cl-scorewrap{display:flex;justify-content:flex-end;margin:6pt -.25in 0 0;break-inside:avoid}
+.cl-score.over{position:absolute;left:5.69in}
+.cl-score{border:.5pt solid #000;width:1.55in;height:1.01in;box-sizing:border-box;padding:.05in .1in;display:flex;flex-direction:column;justify-content:space-between;font-size:12pt;background:#fff}
+.cl-score-n{text-align:right;font-size:32pt;line-height:1.1;white-space:nowrap}
 .cl-runhead{text-align:center;border-bottom:1.5pt solid #000;padding-bottom:3pt;margin:-.2in 0 .2in}
 .cl-runfoot{margin-top:.3in;font-size:9pt;color:#777}
 .pt .q-tbl td{min-width:1.6in}
@@ -346,10 +383,6 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .sel .exc{display:block;width:100%;margin-top:4px;font-size:12px;padding:3px 6px}
 .pv-head{margin:-.25in 0 .18in}
 .pv-head img{display:block;max-width:100%;height:auto!important}
-.pt-classic .cl-acc{display:grid;grid-template-columns:1fr 1fr 1fr;margin:0 0 4pt}
-.pt-classic .cl-acc i:nth-child(2){text-align:left}
-.pt-classic .cl-cred{text-align:right;margin:2pt 0 0}
-.pt-classic .cl-bonus{font-weight:700;margin:18pt 0 4pt;break-after:avoid}
 /* review */
 .rv-title{text-align:center;font-family:Helvetica,Arial,sans-serif;margin:4pt 0 2pt}
 table.rv{width:100%;border-collapse:collapse;table-layout:fixed}
@@ -625,14 +658,14 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 /* the preview as letter-size pages (8.5 x 11 in, the same margins, header and footer as the printout) */
 .pv-pages{width:8.5in;margin:0 auto}
 .pv-page{position:relative;width:8.5in;height:11in;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18),0 4px 14px rgba(0,0,0,.08);overflow:hidden}
-.pv-page .pv-head{position:absolute;left:.5in;margin:0}
-.pv-win{position:absolute;left:.5in;width:7.5in;overflow:hidden}
+.pv-page .pv-head{position:absolute;margin:0}
+.pv-win{position:absolute;overflow:hidden}
 .pv-flow{display:flow-root}
-.pv-foot{position:absolute;left:.5in;right:.5in;bottom:0;height:.5in;display:flex;align-items:center;color:#000}
+.pv-foot{position:absolute;bottom:0;display:flex;align-items:center;color:#000}
 .pv-fr{margin-left:auto}
 .pv-pn{text-align:center;font:12px/1 system-ui,sans-serif;color:var(--muted);margin:8px 0 18px}
 .pv-pages>.pv-pn:last-child{margin-bottom:0}
-#pvMeasure{position:absolute;left:-10000px;top:0;width:7.5in;display:flow-root;visibility:hidden;pointer-events:none}
+.pt-measure{position:absolute;left:-10000px;top:0;display:flow-root;visibility:hidden;pointer-events:none}
 
 /* polish 2026-11-20: Set up previews, 3 Print prints; whole question cards pick on 1 Pick questions; phones */
 .pv-go{display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--line);margin-top:12px}
@@ -1611,6 +1644,7 @@ var DOCX=(function(){
     if(cur)qs.push(cur);
     return qs.map(function(q){return buildQuestion(q,ctx);});
   }
+  function isChoice(label,fmt){return !!label&&(/Letter/.test(fmt||'')||/^\(\d\)$/.test(label));} // a. b. c. or (1) (2) (3) lists
   function buildQuestion(q,ctx){
     var stem=[],choices=[],points=null,curChoice=null,emptyRun=0,trailingEmpty=0,lastWasChoice=false,blanks=false;
     q.items.forEach(function(it){
@@ -1618,14 +1652,18 @@ var DOCX=(function(){
         // a nested table: choices inside it, or a table that belongs to the question (like a proof)
         var hasLetters=false;
         // check without advancing counters: look for letter-numbered paragraphs
-        Array.prototype.forEach.call(it.el.getElementsByTagNameNS(NS.w,'numPr'),function(np){var ni=kid(np,'w','numId'),il=kid(np,'w','ilvl');var l=ctx.num.level(ni?attr(ni,'val'):'',il?+attr(il,'val'):0);if(l&&/Letter/.test(l.fmt))hasLetters=true;});
+        Array.prototype.forEach.call(it.el.getElementsByTagNameNS(NS.w,'numPr'),function(np){var ni=kid(np,'w','numId'),il=kid(np,'w','ilvl');var l=ctx.num.level(ni?attr(ni,'val'):'',il?+attr(il,'val'):0);if(l&&(/Letter/.test(l.fmt)||l.text==='(%1)'))hasLetters=true;});
         if(hasLetters&&!choices.length){
-          // each cell holds a choice
-          kids(it.el,'w','tr').forEach(function(tr){kids(tr,'w','tc').forEach(function(tc){
-            var html='',got=false;
-            (function cell(el){for(var c=el.firstElementChild;c;c=c.nextElementSibling){if(c.namespaceURI===NS.w&&c.localName==='p'){var pi=paraInfo(c,ctx);if(pi.label&&/Letter/.test(pi.fmt||''))got=true;if(pi.html.replace(/&emsp;|\s/g,''))html+=(html?'<br>':'')+pi.html;}}})(tc);
-            if(got||html)choices.push(html.replace(/^(<br>)+|(<br>)+$/g,''));
-          });});
+          // each cell holds a choice, or several (choices beside a picture); a cell without a letter next to lettered ones is the question's picture
+          kids(it.el,'w','tr').forEach(function(tr){
+            var cells=kids(tr,'w','tc').map(function(tc){
+              var list=[],got=false;
+              for(var c=tc.firstElementChild;c;c=c.nextElementSibling)if(c.namespaceURI===NS.w&&c.localName==='p'){var pi=paraInfo(c,ctx),has=pi.html.replace(/&emsp;|\s/g,'');
+                if(isChoice(pi.label,pi.fmt)){got=true;list.push(pi.html);}else if(has){if(list.length)list[list.length-1]+=(list[list.length-1]?'<br>':'')+pi.html;else list.push(pi.html);}}
+              return {list:list,got:got};});
+            var any=cells.some(function(x){return x.got;});
+            cells.forEach(function(x){x.list.forEach(function(h){if(any&&!x.got&&/\u0000IMG/.test(h))stem.push(h);else choices.push(h.replace(/^(<br>)+|(<br>)+$/g,''));});});
+          });
           lastWasChoice=true;trailingEmpty=0;
         }else{
           stem.push(tableHtml(it.el,ctx));trailingEmpty=0;
@@ -1636,7 +1674,7 @@ var DOCX=(function(){
       if(JUNK.test(t)&&!it.hasImg){return;}
       if(/^\[\s*\d+(\.\d+)?\s*\]$/.test(t)){points=+t.replace(/[^\d.]/g,'');if(!it.hasImg)return;it=Object.assign({},it,{html:it.html.replace(/\[\s*\d+(\.\d+)?\s*\]/,''),text:''});}
       var ptsInline=t.match(/\[(\d+)\]\s*$/);
-      if(it.label&&/Letter/.test(it.fmt||'')){curChoice={html:it.html};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
+      if(isChoice(it.label,it.fmt)){curChoice={html:it.html};choices.push(curChoice);lastWasChoice=true;trailingEmpty=0;return;}
       var typedCh=!it.label&&t.match(/^\(?([a-hA-H]|[1-8])[.)]\s+\S/);
       if(typedCh&&(stem.length||choices.length)&&(/[a-hA-H]/.test(typedCh[1])?typedCh[1].toLowerCase().charCodeAt(0)-97:+typedCh[1]-1)===choices.length&&(/\(/.test(t[0])||/[a-hA-H]/.test(typedCh[1]))){
         // several choices on one line, separated by tabs: "(1) a<tab>(2) b<tab>(3) c"
@@ -2010,7 +2048,7 @@ function makeExporter(A) {
     st = st || {};
     var out = [];
     Array.prototype.forEach.call(node.childNodes, function (c) {
-      if (c.nodeType === 3) { var t = c.nodeValue.replace(/\s+/g, ' '); if (t) out.push(Object.assign({ text: t }, st)); return; }
+      if (c.nodeType === 3) { var t = c.nodeValue.replace(/[ \t\r\n]+/g, ' '); if (t) out.push(Object.assign({ text: t }, st)); return; }
       if (c.nodeType !== 1) return;
       var tag = c.tagName.toLowerCase(), cls = c.className || '';
       if (tag === 'br') return out.push({ br: 1 });
@@ -2096,8 +2134,17 @@ function makeExporter(A) {
   var TW = 1440; // twips per inch
   var BLANK = '\u0001blank\u0001'; // an empty paragraph between blocks (marker, so repeats can be collapsed)
 
-  function docx(kind) {
-    var secs = sections(kind), roots = secs.map(function (s) { return parse(s.html); });
+  // the paper of every test, laid out like the preview (score box beside the last question when there's room), as a detached root
+  function laidOut(kind) {
+    var secs = sections(kind);
+    return Promise.all(secs.map(function (s) { return s.type === 'test' ? A.fitHtml(s.html, s.acc) : s.html; })).then(function (hs) {
+      var roots = hs.map(parse);
+      roots.forEach(function (r) { var o = r.querySelector('.cl-score.over'); if (o) { var w = document.createElement('div'); w.className = 'cl-scorewrap over'; w.appendChild(o); r.appendChild(w); } });
+      return { secs: secs, roots: roots };
+    });
+  }
+  function docx(kind) { return laidOut(kind).then(function (x) { return docxOf(x.secs, x.roots); }); }
+  function docxOf(secs, roots) {
     var uses = []; roots.forEach(function (r) { Array.prototype.forEach.call(r.querySelectorAll('img'), function (i) { uses.push({ src: i.getAttribute('src'), w: inches(i.style.width) }); }); });
     if (docType() === 'lesson') lessonTools().forEach(function (k) { uses.push({ src: LESSON_ICONS[k].src, w: LESSON_ICONS[k].w / 72 }); });
     return prepareImages(uses).then(function (imgs) {
@@ -2108,7 +2155,7 @@ function makeExporter(A) {
   }
 
   function DocxWriter(imgs) {
-    this.imgs = imgs; this.media = []; this.mediaIds = {}; this.body = ''; this.parts = []; this.rels = []; this.n = 0; this.nums = [];
+    this.imgs = imgs; this.media = []; this.mediaIds = {}; this.body = ''; this.parts = []; this.rels = []; this.n = 0; this.nums = []; this.exam = isExamDoc(); this.ind = this.exam ? 360 : 576; // question numbers hang 0.25 in on tests, 0.4 in on lessons
   }
   DocxWriter.prototype = {
     rid: function () { return 'rId' + (++this.n + 10); },
@@ -2134,12 +2181,12 @@ function makeExporter(A) {
       });
       return h;
     },
-    // math runs -> OMML: letters italic (Word's own style), words upright, x<sup>2</sup> -> a real superscript on its base
+    // math runs -> OMML: letters italic (Word's own style), points like ABCD too; words and Δ upright, x<sup>2</sup> -> a real superscript on its base
     omRuns: function (rs) {
       var self = this, out = [], OP = /^[=+\u2212\-<>\u2264\u2265\u2260\u2245\u223c\u2248\u00d7\u00f7\u00b7\u00b1]$/;
       var mr = function (t) {
         if (/^[A-Za-z]\u0302$/.test(t)) return '<m:acc><m:accPr><m:chr m:val="\u0302"/></m:accPr><m:e><m:r><m:t>' + t[0] + '</m:t></m:r></m:e></m:acc>'; // p̂
-        return '<m:r>' + (/^[A-Za-z]{2,}$/.test(t) ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : '') + '<m:t xml:space="preserve">' + X(t) + '</m:t></m:r>'; };
+        return '<m:r>' + ((/^[A-Za-z]{2,}$/.test(t) && !/^[A-Z]+$/.test(t)) || t === '\u0394' ? '<m:rPr><m:sty m:val="p"/></m:rPr>' : '') + '<m:t xml:space="preserve">' + X(t) + '</m:t></m:r>'; };
       (rs || []).forEach(function (x) {
         if (x.math) { out.push({ x: self.omml(x) }); return; }
         if (!x.text) return;
@@ -2175,18 +2222,19 @@ function makeExporter(A) {
         '<pic:nvPicPr><pic:cNvPr id="' + pid + '" name="Picture ' + pid + '"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="' + this.mediaIds[src] + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
         '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
     },
-    // Every paragraph is spacing 0 before/after, line 1.15 (her request); gaps of 6 pt or more become an empty paragraph
+    // Every paragraph is spacing 0 before/after, line 1.15 (tests and quizzes single, EXAM-FORMAT.md); gaps of 6 pt or more become an empty paragraph
     // (BLANK; repeats are collapsed in section()). Question numbers are a Word numbered list (o.numPr), so wrapped lines
     // line up with the text; the question's other lines are indented to match.
     p: function (content, o) {
       o = o || {};
       var pp = '', gapB = (o.before || 0) >= 120 ? BLANK : '', gapA = (o.after || 0) >= 120 ? BLANK : '';
       if (o.keepNext) pp += '<w:keepNext/>';
+      if (o.newPage) pp += '<w:pageBreakBefore/>';
       if (o.numPr) pp += o.numPr;
       if (o.border) pp += '<w:pBdr>' + o.border + '</w:pBdr>';
       if (o.shade) pp += '<w:shd w:val="clear" w:color="auto" w:fill="' + o.shade + '"/>';
       if (o.tabs) pp += '<w:tabs>' + o.tabs.map(function (t) { return '<w:tab w:val="' + t[0] + '"' + (t[2] ? ' w:leader="' + t[2] + '"' : '') + ' w:pos="' + Math.round(t[1]) + '"/>'; }).join('') + '</w:tabs>';
-      var sp = this.cur.spacing ? 1.6 : 1.15;
+      var sp = o.lines || this.cur.lines || (this.cur.spacing ? 1.6 : 1.15);
       pp += '<w:spacing w:before="0" w:after="0"' + (o.exact ? ' w:line="' + o.exact + '" w:lineRule="exact"' : ' w:line="' + Math.round(240 * sp) + '" w:lineRule="auto"') + '/>';
       if (o.ind) pp += '<w:ind' + (o.ind.left != null ? ' w:left="' + Math.round(o.ind.left) + '"' : '') + (o.ind.hanging ? ' w:hanging="' + Math.round(o.ind.hanging) + '"' : '') + (o.ind.right ? ' w:right="' + Math.round(o.ind.right) + '"' : '') + '/>';
       if (o.align) pp += '<w:jc w:val="' + o.align + '"/>';
@@ -2198,28 +2246,112 @@ function makeExporter(A) {
 
     /* blocks: walk the paper by class */
     blocks: function (root) {
-      var self = this, h = '';
-      Array.prototype.forEach.call(root.children, function (el) { h += self.block(el); });
+      var self = this, h = '', rows = '', cur = '';
+      // test questions: one borderless table for each run of multiple-choice (or open-response) questions
+      var flush = function () { if (rows) h += self.bare(cur === 'mc' ? [576, 8494] : [730, 9350], rows); rows = ''; };
+      Array.prototype.forEach.call(root.children, function (el) {
+        var k = /\bx-(mc|op)\b/.exec(el.className || ''), kind = k && k[1];
+        if (!kind) { flush(); cur = ''; h += self.block(el); return; }
+        if (kind !== cur) flush();
+        cur = kind; rows += self.row(el, kind);
+        if (/\bacc-break\b/.test(el.className)) { flush(); h += self.pageBreak(); }
+      });
+      flush();
       return h;
     },
+    // a table without borders, like hers: 0.075 in of padding left and right
+    bare: function (widths, rows) {
+      var none = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return '<w:' + s + ' w:val="nil"/>'; }).join('');
+      return '<w:tbl><w:tblPr><w:tblW w:w="' + widths.reduce(function (a, b) { return a + b; }, 0) + '" w:type="dxa"/><w:tblInd w:w="0" w:type="dxa"/><w:tblBorders>' + none + '</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="108" w:type="dxa"/><w:right w:w="108" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' +
+        widths.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join('') + '</w:tblGrid>' + rows + '</w:tbl>';
+    },
+    cell: function (w, inner) { inner = inner.split(BLANK).join(this.p('')); return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/></w:tcPr>' + (/<\/w:p>$/.test(inner) ? inner : inner + this.p('')) + '</w:tc>'; },
+    within: function (w, fn) { var keep = this.cur; this.cur = Object.assign({}, keep, { width: w - 216 }); var x = fn(); this.cur = keep; return x; },
+    // number → Word's own numbering (one list per run of numbers; each version starts a new one)
+    numPr: function (num, el) {
+      var m = /^(\d+)\.$/.exec(num); if (!m || el.querySelector('.pt-blank')) return '';
+      var n = +m[1];
+      if (!this.list || this.list.next !== n) { this.nums.push({ n: n, abs: 0 }); this.list = { id: this.nums.length }; }
+      this.list.next = n + 1;
+      return '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + this.list.id + '"/></w:numPr>';
+    },
+    // one test question as a table row: number | question, choices or credits, room to answer
+    row: function (el, kind) {
+      var self = this, num = textOf(el.querySelector(':scope > .pt-num')), blank = !!el.querySelector('.pt-blank'), w = kind === 'mc' ? [576, 8494] : [730, 9350], npr = this.numPr(num, el);
+      var first = npr ? this.p('', { numPr: npr }) : this.p((blank ? this.t('____ ') : '') + this.t(num, { b: true }));
+      if (blank) { w = [w[0] + 700, w[1] - 700]; }
+      var body = el.querySelector(':scope > div:not(.pt-num)') || el;
+      var inner = this.within(w[1], function () { return self.qparts(body, kind); });
+      return '<w:tr>' + (/\blong\b/.test(el.className) ? '' : '<w:trPr><w:cantSplit/></w:trPr>') + (blank ? this.cell(w[0], first) : this.cell(w[0], first)) + this.cell(w[1], inner) + '</w:tr>';
+    },
+    // the pieces of a test question, top to bottom
+    qparts: function (body, kind) {
+      var self = this, h = '', blanks = function (n) { var x = ''; while (n--) x += self.p(''); return x; };
+      Array.prototype.forEach.call(body.children, function (c) {
+        if (/\bpt-qt\b|\bpt-more\b/.test(c.className)) h += self.text(c);
+        else if (kind === 'mc' && (/\bpt-ch\b|\bq-two\b/.test(c.className))) h += blanks(1) + self.block(c);
+        else h += self.block(c);
+      });
+      return h + blanks(kind === 'op' ? 1 : 2);
+    },
+    // question text: a paragraph per line, pictures on their own (q-mid centered), (a) (b) parts
+    text: function (el, lead) {
+      var self = this, h = '', cur = [];
+      var put = function (content, o) { if (lead) { o = Object.assign({}, o, lead); lead = null; } h += self.p(content, Object.assign({ ind: self.inQ ? { left: self.inQ } : null }, o)); };
+      var flush = function () {
+        if (!cur.length) return;
+        var line = []; cur.concat([{ br: 1 }]).forEach(function (r) { if (r.br) { put(self.runs(line)); line = []; } else line.push(r); }); cur = [];
+      };
+      Array.prototype.forEach.call(el.childNodes, function (c) {
+        var tag = c.nodeType === 1 ? c.tagName.toLowerCase() : '', cls = c.className || '';
+        if (tag === 'img' && /\bq-mid\b/.test(cls)) { flush(); put(self.pic(c.getAttribute('src'), inches(c.style.width), inches(c.style.height)), { align: 'center', ind: null }); }
+        else if (/\bq-part\b/.test(cls)) {
+          flush(); var d = c.querySelector(':scope > div'), keep = self.inQ || 0;
+          if (h) h += self.p('');
+          self.inQ = keep + 360;
+          h += self.text(d, null).replace(/^<w:p>(<w:pPr>.*?<w:ind)[^>]*\/>(.*?<\/w:pPr>)/, '<w:p>$1 w:left="' + (keep + 360) + '" w:hanging="360"/>$2' + self.t(textOf(c.querySelector('b')), { b: true }) + self.tab());
+          self.inQ = keep;
+        }
+        else if (tag === 'table') { flush(); h += self.table(c, self.inQ || 0); }
+        else if (/^(div|p)$/.test(tag)) { flush(); var rs = inlines(c); if (rs.length) { cur = rs; flush(); } }
+        else if (/^(ul|ol)$/.test(tag)) { flush(); h += self.block(c); }
+        else { var wrap = document.createElement('span'); wrap.appendChild(c.cloneNode(true)); cur = cur.concat(inlines(wrap)); }
+      });
+      flush();
+      return h || (lead ? (put(''), h) : '');
+    },
+    // a box drawn on the page (text box over the text): x, y, w, h in inches; y from the page top (vr 'page') or the paragraph
+    float: function (x, y, w, h, vr, line, inner) {
+      var id = ++this.n, E = function (v) { return Math.round(v * 914400); };
+      return '<w:r><mc:AlternateContent><mc:Choice Requires="wps"><w:drawing><wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="' + (251658240 + id) + '" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1"><wp:simplePos x="0" y="0"/>' +
+        '<wp:positionH relativeFrom="page"><wp:posOffset>' + E(x) + '</wp:posOffset></wp:positionH><wp:positionV relativeFrom="' + vr + '"><wp:posOffset>' + E(y) + '</wp:posOffset></wp:positionV><wp:extent cx="' + E(w) + '" cy="' + E(h) + '"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/><wp:docPr id="' + id + '" name="Box ' + id + '"/><wp:cNvGraphicFramePr/>' +
+        '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvSpPr txBox="1"/><wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + E(w) + '" cy="' + E(h) + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>' + line + '</wps:spPr>' +
+        '<wps:txbx><w:txbxContent>' + inner + '</w:txbxContent></wps:txbx><wps:bodyPr wrap="square" lIns="45720" tIns="45720" rIns="45720" bIns="45720" anchor="t"><a:noAutofit/></wps:bodyPr></wps:wsp></a:graphicData></a:graphic></wp:anchor></w:drawing></mc:Choice></mc:AlternateContent></w:r>';
+    },
+    compBox: function (vr, y) { return this.float(7.02, y, 1.233, 0.4, vr, '<a:noFill/><a:ln w="9525"><a:solidFill><a:srgbClr val="BFBFBF"/></a:solidFill></a:ln>', this.p(this.t('Use this space for computations.', { b: true, size: 8 }), { align: 'center', lines: 1 })); },
     block: function (el) {
       var cls = el.className || '', tag = el.tagName.toLowerCase(), W = this.cur.width, self = this;
       if (tag === 'style' || /\bcl-runfoot\b/.test(cls)) return '';
-      if (/\bcl-name\b/.test(cls)) return this.p(this.t('Name: ') + this.tab() + this.tab() + this.t('Date: ') + this.tab(), { tabs: [['left', W * 0.56, 'underscore'], ['left', W * 0.62], ['right', W, 'underscore']] });
-      if (/\bcl-title\b/.test(cls)) { var b = el.querySelector('b'), i = el.querySelector('i'); return this.p(this.t(textOf(b), { b: true }) + this.tab() + this.t(textOf(i), { i: true }), { tabs: [['right', W]] }); }
-      if (/\bcl-acc\b/.test(cls)) { var it = el.querySelectorAll('i'); return this.p([0, 1, 2].map(function (k) { return it[k] ? self.t(textOf(it[k]), { i: true }) : ''; }).join(this.tab()), { tabs: [['center', W / 2], ['right', W]] }); }
+      if (/\bcl-name\b/.test(cls)) return this.exam ? this.p(this.t('Name: ') + this.tab() + this.tab() + this.t('Date: ') + this.tab(), { tabs: [['left', 3.64 * TW, 'underscore'], ['left', 5.11 * TW], ['right', W, 'underscore']] })
+        : this.p(this.t('Name: ') + this.tab() + this.tab() + this.t('Date: ') + this.tab(), { tabs: [['left', W * 0.56, 'underscore'], ['left', W * 0.62], ['right', W, 'underscore']] });
+      if (/\bcl-title\b/.test(cls)) return this.p(this.t(textOf(el.children[0]), { b: true }) + this.tab() + this.t(textOf(el.children[1]), { b: true }), { tabs: [['right', W]], lines: 1.15 });
+      if (/\bcl-acc\b/.test(cls)) { var it = el.querySelectorAll('i'); return this.p('') + this.p([0, 1, 2].map(function (k) { return it[k] ? self.t(textOf(it[k]), { i: true }) : ''; }).join(this.tab()), { tabs: [['center', W / 2], ['right', W]] }); }
       if (/\bcl-part\b/.test(cls)) {
         var dir = el.querySelector('.cl-dir'), tot = dir && dir.querySelector('.cl-tot'), dirRuns = [];
         if (dir) { var dc = dir.cloneNode(true), tt = dc.querySelector('.cl-tot'); if (tt) tt.remove(); dirRuns = inlines(dc, { b: true }); }
-        return this.p(this.t(textOf(el.querySelector('.cl-pname')), { b: true }), { align: 'center', before: 240, keepNext: true }) +
-          (dir ? this.p(this.runs(dirRuns) + (tot ? this.tab() + this.t(textOf(tot), { b: true }) : ''), { tabs: [['right', W]], after: 120, keepNext: true }) : '');
+        return this.p(this.t(textOf(el.querySelector('.cl-pname')), { b: true }), { align: 'center', before: /\bcl-first\b|\bcl-newpage\b/.test(cls) ? 0 : 240, keepNext: true, newPage: /\bcl-newpage\b/.test(cls) && !el.sectioned }) +
+          (dir ? this.p(this.runs(dirRuns) + (tot ? this.tab() + this.t(textOf(tot), { b: true }) : ''), { tabs: [['right', W]], keepNext: true }) : '') + this.p(el.boxed ? this.compBox('paragraph', 0.15) : '', { keepNext: true });
       }
-      if (/\bcl-comp\b/.test(cls)) return this.p(this.t(textOf(el), { b: true, i: true, size: 8 }), { align: 'center', border: this.bdr(['top', 'left', 'bottom', 'right']), ind: { left: W - 1.3 * TW }, box: true });
-      if (/\bcl-bonus\b/.test(cls)) return this.p(this.t(textOf(el), { b: true }), { align: 'center', before: 240, keepNext: true });
-      if (/\bcl-scorewrap\b/.test(cls) || /\bcl-score\b/.test(cls)) {
-        var sc = el.querySelector('.cl-score') || el, num = sc.querySelector('.cl-score-n'), lab = sc.cloneNode(true), nn = lab.querySelector('.cl-score-n'); if (nn) nn.remove();
-        var box = this.bdr(['top', 'left', 'bottom', 'right'], 10), ind = { left: W - 1.9 * TW };
-        return this.p(this.t(textOf(lab)), { border: box, ind: ind, box: true, before: 360 }) + this.p(this.t(textOf(num), { size: 26 }), { border: box, ind: ind, box: true, align: 'right', exact: 720 });
+      if (/\bcl-comp\b/.test(cls)) return ''; // drawn with the part heading and in the page header
+      if (/\bcl-bonus\b/.test(cls)) return this.p(this.t(textOf(el), { b: true, i: true }), { before: 240, keepNext: true });
+      if (/\bcl-scorewrap\b/.test(cls)) { // an empty paragraph as tall as the box holds its place, so nothing is printed under it; the box is fixed to the bottom of that page
+        var sc = el.querySelector('.cl-score'), num = sc.querySelector('.cl-score-n'), lab = sc.cloneNode(true); lab.querySelector('.cl-score-n').remove();
+        return this.p(this.float(6.44, 8.96, 1.55, 1.01, 'page', '<a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="6350"><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln>',
+          this.p(this.t(textOf(lab)), { lines: 1 }) + this.p(this.t(textOf(num), { size: 32 }), { align: 'right', lines: 1 })), { exact: /\bover\b/.test(cls) ? 20 : 1480 });
+      }
+      if (/\bq-two\b/.test(cls)) { // choices with a picture beside them
+        var im = el.querySelector('.q-side img'), pw = Math.round((inches(im.style.width) || (this.imgs[im.getAttribute('src')] || {}).wIn || 2) * TW) + 216, full = W, lw = full - pw;
+        return this.bare([lw, pw], '<w:tr>' + this.cell(lw, this.within(lw, function () { return self.blocks(el.children[0]); })) + this.cell(pw, this.within(pw, function () { return self.p(self.pic(im.getAttribute('src'), inches(im.style.width), inches(im.style.height)), { align: 'right' }); })) + '</w:tr>').replace('<w:tblInd w:w="0"', '<w:tblInd w:w="-108"');
       }
       if (/\bpt-q\b/.test(cls) && tag !== 'tr') return this.question(el);
       if (/\brv-title\b/.test(cls)) return this.p(this.t(textOf(el), { b: true }), { align: 'center', after: 80 });
@@ -2252,16 +2384,18 @@ function makeExporter(A) {
       return h;
     },
     question: function (el) {
-      var self = this, num = textOf(el.querySelector(':scope > .pt-num')), body = el.querySelector(':scope > div:not(.pt-num)') || el, IND = 0.4 * TW, h = '';
-      var qt = body.querySelector(':scope > .pt-qt'), first = true, before = this.cur.spacing ? 360 : 220;
-      // "12." → Word's own numbering (one list per run of numbers; bonus questions and each version start a new one)
-      var m = /^(\d+)\.$/.exec(num), numPr = '';
-      if (m && !el.querySelector('.pt-blank')) {
-        var n = +m[1];
-        if (!this.list || this.list.next !== n) { this.nums.push(n); this.list = { id: this.nums.length }; }
-        this.list.next = n + 1;
-        numPr = '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + this.list.id + '"/></w:numPr>';
+      var self = this, num = textOf(el.querySelector(':scope > .pt-num')), body = el.querySelector(':scope > div:not(.pt-num)') || el, IND = this.ind, h = '';
+      if (/\bx-(sh|bn)\b/.test(el.className)) { // short answer: a numbered paragraph; bonus: no number
+        var np = this.numPr(num, el), bn = /\bx-bn\b/.test(el.className), hd = '', qt0 = body.querySelector(':scope > .pt-qt');
+        this.inQ = bn ? 0 : IND;
+        hd = qt0 ? this.text(qt0, np ? { numPr: np, ind: null } : num ? { ind: { left: IND, hanging: IND } } : null) : '';
+        if (!np && num) hd = hd.replace('</w:pPr>', '</w:pPr>' + this.t(num, { b: true }) + this.tab());
+        Array.prototype.forEach.call(body.children, function (c) { if (c !== qt0) hd += /\bpt-more\b/.test(c.className) ? self.text(c) : self.block(c); });
+        this.inQ = 0;
+        return hd + this.p('') + this.p('') + (/\bacc-break\b/.test(el.className) ? this.pageBreak() : '');
       }
+      var qt = body.querySelector(':scope > .pt-qt'), first = true, before = this.cur.spacing ? 360 : 220;
+      var numPr = this.numPr(num, el);
       var lead = function (content, o) {
         var x = first && numPr ? self.p(content, Object.assign({ numPr: numPr, before: before, keepNext: true }, o || {}))
           : self.p((first && num ? self.t(num, { b: true }) + self.tab() : '') + content, Object.assign({ ind: { left: IND, hanging: first && num ? IND : 0 }, before: first ? before : 0, after: 60, keepNext: true }, o || {}));
@@ -2292,12 +2426,26 @@ function makeExporter(A) {
     },
     choices: function (ul) {
       var self = this, cols = /\bc4\b/.test(ul.className) ? 4 : /\bc2\b/.test(ul.className) ? 2 : 1, IND = this.inQ || 0, W = this.cur.width, colW = (W - IND) / cols, h = '';
+      if (this.exam && cols === 4 && this.cur.big) { cols = 2; colW = (W - IND) / 2; }
+      if (this.exam) return this.examChoices(ul, cols, IND);
       var items = Array.prototype.map.call(ul.querySelectorAll(':scope > li'), function (li) { var b = li.querySelector('b'), sp = li.querySelector('span'); return self.t(textOf(b), { b: true }) + self.t(' ') + self.runs(sp ? inlines(sp) : []); });
       for (var i = 0; i < items.length; i += cols) {
         var row = items.slice(i, i + cols), tabs = []; for (var k = 1; k < cols; k++) tabs.push(['left', IND + colW * k]);
         h += this.p(row.join(this.tab()), { tabs: tabs.length ? tabs : null, ind: { left: IND }, after: this.cur.spacing ? 140 : 60, keepNext: i + cols < items.length });
       }
       return h;
+    },
+    // a test's choices: four across or 2 × 2 in their own borderless table, sentences one under another
+    examChoices: function (ul, cols, ind) {
+      var self = this, W = this.cur.width - ind, cw = Math.floor(W / cols), lis = Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+      var ln = this.cur.spacing ? 0 : cols === 4 ? 1 : 1.15;
+      this.nums.push({ n: 1, abs: 1 }); // a real Word list, starting again at a. for each question
+      var npr = '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + this.nums.length + '"/></w:numPr>';
+      var one = function (li, left) { var sp = li.querySelector('span'); return self.p(self.runs(sp ? inlines(sp) : []), { numPr: npr, ind: left ? { left: left + 360, hanging: 360 } : null, lines: ln }); };
+      if (cols === 1) return lis.map(function (li) { return one(li, ind); }).join('');
+      var rows = ''; for (var i = 0; i < lis.length; i += cols) { rows += '<w:tr><w:trPr><w:cantSplit/></w:trPr>'; for (var k = 0; k < cols; k++) rows += lis[i + k] ? this.cell(cw, this.within(cw, function () { return one(lis[i + k], 0); })) : this.cell(cw, this.p('')); rows += '</w:tr>'; }
+      var ws = []; while (ws.length < cols) ws.push(cw);
+      return this.bare(ws, rows).replace('<w:tblInd w:w="0"', '<w:tblInd w:w="' + ind + '"');
     },
     table: function (tb, indent) {
       var self = this, rows = tb.querySelectorAll(':scope > tr, :scope > thead > tr, :scope > tbody > tr'), W = this.cur.width - (indent || 0);
@@ -2338,38 +2486,61 @@ function makeExporter(A) {
     },
     page: function () { return '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>'; },
     section: function (s, root, last) {
-      var lesson = s.doc === 'lesson', W = 7.5 * TW, self = this;
+      var lesson = s.doc === 'lesson', paper = this.exam && s.type !== 'key', W = (paper ? 7 : 7.5) * TW, self = this;
       this.list = null;
-      this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing };
-      // tests and quizzes: Name/Date, the title line and teacher/calculator/time go in the first-page header (like her Word template)
+      this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing,
+        lines: paper && !s.spacing ? 1 : 0, big: paper && (s.size || 0) > num(appState().settings.fontSize, 12) };
+      // tests and quizzes: Name/Date and the title line (and teacher/calculator/time on the accommodated copy) go in the first-page header
       var top = '';
-      if (s.type !== 'key' && (s.doc === 'test' || s.doc === 'quiz')) Array.prototype.slice.call(root.children).forEach(function (el) {
+      if (paper) Array.prototype.slice.call(root.children).forEach(function (el) {
         if (/\bcl-(name|title|acc)\b/.test(el.className)) { top += self.block(el); el.remove(); }
       });
       var sid = 'Sec' + (this.parts.length + this.media.length + Math.random().toString(36).slice(2, 6));
       var styled = function (x) { return x.replace(/<w:p>(<w:pPr>)?/g, function (m0, pp) { return '<w:p><w:pPr><w:pStyle w:val="' + sid + '"/>' + (pp ? '' : '</w:pPr>'); }); };
-      var body = this.blocks(root), course = headerText(), right = rightLabel(), hdr = {};
-      var bar = this.bdr(['bottom'], 10), small = { size: 9, color: '666666' };
+      // a multiple-choice part is a Word section of its own: its page header carries the computations box on every page after its first
+      var chunks = [{ els: [], box: false, type: 'nextPage' }];
+      Array.prototype.slice.call(root.children).forEach(function (el) {
+        if (paper && /\bcl-part\b/.test(el.className)) {
+          var boxed = /\bcl-boxed\b/.test(el.className), c = chunks[chunks.length - 1];
+          el.boxed = boxed;
+          if (boxed !== c.box || (boxed && c.els.length)) { if (c.els.length) { el.sectioned = true; chunks.push({ els: [], box: boxed, type: /\bcl-newpage\b/.test(el.className) ? 'nextPage' : 'continuous' }); } else c.box = boxed; }
+        } else if (paper && /\bcl-(bonus|scorewrap)\b/.test(el.className)) { /* stays with the last part */ }
+        chunks[chunks.length - 1].els.push(el);
+      });
+      var blankP = '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="' + (this.cur.lines ? 240 : 276) + '" w:lineRule="auto"/></w:pPr></w:p>';
+      var bodies = chunks.map(function (c) { var d = document.createElement('div'); c.els.forEach(function (e) { d.appendChild(e); });
+        return styled(self.blocks(d).split(BLANK + BLANK).join(BLANK).split(BLANK + BLANK).join(BLANK).replace(new RegExp('^(' + BLANK + ')+'), '').split(BLANK).join(blankP)); });
+      var course = headerText(), right = rightLabel(), hdr = {}, boxHdr = '';
+      var bar = this.bdr(['bottom'], paper ? 12 : 10).replace(/w:space="4"/, paper ? 'w:space="1"' : 'w:space="4"'), small = { size: 9, color: '666666' };
       if (s.type === 'key') {
         hdr.header = this.hf('header', this.p('')); // blank: otherwise Word repeats the test's header
         hdr.footer = this.hf('footer', this.p(this.t(course + '  —  ' + docTitle() + '  —  ' + s.label, small) + this.tab() + this.t('Page ', small) + this.page(), { tabs: [['right', W]] }));
+      } else if (paper) {
+        var line = function (extra) { return styled(self.p(self.t(course, { b: true, size: 12 }) + (extra || ''), { align: 'center', border: bar, ind: { left: -180 } })); };
+        hdr.first = this.hf('header', line() + (top ? styled(this.p('') + top) : ''));
+        hdr.header = this.hf('header', line());
+        if (chunks.some(function (c) { return c.box; })) boxHdr = this.hf('header', line(this.compBox('page', 0.83)));
+        hdr.footer = this.hf('footer', styled(this.p(this.tab() + this.page(), { tabs: [['right', W]] })));
+        hdr.firstFooter = this.hf('footer', styled(this.p(this.t('v. ' + (s.v + 1), { size: 10, color: '808080' }))));
       } else {
         var icons = lesson ? lessonTools().map(function (k) { return self.pic(LESSON_ICONS[k].src, LESSON_ICONS[k].w / 72, LESSON_ICONS[k].h / 72) + self.t(' '); }).join('') : '';
-        hdr.first = this.hf('header', (icons ? this.p(icons) : '') + this.p(this.t(course, { b: true }), { align: 'center', border: bar }) + (top ? styled(this.p('') + top + this.p('')) : ''));
+        hdr.first = this.hf('header', (icons ? this.p(icons) : '') + this.p(this.t(course, { b: true }), { align: 'center', border: bar }));
         hdr.header = this.hf('header', this.p(this.t(course), { align: 'center', border: bar }) + (right ? this.p(this.t(right, { i: s.doc === 'review' }), { align: 'right' }) : ''));
         var foot = lesson ? [lessonCode(), lessonSource() ? 'Source: ' + lessonSource() : ''].filter(Boolean).join('   ') : '';
         hdr.footer = this.hf('footer', this.p((foot ? this.t(foot, small) : '') + this.tab() + this.page(), { tabs: [['right', W]] }));
-        hdr.firstFooter = this.hf('footer', isExamDoc() ? this.p(this.t('v. ' + (s.v + 1), { size: 8, color: '777777' })) : this.p(''));
+        hdr.firstFooter = this.hf('footer', this.p(''));
       }
-      var sect = '<w:sectPr>' + (hdr.first ? '<w:headerReference w:type="first" r:id="' + hdr.first + '"/>' : '') + (hdr.header ? '<w:headerReference w:type="default" r:id="' + hdr.header + '"/>' : '') +
-        (hdr.firstFooter ? '<w:footerReference w:type="first" r:id="' + hdr.firstFooter + '"/>' : '') + '<w:footerReference w:type="default" r:id="' + hdr.footer + '"/>' +
-        '<w:type w:val="nextPage"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="' + 0.5 * TW + '" w:right="' + 0.5 * TW + '" w:bottom="' + 0.5 * TW + '" w:left="' + 0.5 * TW + '" w:header="' + 0.25 * TW + '" w:footer="' + 0.25 * TW + '" w:gutter="0"/>' +
-        '<w:pgNumType w:start="1"/>' + (hdr.first ? '<w:titlePg/>' : '') + '</w:sectPr>';
+      var mar = paper ? [1, 0.75, 0.5] : [0.5, 0.5, 0.25], ref = function (k, t, id) { return id ? '<w:' + k + 'Reference w:type="' + t + '" r:id="' + id + '"/>' : ''; };
       // the section's font and size go on every run through a paragraph-level default (rPr in pPr doesn't inherit), so use a style per section
       this.styles = (this.styles || '') + '<w:style w:type="paragraph" w:customStyle="1" w:styleId="' + sid + '"><w:name w:val="' + X(s.label || 'Test') + ' text"/><w:basedOn w:val="Normal"/><w:qFormat/><w:rPr><w:rFonts w:ascii="' + X(this.cur.font) + '" w:hAnsi="' + X(this.cur.font) + '" w:cs="' + X(this.cur.font) + '"/><w:sz w:val="' + Math.round(this.cur.size * 2) + '"/><w:szCs w:val="' + Math.round(this.cur.size * 2) + '"/></w:rPr></w:style>';
-      body = styled(body.split(BLANK + BLANK).join(BLANK).split(BLANK + BLANK).join(BLANK).replace(new RegExp('^(' + BLANK + ')+'), '').split(BLANK).join('<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="276" w:lineRule="auto"/></w:pPr></w:p>'));
-      if (last) this.body += body + sect;
-      else this.body += body + '<w:p><w:pPr>' + sect + '</w:pPr></w:p>';
+      chunks.forEach(function (c, i) {
+        var h1 = i ? hdr.header : hdr.first, f1 = i ? hdr.footer : hdr.firstFooter, tp = i ? c.box : !!hdr.first;
+        var sect = '<w:sectPr>' + (tp ? ref('header', 'first', h1) : '') + ref('header', 'default', c.box ? boxHdr : hdr.header) + (tp ? ref('footer', 'first', f1) : '') + ref('footer', 'default', hdr.footer) +
+          '<w:type w:val="' + c.type + '"/><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="' + mar[0] * TW + '" w:right="' + mar[1] * TW + '" w:bottom="' + mar[0] * TW + '" w:left="' + mar[1] * TW + '" w:header="' + mar[2] * TW + '" w:footer="' + mar[2] * TW + '" w:gutter="0"/>' +
+          (i ? '' : '<w:pgNumType w:start="1"/>') + (tp ? '<w:titlePg/>' : '') + '</w:sectPr>';
+        if (last && i === chunks.length - 1) self.body += bodies[i] + sect;
+        else self.body += bodies[i] + '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>' + sect + '</w:pPr></w:p>';
+      });
     },
     files: function () {
       var media = this.media, rels = this.rels.concat(media.map(function (m) { return '<Relationship Id="' + m.id + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + m.name + '"/>'; }));
@@ -2391,20 +2562,21 @@ function makeExporter(A) {
       ];
       this.parts.forEach(function (p) { files.push({ name: p.name, data: p.xml }); });
       // question numbers: "1." bold, number at the margin, text at 0.4 in (wrapped lines too); one w:num per list, restarting at its first number
-      if (this.nums.length) files.push({ name: 'word/numbering.xml', data: head + '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="' + 0.4 * TW + '"/></w:tabs><w:ind w:left="' + 0.4 * TW + '" w:hanging="' + 0.4 * TW + '"/></w:pPr><w:rPr><w:b/></w:rPr></w:lvl></w:abstractNum>' +
-        this.nums.map(function (n, i) { return '<w:num w:numId="' + (i + 1) + '"><w:abstractNumId w:val="0"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="' + n + '"/></w:lvlOverride></w:num>'; }).join('') + '</w:numbering>' });
+      if (this.nums.length) files.push({ name: 'word/numbering.xml', data: head + '<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="' + this.ind + '"/></w:tabs><w:ind w:left="' + this.ind + '" w:hanging="' + this.ind + '"/></w:pPr><w:rPr><w:b/></w:rPr></w:lvl></w:abstractNum>' +
+        (this.exam ? (function (l) { return '<w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="singleLevel"/><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="' + l[0] + '"/><w:lvlText w:val="' + l[1] + '"/><w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="360"/></w:tabs><w:ind w:left="360" w:hanging="360"/></w:pPr><w:rPr><w:b/><w:i w:val="0"/></w:rPr></w:lvl></w:abstractNum>'; })({ lowerdot: ['lowerLetter', '%1.'], upper: ['upperLetter', '%1.'], lower: ['lowerLetter', '%1)'], num: ['decimal', '(%1)'] }[appState().settings.labels] || ['upperLetter', '%1.']) : '') +
+        this.nums.map(function (n, i) { return '<w:num w:numId="' + (i + 1) + '"><w:abstractNumId w:val="' + n.abs + '"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="' + n.n + '"/></w:lvlOverride></w:num>'; }).join('') + '</w:numbering>' });
       media.forEach(function (m) { files.push({ name: 'word/media/' + m.name, data: m.data }); });
       var mediaRels = head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + media.map(function (m) { return '<Relationship Id="' + m.id + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/' + m.name + '"/>'; }).join('') + '</Relationships>';
       this.parts.forEach(function (p) { if (/r:embed=/.test(p.xml)) files.push({ name: p.name.replace('word/', 'word/_rels/') + '.rels', data: mediaRels }); });
       return files;
     }
   };
-  var NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
+  var NS = 'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
 
   /* ---------- LaTeX (.zip with the .tex file and its pictures; pdfLaTeX, exam class) ---------- */
   // Unicode symbols that show up in math questions → LaTeX (set up with \newunicodechar in the preamble)
   var UNI = { '∠': '\\angle', '△': '\\triangle', '≅': '\\cong', '∼': '\\sim', '⊥': '\\perp', '∥': '\\parallel', '°': '^{\\circ}', 'π': '\\pi', '√': '\\surd', '≠': '\\neq', '≤': '\\leq', '≥': '\\geq', '±': '\\pm', '×': '\\times', '÷': '\\div', 'θ': '\\theta', '′': '^{\\prime}', '″': '^{\\prime\\prime}',
-    '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '∘': '\\circ', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta',
+    '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '∘': '\\circ', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta', 'ℓ': '\\ell',
     'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\varepsilon', 'λ': '\\lambda', 'μ': '\\mu', 'σ': '\\sigma', 'φ': '\\varphi', 'ω': '\\omega', 'Δ': '\\Delta', 'Σ': '\\Sigma', 'Ω': '\\Omega' };
   var FONT_PKG = { 'Century Schoolbook': '\\usepackage{tgschola}', 'Times New Roman': '\\usepackage{newtxtext}', 'Book Antiqua': '\\usepackage{tgpagella}', 'Georgia': '\\usepackage{tgschola}', 'Cambria': '\\usepackage{tgschola}', 'Garamond': '\\usepackage{ebgaramond}',
     'Arial': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Calibri': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Verdana': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Comic Sans MS': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}',
@@ -2415,8 +2587,8 @@ function makeExporter(A) {
   }
   function texMathText(s) { return String(s).replace(/[\\{}$&#%_]/g, function (c) { return c === '\\' ? '\\backslash ' : '\\' + c; }).replace(/\s+/g, '\\ '); }
 
-  function latex(kind) {
-    var secs = sections(kind), roots = secs.map(function (s) { return parse(s.html); });
+  function latex(kind) { return laidOut(kind).then(function (x) { return latexOf(kind, x.secs, x.roots); }); }
+  function latexOf(kind, secs, roots) {
     var uses = []; roots.forEach(function (r) { Array.prototype.forEach.call(r.querySelectorAll('img'), function (i) { uses.push({ src: i.getAttribute('src'), w: inches(i.style.width) }); }); });
     var lesson = docType() === 'lesson';
     if (lesson) lessonTools().forEach(function (k) { uses.push({ src: LESSON_ICONS[k].src, w: LESSON_ICONS[k].w / 72 }); });
@@ -2430,14 +2602,18 @@ function makeExporter(A) {
   function TexWriter(imgs) { this.imgs = imgs; this.files = []; this.names = {}; this.used = {}; }
   TexWriter.prototype = {
     preamble: function () {
-      var s = appState().settings, lesson = docType() === 'lesson', m = 'top=0.25in,bottom=0.5in,left=0.5in,right=0.5in,includehead,headheight=' + (lesson ? 40 : 16) + 'pt,footskip=0.25in';
+      var s = appState().settings, lesson = docType() === 'lesson', ex = isExamDoc(), m = ex ? 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=24pt,headsep=12pt,footskip=0.35in' : 'top=0.25in,bottom=0.5in,left=0.5in,right=0.5in,includehead,headheight=' + (lesson ? 40 : 16) + 'pt,footskip=0.25in,headsep=6pt';
       var uni = Object.keys(this.used).map(function (c) { return '\\newunicodechar{' + c + '}{\\ensuremath{' + UNI[c] + '}}'; }).join('\n');
       return '% Made by ALittleCandleTestBuilder. Compile with pdfLaTeX (Overleaf\'s default).\n' +
-        '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ',headsep=6pt]{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
+        '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ']{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
         (FONT_PKG[s.font] || FONT_PKG['Century Schoolbook']) + '\n' +
         '\\usepackage{amsmath,amssymb,graphicx,array,tabularx,longtable,enumitem,needspace,newunicodechar}\n\\usepackage[table]{xcolor}\n' +
         '\\definecolor{lessonpurple}{HTML}{8064A2}\\definecolor{mcshade}{HTML}{E5DFEC}\n' +
-        '\\setlength{\\parindent}{0pt}\\setlength{\\linefillheight}{24pt}\\setlength{\\fboxsep}{4pt}\n\\raggedbottom\n' + uni + '\n';
+        '\\setlength{\\parindent}{0pt}\\setlength{\\linefillheight}{24pt}\\setlength{\\fboxsep}{4pt}\n\\raggedbottom\n' +
+        (ex ? '\\usepackage{eso-pic,afterpage}\n\\newif\\ifmcpage\n\\definecolor{boxgray}{HTML}{BFBFBF}\n' +
+          '\\newcommand{\\compbox}{{\\setlength{\\fboxsep}{0pt}\\setlength{\\fboxrule}{0.75pt}\\fcolorbox{boxgray}{white}{\\parbox[c][0.4in][c]{1.233in}{\\centering\\fontsize{8}{9.6}\\selectfont\\bfseries Use this space for computations.}}}}\n' +
+          '\\AddToShipoutPictureFG{\\ifmcpage\\AtPageUpperLeft{\\put(\\LenToUnit{7.02in},\\LenToUnit{-1.25in}){\\compbox}}\\fi}\n' +
+          '\\newcommand{\\scorebox}[1]{{\\setlength{\\fboxsep}{5pt}\\setlength{\\fboxrule}{0.5pt}\\fcolorbox{black}{white}{\\parbox[b][0.86in][s]{1.4in}{Score:\\vfill\\hfill{\\fontsize{32}{36}\\selectfont #1}}}}}\n' : '') + uni + '\n';
     },
     // inline runs → LaTeX
     runs: function (rs) {
@@ -2476,23 +2652,34 @@ function makeExporter(A) {
     mixed: function (el) {
       var self = this, h = '', cur = [];
       var flush = function () { if (cur.length) { h += self.para(inlines(wrapAll(cur))); cur = []; } };
-      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); } else cur.push(c); });
+      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); }
+        else if (c.nodeType === 1 && /\bq-mid\b/.test(c.className)) { flush(); h += '{\\centering ' + self.runs(inlines(wrapAll([c]))) + '\\par}\n'; } else cur.push(c); });
       flush(); return h;
     },
     block: function (el) {
       var cls = el.className || '', tag = el.tagName.toLowerCase(), self = this;
       if (tag === 'style' || /\bcl-runfoot\b/.test(cls)) return '';
       if (/\bcl-name\b/.test(cls)) return 'Name: \\rule{3.4in}{0.4pt}\\hfill Date: \\rule{1.9in}{0.4pt}\\par\\medskip\n';
-      if (/\bcl-title\b/.test(cls)) return '\\textbf{' + this.uniText(textOf(el.querySelector('b'))) + '}\\hfill\\textit{' + this.uniText(textOf(el.querySelector('i'))) + '}\\par\\smallskip\n';
-      if (/\bcl-acc\b/.test(cls)) return Array.prototype.map.call(el.querySelectorAll('i'), function (i) { return '\\textit{' + self.uniText(textOf(i)) + '}'; }).join('\\hfill ') + '\\par\\medskip\n';
+      if (/\bcl-title\b/.test(cls)) return '\\textbf{' + this.uniText(textOf(el.children[0])) + '}\\hfill\\textbf{' + this.uniText(textOf(el.children[1])) + '}\\par\\vspace{3pt}\n';
+      if (/\bcl-acc\b/.test(cls)) return '\\medskip' + Array.prototype.map.call(el.querySelectorAll('i'), function (i) { return '\\textit{' + self.uniText(textOf(i)) + '}'; }).join('\\hfill ') + '\\par\\vspace{3pt}\n';
       if (/\bcl-part\b/.test(cls)) {
         var dir = el.querySelector('.cl-dir'), tot = dir && dir.querySelector('.cl-tot'), dc = dir && dir.cloneNode(true); if (dc && dc.querySelector('.cl-tot')) dc.querySelector('.cl-tot').remove();
-        return '\\needspace{6\\baselineskip}\\begin{center}\\textbf{' + this.uniText(textOf(el.querySelector('.cl-pname'))) + '}\\end{center}\\vspace{-1.5ex}\n' + (dc ? '\\textbf{' + this.runs(inlines(dc)) + '}' + (tot ? '\\hfill\\textbf{' + texEsc(textOf(tot)) + '}' : '') + '\\par\\medskip\n' : '');
+        var boxed = /\bcl-boxed\b/.test(cls), np = /\bcl-newpage\b/.test(cls);
+        this.compNext = boxed;
+        // the box is repeated on the pages after the part's first one
+        return (np ? '\\newpage' : '') + (this.boxOn ? '\\afterpage{\\global\\mcpagefalse}' + (np ? '\\global\\mcpagefalse' : '') : '') + ((this.boxOn = boxed) ? '\\afterpage{\\global\\mcpagetrue}' : '') +
+          (np || /\bcl-first\b/.test(cls) ? '' : '\\needspace{6\\baselineskip}\\bigskip') + '{\\centering\\textbf{' + this.uniText(textOf(el.querySelector('.cl-pname'))) + '}\\par}\n' +
+          (dc ? '{\\bfseries\\raggedright ' + this.runs(inlines(dc)) + (tot ? '\\hspace*{\\fill}\\mbox{' + texEsc(textOf(tot)) + '}' : '') + '\\par}\\vspace{1\\baselineskip}\n' : '');
       }
-      if (/\bcl-comp\b/.test(cls)) return '{\\hfill\\fbox{\\parbox{1.3in}{\\centering\\scriptsize\\bfseries\\itshape ' + this.uniText(textOf(el)) + '}}\\par}\n';
-      if (/\bcl-bonus\b/.test(cls)) return '\\begin{center}\\textbf{' + this.uniText(textOf(el)) + '}\\end{center}\n';
-      if (/\bcl-scorewrap\b/.test(cls)) { var sc = el.querySelector('.cl-score') || el, n = sc.querySelector('.cl-score-n'), lab = sc.cloneNode(true); if (lab.querySelector('.cl-score-n')) lab.querySelector('.cl-score-n').remove();
-        return '\\bigskip{\\hfill\\fbox{\\parbox[c][1.1in][s]{1.8in}{' + this.uniText(textOf(lab)) + '\\vfill\\hfill{\\Huge ' + texEsc(textOf(n)) + '}}}\\par}\n'; }
+      if (/\bcl-comp\b/.test(cls)) return '';
+      if (/\bcl-bonus\b/.test(cls)) return (this.boxOn ? '\\afterpage{\\global\\mcpagefalse}' : '') + '\\medskip{\\bfseries\\itshape ' + this.uniText(textOf(el)) + '\\par}\n';
+      if (/\bcl-scorewrap\b/.test(cls)) { var sb = '\\rlap{\\hspace*{5.69in}\\scorebox{' + texEsc(textOf(el.querySelector('.cl-score-n'))) + '}}'; return '\\par\\vspace*{\\fill}\\noindent' + (/\bover\b/.test(cls) ? '\\smash{' + sb + '}' : sb) + '\\mbox{}\\par\n'; }
+      if (/\bq-two\b/.test(cls)) {
+        var im = el.querySelector('.q-side img'), keep = this.width, pw = inches(im.style.width) || 2;
+        this.width = keep - pw - 0.15; var left = this.blocks(el.children[0]).replace(/\\par\s*$/, ''); this.width = keep;
+        return '\\par\\noindent\\begin{minipage}[t]{' + (Math.round((keep - pw - 0.15) * 100) / 100) + 'in}\\vspace{0pt}' + left + '\\end{minipage}\\hfill\\begin{minipage}[t]{' + pw + 'in}\\vspace{0pt}' + this.pic(im.getAttribute('src'), pw) + '\\end{minipage}\\par\n';
+      }
+      if (/\bq-part\b/.test(cls)) return '\\begin{itemize}[leftmargin=0.25in,labelwidth=0.25in,labelsep=0in,align=left,topsep=6pt]\n\\item[\\textbf{' + texEsc(textOf(el.querySelector('b'))) + '}] ' + this.mixed(el.querySelector(':scope > div')) + '\\end{itemize}\n';
       if (/\bpt-q\b/.test(cls) && tag !== 'tr') return this.question(el);
       if (/\brv-title\b/.test(cls)) return '\\begin{center}\\textbf{' + this.uniText(textOf(el)) + '}\\end{center}\n';
       if (tag === 'table') return this.table(el);
@@ -2514,6 +2701,15 @@ function makeExporter(A) {
     },
     question: function (el) {
       var self = this, num = textOf(el.querySelector(':scope > .pt-num')), body = el.querySelector(':scope > div:not(.pt-num)') || el, keepW = this.width;
+      var kx = /\bx-(mc|op|sh|bn)\b/.exec(el.className), K = kx && kx[1];
+      if (K) { // a test question: the same columns as the printed page
+        var blank = !!el.querySelector('.pt-blank'), ML = { mc: 0.475, op: 0.585, sh: 0.25, bn: 0 }[K] + (blank ? 0.45 : 0), MR = { mc: 0.775, op: 0.075, sh: 0, bn: 0 }[K];
+        this.width = 7 - ML - MR;
+        var parts = Array.prototype.map.call(body.children, function (c) { return /\bpt-qt\b|\bpt-more\b/.test(c.className) ? self.mixed(c) : (K === 'mc' && /\bpt-ch\b|\bq-two\b/.test(c.className) ? '\\vspace{1\\baselineskip}' : '') + self.block(c); }).join('');
+        this.width = keepW;
+        var comp = this.compNext && K === 'mc' ? '\\smash{\\rlap{\\hspace*{5.795in}\\raisebox{-0.06in}{\\compbox}}}' : ''; if (comp) this.compNext = false;
+        return '\\needspace{3\\baselineskip}\\begin{itemize}[leftmargin=' + ML + 'in,rightmargin=' + MR + 'in,labelindent=' + (K === 'mc' || K === 'op' ? 0.075 : 0) + 'in,labelwidth=*,labelsep=0in,align=left,topsep=0pt,partopsep=0pt]\n\\item[' + (num ? '\\textbf{' + (blank ? '\\rule{0.4in}{0.4pt} ' : '') + texEsc(num) + '}' : '') + '] \\leavevmode ' + comp + parts + '\\end{itemize}\\vspace{' + (K === 'op' ? 1 : 2) + '\\baselineskip}\n' + (/\bacc-break\b/.test(el.className) ? '\\newpage\n' : '');
+      }
       this.width = keepW - 0.4;
       var inner = Array.prototype.map.call(body.children, function (c) { return /\bpt-qt\b/.test(c.className) ? self.mixed(c) : self.block(c); }).join('');
       this.width = keepW;
@@ -2521,7 +2717,9 @@ function makeExporter(A) {
     },
     choices: function (ul) {
       var self = this, cols = /\bc4\b/.test(ul.className) ? 4 : /\bc2\b/.test(ul.className) ? 2 : 1;
-      var items = Array.prototype.map.call(ul.querySelectorAll(':scope > li'), function (li) { var b = li.querySelector('b'), sp = li.querySelector('span'); return '\\textbf{' + texEsc(textOf(b)) + '}~' + self.runs(sp ? inlines(sp) : []); });
+      if (isExamDoc() && cols === 1) return '\\begin{itemize}[leftmargin=0.25in,labelwidth=0.25in,labelsep=0in,align=left,topsep=0pt,itemsep=2pt,parsep=0pt]\n' + Array.prototype.map.call(ul.querySelectorAll(':scope > li'), function (li) { var sp = li.querySelector('span'); return '\\item[\\textbf{' + texEsc(textOf(li.querySelector('b'))) + '}] ' + self.runs(sp ? inlines(sp) : []) + '\n'; }).join('') + '\\end{itemize}\n';
+      if (isExamDoc() && cols === 4 && this.big) cols = 2;
+      var items = Array.prototype.map.call(ul.querySelectorAll(':scope > li'), function (li) { var b = li.querySelector('b'), sp = li.querySelector('span'); return (isExamDoc() ? '\\makebox[0.25in][l]{\\textbf{' + texEsc(textOf(b)) + '}}' : '\\textbf{' + texEsc(textOf(b)) + '}~') + self.runs(sp ? inlines(sp) : []); });
       var rows = []; for (var i = 0; i < items.length; i += cols) { var r = items.slice(i, i + cols); while (r.length < cols) r.push(''); rows.push(r.join(' & ')); }
       return '\\par\\smallskip\\noindent\\begin{tabularx}{\\linewidth}{@{}' + Array(cols + 1).join('X') + '@{}}\n' + rows.join(' \\\\[' + (this.spacing ? '8pt' : '3pt') + ']\n') + '\n\\end{tabularx}\\par\n';
     },
@@ -2555,20 +2753,25 @@ function makeExporter(A) {
     },
     section: function (s, root, first) {
       var lesson = s.doc === 'lesson', self = this, course = this.uniText(headerText()), right = this.uniText(rightLabel());
-      this.width = 7.5; this.spacing = !!s.spacing;
-      var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + '\\setcounter{page}{1}\n';
+      this.width = isExamDoc() ? 7 : 7.5; this.spacing = !!s.spacing; this.boxOn = this.compNext = false; this.big = (s.size || 0) > num(appState().settings.fontSize, 12);
+      var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + (isExamDoc() ? '\\global\\mcpagefalse' : '') + '\\setcounter{page}{1}\n';
       if (s.type === 'key') {
         h += '\\firstpageheader{}{}{}\\runningheader{}{}{}\\firstpageheadrule\\relax\\nofirstpageheadrule\\norunningheadrule\n' +
           '\\firstpagefooter{\\footnotesize\\color{gray}' + course + ' --- ' + this.uniText(docTitle()) + ' --- ' + this.uniText(s.label) + '}{}{\\footnotesize\\color{gray}Page \\thepage}\\runningfooter{\\footnotesize\\color{gray}' + course + ' --- ' + this.uniText(s.label) + '}{}{\\footnotesize\\color{gray}Page \\thepage}\n';
       } else {
+        if (isExamDoc()) {
+          var hd = '{}{\\makebox[0pt][c]{\\hspace*{-0.125in}\\begin{minipage}[b]{7.125in}\\centering\\hspace*{0.125in}\\textbf{\\normalsize ' + course + '}\\\\[-9pt]\\rule{7.125in}{1.5pt}\\end{minipage}}}{}';
+          h += '\\firstpageheader' + hd + '\\nofirstpageheadrule\\runningheader' + hd + '\\norunningheadrule\n\\firstpagefooter{\\small\\color{gray}v. ' + (s.v + 1) + '}{}{}\\runningfooter{}{}{\\thepage}\n';
+        } else {
         var icons = lesson ? lessonTools().map(function (k) { return self.pic(LESSON_ICONS[k].src, LESSON_ICONS[k].w / 72).replace('width=', 'height=0.45in,keepaspectratio,width='); }).join('\\,') : '';
         var foot = lesson ? this.uniText([lessonCode(), lessonSource() ? 'Source: ' + lessonSource() : ''].filter(Boolean).join('   ')) : '';
         h += '\\firstpageheader{' + icons + '}{\\textbf{' + course + '}}{}\\firstpageheadrule\n\\runningheader{}{' + course + '}{' + (s.doc === 'review' ? '\\textit{' + right + '}' : right) + '}\\runningheadrule\n' +
           '\\firstpagefooter{' + (isExamDoc() ? '\\tiny\\color{gray}v. ' + (s.v + 1) : '') + '}{}{}\\runningfooter{' + (foot ? '\\tiny\\color{gray}' + foot : '') + '}{}{\\thepage}\n';
+        }
       }
       var size = s.size && s.size !== 12 ? '\\fontsize{' + s.size + '}{' + Math.round(s.size * 1.25) + '}\\selectfont\n' : '';
       if (s.font && s.font !== appState().settings.font) h += '% ' + s.label + ': ' + s.font + ' font on paper; this file uses the closest LaTeX font.\n';
-      return h + '{' + size + (s.spacing ? '\\linespread{1.5}\\selectfont\n' : '') + body + '}\n';
+      return h + '{' + (isExamDoc() && s.type !== 'key' ? '\\raggedright\\hyphenpenalty=10000 ' : '') + size + (s.spacing ? '\\linespread{1.5}\\selectfont\n' : '') + body + '}\n';
     }
   };
 
@@ -2598,7 +2801,7 @@ function clusterOf(std){var first=String(std||'').split(/,\s*/)[0];if(/^[A-Z]{2,
 function fillMeta(q){if(q.ref&&q.month===''&&q.year===''&&q.qnum===''&&parseRef(q.ref)){delete q.month;delete q.year;delete q.qnum;}if(q.month===undefined||q.year===undefined||q.qnum===undefined){var p=parseRef(q.ref);if(q.month===undefined)q.month=p?p.month:'';if(q.year===undefined)q.year=p?p.year:'';if(q.qnum===undefined)q.qnum=p?p.qnum:'';}if(q.cluster===undefined)q.cluster=clusterOf(q.standard);if(q.subtopic===undefined)q.subtopic='';}
 function examLabel(q){var parts=[];if(q.month||q.year)parts.push(((q.month?monthName(q.month)+' ':'')+(q.year||'')).trim());if(q.qnum)parts.push('#'+q.qnum);return parts.join(' ');}
 var LETTERS='ABCDEFGH';
-var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,spacing:{review:{sa:'1.5',es:'1.5',bm:'1.5'}},roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,nameLine:true,showPoints:false,blanks:false,labels:'num',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
+var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,spacing:{review:{sa:'1.5',es:'1.5',bm:'1.5'}},roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,partPages:true,nameLine:true,showPoints:false,blanks:false,labels:'lowerdot',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
 var LABELS={lowerdot:function(i){return LETTERS[i].toLowerCase()+'.';},upper:function(i){return LETTERS[i]+'.';},lower:function(i){return LETTERS[i].toLowerCase()+')';},num:function(i){return '('+(i+1)+')';}};
 var FONTS={'Century Schoolbook':'"Century Schoolbook","New Century Schoolbook","Century Schoolbook L","TeX Gyre Schola",C059,Georgia,serif','Times New Roman':'"Times New Roman",Times,"Liberation Serif",serif','Cambria':'Cambria,"Caladea",Georgia,serif','Georgia':'Georgia,serif','Book Antiqua':'"Book Antiqua",Palatino,"Palatino Linotype","TeX Gyre Pagella",serif','Garamond':'Garamond,"EB Garamond","Adobe Garamond Pro",serif','Arial':'Arial,Helvetica,"Liberation Sans",sans-serif','Calibri':'Calibri,Carlito,"Segoe UI",sans-serif','Verdana':'Verdana,"DejaVu Sans",sans-serif','Comic Sans MS':'"Comic Sans MS","Comic Neue",cursive','Atkinson Hyperlegible':'"Atkinson Hyperlegible Next","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif','OpenDyslexic':'"OpenDyslexic","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif'};
 /* Spacing (her design 2026-11-17): each document type remembers room to answer for open response (es), short answer (sa)
@@ -2630,7 +2833,7 @@ function accClass(){var a=accom();return ' acc'+(accSize()>num(state.settings.fo
 function accBreaks(html){var n=accom().perPage|0;if(!n||docType()==='lesson')return html;
   var total=(html.match(/<(div|tr) class="(pt-q|rv-q)(?=[ "])/g)||[]).length,i=0;
   return html.replace(/<(div|tr) class="(pt-q|rv-q)(?=[ "])/g,function(m,tag,cls){i++;return '<'+tag+' class="'+(i%n===0&&i<total?'acc-break ':'')+cls;});}
-function accHtml(opts){var v=accVersion();return accBreaks(testHtml(buildVersion(v),v,opts));}
+function accHtml(opts){var v=accVersion();return accBreaks(testHtml(buildVersion(v),v,Object.assign({acc:true},opts)));}
 function bmChoices(q){if(q.inImage)return true;var o=state.settings.bmOverride||{};return (o[q.id]||state.settings.bmMode)!=='without';}
 var DEFAULT_COURSES=['Algebra 1','Geometry','Algebra 2','Pre-Calculus'];
 function guessCourse(name){var n=String(name||'');
@@ -2913,8 +3116,8 @@ function buildVersion(v){
 /* ================= printed test HTML ================= */
 function choiceCols(chs){
   var lens=chs.map(function(c){return plain(c).length+(hasImg(c)?40:0);}),max=Math.max.apply(null,lens.concat([0]));
-  if(chs.length===4&&max<=11)return 'c4';
-  if(max<=34||chs.some(hasImg))return 'c2';
+  if(chs.length===4&&max<=(isExamDoc()?9:11))return 'c4'; // a test's four columns are 1.4 in each
+  if(max<=(isExamDoc()?28:34)||chs.some(hasImg))return 'c2'; // a test's two columns are 2.9 in each
   return 'c1';
 }
 function headerText(){var s=state.settings;return (s.headerText&&s.headerText.trim())||state.course||'';}
@@ -2956,10 +3159,10 @@ function migrateSettings(st,course){
 function xmlEsc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function svgFont(){return (FONTS[state.settings.font]||FONTS['Century Schoolbook']).replace(/"/g,"'");}
 function headerSvg(o){
-  if(o.icons&&!o.icons.length)o.icons=null;var W=o.w,f=xmlEsc(svgFont()),top=o.icons?38:14,bar=top+6,H=o.right?bar+15:bar+3,b='';
+  if(o.icons&&!o.icons.length)o.icons=null;var X=o.out||0,W=o.w+X,f=xmlEsc(svgFont()),top=o.icons?38:14,bar=top+6,H=o.right?bar+15:bar+3,b='';
   if(o.icons){var x=0;o.icons.forEach(function(k){var ic=LESSON_ICONS[k];b+='<image href="'+ic.src+'" x="'+x+'" y="'+(36-ic.h)/2+'" width="'+ic.w+'" height="'+ic.h+'"/>';x+=ic.w+6;});}
-  b+='<text x="'+(W/2)+'" y="'+top+'" text-anchor="middle" font-family="'+f+'" font-size="12"'+(o.bold?' font-weight="bold"':'')+'>'+xmlEsc(o.title)+'</text>';
-  b+='<line x1="0" y1="'+bar+'" x2="'+W+'" y2="'+bar+'" stroke="black" stroke-width="1.2"/>';
+  b+='<text x="'+(X+o.w/2)+'" y="'+top+'" text-anchor="middle" font-family="'+f+'" font-size="12"'+(o.bold?' font-weight="bold"':'')+'>'+xmlEsc(o.title)+'</text>';
+  b+='<line x1="0" y1="'+bar+'" x2="'+W+'" y2="'+bar+'" stroke="black" stroke-width="'+(X?1.5:1.2)+'"/>';
   if(o.right)b+='<text x="'+W+'" y="'+(bar+13)+'" text-anchor="end" font-family="'+f+'" font-size="12"'+(o.italic?' font-style="italic"':'')+'>'+xmlEsc(o.right)+'</text>';
   return {w:W,h:H,svg:'<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'pt" height="'+H+'pt" viewBox="0 0 '+W+' '+H+'">'+b+'</svg>'};
 }
@@ -2970,18 +3173,20 @@ function lessonFootSvg(){
   return {w:340,h:code&&src?28:12,svg:'<svg xmlns="http://www.w3.org/2000/svg" width="340pt" height="'+(code&&src?28:12)+'pt" viewBox="0 0 340 '+(code&&src?28:12)+'">'+b+'</svg>'};
 }
 function svgUrl(x){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x.svg);}
-// every document type: 0.5in margins all round (her choice 2026-11-15). The header sits 0.25in from the top edge and the
-// questions start just under it, like Word does when a header is taller than the top margin.
-function pageGeom(){return {m:'.5in',w:540,hd:18};}
-function topFor(h){return Math.max(36,pageGeom().hd+h.h+6)+'pt';}
-function headers(){var t=docType(),w=pageGeom().w,r=rightLabel();
-  return {first:headerSvg({w:w,title:headerText(),bold:true,icons:t==='lesson'?lessonTools():null}),
-          rest:headerSvg({w:w,title:headerText(),right:t==='review'||t==='lesson'?r:'',italic:t==='review'})};}
+// Reviews, lessons and answer keys: 0.5in margins all round (her choice 2026-11-15), header 0.25in from the top edge.
+// Tests and quizzes (EXAM-FORMAT.md, 2026-11-24): 1in top/bottom, 0.75in sides, header 0.5in from the top; the header line
+// starts 0.125in left of the text, and the right page margin is only 0.25in so the computations and score boxes can sit there.
+// m = @page margins; w = text width, left = where text starts, out = header line's overhang, hd = header's distance from the top (pt).
+function pageGeom(){return isExamDoc()?{m:'1in .25in 1in .625in',w:504,left:54,out:9,hd:36,top:72,bot:72}:{m:'.5in',w:540,left:36,out:0,hd:18,top:36,bot:36};}
+function topFor(h){var g=pageGeom();return Math.max(g.top,g.hd+h.h+6)+'pt';}
+function headers(){var t=docType(),g=pageGeom(),w=g.w,ex=isExamDoc(),r=rightLabel();
+  return {first:headerSvg({w:w,out:g.out,title:headerText(),bold:true,icons:t==='lesson'?lessonTools():null}),
+          rest:headerSvg({w:w,out:g.out,title:headerText(),bold:ex,right:t==='review'||t==='lesson'?r:'',italic:t==='review'})};}
 /* item labels: what prints next to each question, and what the answer key calls it */
 function labelItems(items){
   var t=docType(),n=0,b=0,ex=0,wu=0,nwu=items.filter(function(it){return it.pk==='warmup';}).length;
   items.forEach(function(it){
-    if(it.bonus){b++;it.num=b+'.';it.keyLabel='Bonus '+b;}
+    if(it.bonus){b++;it.num='';it.keyLabel='Bonus '+b;}
     else if(t==='lesson'&&it.pk==='warmup'){wu++;it.num='';it.keyLabel='Warm Up'+(nwu>1?' '+wu:'');}
     else if(t==='lesson'&&it.pk==='example'){ex++;it.num='';it.keyLabel='Example '+ex;it.exN=ex;}
     else{n++;it.num=n+'.';it.keyLabel=n+'.';}
@@ -3003,49 +3208,107 @@ function qBody(it,A){
   if(A&&(q.type==='sa'||q.type==='es')&&q.answer)h+='<div class="pt-keynote">Key: '+ansHtml(q.answer)+'</div>';
   return h+gapHtml();
 }
-// rough printed height of a question's own text and pictures, in inches (a PNG's shape is read from its header)
+// a picture's size in pixels: a PNG's header says it; other pictures are loaded once, then the preview is drawn again
+var picDims={};
+function pngSize(src){var d=/^data:image\/png;base64,([A-Za-z0-9+\/]{32})/.exec(src);if(d)try{var b=atob(d[1]),n=function(i){return ((b.charCodeAt(i)<<24)>>>0)+(b.charCodeAt(i+1)<<16)+(b.charCodeAt(i+2)<<8)+b.charCodeAt(i+3);};if(n(16)&&n(20))return [n(16),n(20)];}catch(e){}return null;}
+function picLoad(src){if(!picDims[src])picDims[src]=new Promise(function(res){var i=new Image();i.onload=function(){picDims[src]=[i.naturalWidth,i.naturalHeight];res();};i.onerror=function(){res();};i.src=src;});return picDims[src];}
+function picPx(src){var p=pngSize(src);if(p)return p;p=picDims[src];if(Array.isArray(p))return p;if(src&&!p)picLoad(src).then(function(){if($('#paper'))drawPreviewSoon();});return null;}
+// before printing or downloading: the size of every picture on the test is known
+function picsReady(){var want=[];if(isExamDoc())selectedQs().forEach(function(q){(String(q.html||'').match(/<img[^>]*>/g)||[]).forEach(function(tag){var t=document.createElement('template');t.innerHTML=tag;var src=t.content.firstChild.getAttribute('src')||'';if(src&&!pngSize(src)&&!Array.isArray(picDims[src]))want.push(picLoad(src));});});
+  return want.length?Promise.race([Promise.all(want),new Promise(function(r){setTimeout(r,4000);})]):Promise.resolve();}
+function inch(v){var m=/([\d.]+)(in|pt|px)/.exec(v||'');return m?+m[1]/({'in':1,pt:72,px:96})[m[2]]:0;}
+function picIn(img){var px=picPx(img.getAttribute('src')||''),w=inch(img.style.width),h=inch(img.style.height);
+  if(!w&&px)w=h?h*px[0]/px[1]:px[0]/96;if(!h&&w&&px)h=w*px[1]/px[0];return {w:w,h:h};}
+// rough printed height of a question's own text and pictures, in inches
 function htmlInches(h){
   var im=0;h=String(h||'');
-  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="data:image\/png;base64,([A-Za-z0-9+\/]{32})/.exec(tag),r=0.75;
-    if(d)try{var b=atob(d[1]),n=function(i){return ((b.charCodeAt(i)<<24)>>>0)+(b.charCodeAt(i+1)<<16)+(b.charCodeAt(i+2)<<8)+b.charCodeAt(i+3);};if(n(16))r=n(20)/n(16);}catch(e){}
-    im+=(w?+w[1]:2)*r;return '';});
+  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);im+=(w?+w[1]:2)*(px?px[1]/px[0]:0.75);return '';});
   return h.replace(/<[^>]+>/g,'').length/95*0.21+(h.match(/<br/g)||[]).length*0.1+im;
 }
 // tall questions may break across pages; otherwise one that can't fit under the first page's header leaves page 1 blank
 function isTall(q){var a=q.type==='bm'?num(q.space,2):q.type==='es'?(q.answerArea==='space'?num(q.space,3):num(q.lines,8)*0.33):1;return a>5||a+htmlInches(q.html)>7||/<table/.test(q.html);}
-function nameRow(){return '<div class="cl-row cl-name"><span>Name: <span class="cl-line" style="width:3.1in"></span></span><span>Date: <span class="cl-line" style="width:1.6in"></span></span></div>';}
+function nameRow(){return '<div class="cl-row cl-name"><span>Name: <span class="cl-line" style="width:3.1in"></span></span><span>Date: <span class="cl-line" style="width:'+(isExamDoc()?1.42:1.6)+'in"></span></span></div>';}
 function testHtml(items,v,opts){
   labelItems(items);
   var t=docType(),h='';
   if(t==='review')h+=reviewHtml(items,v,opts);
   else if(t==='lesson')h+=lessonHtml(items,v,opts);
-  else h+=examHtml(items,v,opts);
+  else h+=examHtml(items,v,opts).replace(/[△∆]/g,'Δ').replace(/\([^()<>,;&\n]{1,14}, [^()<>,;&\n]{1,14}\)/g,function(m){return /[A-Za-z]{3}/.test(m)?m:m.replace(/ /g,'\u00a0');}); // points like (6, 6) stay on one line; tests and quizzes print Δ (her choice 2026-11-24); the bank keeps △
   return h;
 }
+/* Tests and quizzes follow EXAM-FORMAT.md. One question's own text: pictures in their place, (a) (b) (c) parts, credits.
+   kind: mc (multiple choice, true/false), op (open response), sh (short answer), bn (bonus). side: a picture may go beside the choices. */
+function examQt(html,kind,side,cred){
+  var t=document.createElement('template');t.innerHTML=html;
+  var root=t.content,out={qt:'',side:'',more:''},host=document.createElement('div');
+  var blank=function(n){return n&&(n.nodeName==='BR'||(n.nodeType===3&&!n.nodeValue.trim()));};
+  var trim=function(n){['previousSibling','nextSibling'].forEach(function(d){while(blank(n[d]))n[d].remove();});};
+  var big=function(i){return !i.closest('table')&&picIn(i).w>=1.25;};
+  if(kind==='mc'){
+    var pics=$$('img',root).filter(big),z=side&&pics.length===1?picIn(pics[0]):null,ratio=z?z.h/z.w:0;
+    pics.forEach(function(i){i.classList.remove('q-float');trim(i);});
+    // one roughly square picture, at most 2.5 in wide, goes beside sentence choices; others are centered where they are
+    if(z&&z.w<=2.55&&ratio>=0.7&&ratio<=1.4){out.side=pics[0].outerHTML;var pa=pics[0].parentNode;if(pics[0].previousSibling&&pics[0].nextSibling)pics[0].replaceWith(document.createElement('br'));else pics[0].remove();if(pa!==root&&!pa.textContent.trim()&&!pa.children.length)pa.remove();}
+    else pics.forEach(function(i){i.classList.add('q-mid');});
+    while(blank(root.lastChild))root.lastChild.remove();
+    host.appendChild(root);out.qt=host.innerHTML;return out;
+  }
+  // lines of the question; "(a)", "(b)"… in order become parts
+  var lines=[[]];Array.prototype.slice.call(root.childNodes).forEach(function(n){
+    if(n.nodeName==='BR')lines.push([]);else if(/^(DIV|P|TABLE|UL|OL)$/.test(n.nodeName))lines.push([n],[]);else lines[lines.length-1].push(n);});
+  var txt=function(l){return l.map(function(n){return n.textContent;}).join('');},lab=function(l){return /^\s*\(?([a-h])\)\s*/.exec(txt(l));},seq=0;
+  lines.forEach(function(l){var m=lab(l);if(m&&m[1]==='abcdefgh'[seq])seq++;});
+  var parts=[],pre=root;
+  if(seq>1){
+    var k=0,cur=null,keep=[];
+    lines.forEach(function(l){var m=lab(l);
+      if(m&&k<seq&&m[1]==='abcdefgh'[k]){
+        var cut=m[0].length;(function strip(ns){ns.forEach(function(n){if(!cut)return;if(n.nodeType===3){var c=Math.min(cut,n.nodeValue.length);n.nodeValue=n.nodeValue.slice(c);cut-=c;}else strip(Array.prototype.slice.call(n.childNodes));});})(l);
+        cur={l:m[1],lines:[l]};parts.push(cur);k++;
+      }else (cur?cur.lines:keep).push(l);});
+    var join=function(ls){var d=document.createElement('div');while(ls.length&&!ls[ls.length-1].some(function(n){return !blank(n);}))ls.pop();
+      ls.forEach(function(l,i){var blk=l.length===1&&/^(DIV|P|TABLE|UL|OL)$/.test(l[0].nodeName),pv=d.lastChild;if(i&&l.length&&!blk&&pv&&!/^(DIV|P|TABLE|UL|OL)$/.test(pv.nodeName))d.appendChild(document.createElement('br'));l.forEach(function(n){d.appendChild(n);});});return d;};
+    pre=join(keep);parts=parts.map(function(x){return '<div class="q-part"><b>('+x.l+')</b><div>'+join(x.lines).innerHTML+'</div></div>';});
+  }
+  // the credits go right under the words: pictures at the end of the question come after them
+  var tail=[];while(pre.lastChild){var n=pre.lastChild,only=n.nodeType===1&&!n.textContent.trim()&&(n.nodeName==='IMG'?[n]:$$('img',n));
+    if(blank(n)||(only&&only.length&&only.every(big))){tail.unshift(n);n.remove();}else break;}
+  while(tail.length&&blank(tail[0]))tail.shift();while(tail.length&&blank(tail[tail.length-1]))tail.pop();
+  var th=document.createElement('div');tail.forEach(function(x){th.appendChild(x);});
+  host.appendChild(pre);out.qt=pre===root?host.innerHTML:pre.innerHTML;
+  var more=th.innerHTML+parts.join('');out.more=cred+(more?'<div class="pt-more">'+more+'</div>':'');
+  return out;
+}
+var COMP='<div class="cl-comp">Use this space for computations.</div>';
 function examHtml(items,v,opts){
-  var s=state.settings,A=opts&&opts.answers,h='';
+  var s=state.settings,A=opts&&opts.answers,h='',big=!!(opts&&opts.acc)&&accSize()>num(s.fontSize,12);
   if(s.nameLine)h+=nameRow();
-  h+='<div class="cl-row cl-title"><b>'+esc(docTitle())+'</b><i>'+esc(s.topic||'')+'</i></div>';
+  h+='<div class="cl-row cl-title"><b>'+esc(docTitle())+'</b><b>'+esc(s.topic||'')+'</b></div>';
   var cl=calcLabel(),tl=timeLabel(),te=sv('teacher');
-  if(cl||tl||te)h+='<div class="cl-acc"><i>'+esc(te)+'</i><i>'+esc(cl)+'</i><i>'+esc(tl)+'</i></div>';
+  if(opts&&opts.acc&&(cl||tl||te))h+='<div class="cl-acc"><i>'+esc(te)+'</i><i>'+esc(cl)+'</i><i>'+esc(tl)+'</i></div>'; // accommodated copy only
   if(s.instructions&&s.instructions.trim())h+='<p class="pt-ins">'+textToHtml(s.instructions)+'</p>';
-  var main=items.filter(function(it){return !it.bonus;}),last=null,part=0,curKind=null,bonusShown=false;
+  var main=items.filter(function(it){return !it.bonus;}),last=null,part=0,curKind=null,bonusShown=false,comp='';
   items.forEach(function(it){
     var q=it.q;
     if(it.bonus&&!bonusShown){h+='<div class="cl-bonus">Bonus</div>';bonusShown=true;curKind='bonus';}
     else if(!it.bonus&&s.group&&it.pk!==last){
       var grp=main.filter(function(x){return x.pk===it.pk;}),kind=partKind(grp),tot=grp.reduce(function(a,x){return a+num(x.q.points,0);},0);
-      var name=(grp[0].q.part&&main.every(function(x){return x.q.part;}))?grp[0].q.part:'Part '+ROMAN[part];part++;
+      var name=(grp[0].q.part&&main.every(function(x){return x.q.part;}))?grp[0].q.part:'Part '+ROMAN[part];
       var dir=partDir(kind).replace(/\{credits\}/g,creditsText(grp.map(function(x){return num(x.q.points,1);})));
-      h+='<div class="cl-part"><div class="cl-pname">'+esc(name)+'</div><div class="cl-dir">'+esc(dir)+'<span class="cl-tot">['+(Math.round(tot*100)/100)+']</span></div></div>';
-      if(kind==='choice'&&s.computeBox)h+='<div class="cl-comp">Use this space for computations.</div>';
+      h+='<div class="cl-part'+(!part?' cl-first':s.partPages!==false?' cl-newpage':'')+(kind==='choice'&&s.computeBox?' cl-boxed':'')+'"><div class="cl-pname">'+esc(name)+'</div><div class="cl-dir">'+esc(dir)+'<span class="cl-tot">['+(Math.round(tot*100)/100)+']</span></div></div>';
+      part++;comp=kind==='choice'&&s.computeBox?COMP:'';
       last=it.pk;curKind=kind;
     }
-    var bl=s.blanks&&((isMC(q.type)&&!it.open)||q.type==='tf');
-    var cred=s.showCredits&&!it.bonus&&!(isMC(q.type)&&!it.open)&&q.type!=='tf'&&(curKind==='open'||!s.group)?'<div class="cl-cred">['+num(q.points,1)+']</div>':'';
-    h+='<div class="pt-q cl-q'+(isTall(q)?' long':'')+'"><div class="pt-num">'+(bl?'<span class="pt-blank"></span>':'')+it.num+'</div><div><div class="pt-qt">'+q.html+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+cred+qBody(it,A)+'</div></div>';
+    var mc=(isMC(q.type)&&!it.open)||q.type==='tf',k=it.bonus?'bn':mc?'mc':curKind==='short'?'sh':'op';
+    var bl=s.blanks&&mc,boxed=k==='mc'&&curKind==='choice'&&s.computeBox;
+    var cred=s.showCredits&&!it.bonus&&!mc&&(curKind==='open'||!s.group)?'<div class="cl-cred">['+num(q.points,1)+']</div>':'';
+    var shown=mc&&isMC(q.type)&&!q.inImage,x=examQt(q.html,k,shown&&!big&&choiceCols(it.choices)==='c1',cred),body=qBody(it,A);
+    var numH=bl||it.num?'<div class="pt-num">'+(bl?'<span class="pt-blank"></span>':'')+it.num+'</div>':'';
+    h+='<div class="pt-q cl-q x-'+k+(boxed?' x-box':'')+(bl?' x-bl':'')+(isTall(q)?' long':'')+'">'+numH+'<div><div class="pt-qt">'+x.qt+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+x.more+
+      (x.side?'<div class="q-two"><div>'+body+'</div><div class="q-side">'+x.side+'</div></div>':body)+'</div>'+(boxed?comp:'')+'</div>';
+    if(boxed)comp='';
   });
-  if(s.scoreBox&&main.length){var total=main.reduce(function(a,x){return a+num(x.q.points,0);},0);h+='<div class="cl-scorewrap"><div class="cl-score"><div>Score:</div><div class="cl-score-n">/'+(Math.round(total*100)/100)+'</div></div></div>';}
+  if(s.scoreBox&&main.length){var total=main.reduce(function(a,x){return a+num(x.q.points,0);},0);h+='<div class="cl-scorewrap"><div class="cl-score"><div>Score:</div><div class="cl-score-n">___/'+(Math.round(total*100)/100)+'</div></div></div>';}
   return h;
 }
 function refText(q){return [q.source,examLabel(q)||q.ref].filter(function(x){return x&&String(x).trim();}).join(' ');}
@@ -3094,7 +3357,7 @@ function keyHtml(items,v){
     if(s.keyNotes&&q.notes)a+='<div class="pt-mynote">Note: '+textToHtml(q.notes)+'</div>';
     h+='<tr><td class="n">'+esc(it.keyLabel)+'</td><td class="l">'+esc(l)+'</td><td>'+a+'</td><td class="p">'+ptsLabel(q.points)+'</td>'+(s.keyStd?'<td class="s">'+ref+'</td>':'')+'</tr>';
   });
-  return h+'</tbody></table>';
+  h+='</tbody></table>';return isExamDoc()?h.replace(/[△∆]/g,'Δ'):h;
 }
 function cssStr(t){return '"'+String(t).replace(/["\\]/g,'').replace(/\n/g,' ')+'"';}
 function waitImgs(root){var imgs=$$('img',root).filter(function(i){return !i.complete;});if(!imgs.length)return Promise.resolve();return new Promise(function(res){var left=imgs.length;imgs.forEach(function(i){i.onload=i.onerror=function(){if(--left===0)res();};});setTimeout(res,3000);});}
@@ -3112,7 +3375,7 @@ function runJobs(jobs){
     i++;if(total>1)printStrip(i,total,j.label||'');
     root.innerHTML='<style>'+j.css+'</style>'+j.html+(j.imgs||[]).map(function(u){return '<img class="pre-img" alt="" src="'+u.replace(/"/g,'&quot;')+'">';}).join('');
     var pre=$$('img.pre-img',root).map(function(i){return i.decode?i.decode().catch(function(){}):Promise.resolve();});
-    Promise.all(pre).then(function(){return waitImgs(root);}).then(function(){return new Promise(function(r){setTimeout(r,150);});}).then(function(){
+    Promise.all(pre).then(function(){return waitImgs(root);}).then(function(){return fitPrint(root);}).then(function(){return waitImgs(root);}).then(function(){return new Promise(function(r){setTimeout(r,150);});}).then(function(){
       setTimeout(function(){
         var done=false,after=function(){if(done)return;done=true;window.removeEventListener('afterprint',after);setTimeout(next,250);};
         window.addEventListener('afterprint',after);
@@ -3125,11 +3388,11 @@ function printJobs(kind){
   var n=nVersions(),s=state.settings,dt=docType(),font=svgFont();
   var versions=[];for(var v=0;v<n;v++)versions.push(buildVersion(v));
   var jobs=[],cur={css:'',html:''},g=pageGeom(),hd=headers();
-  var stdFooter=function(name,label){return '@page '+name+'{size:letter;margin:'+g.m+';@bottom-left{content:'+cssStr(label)+';font:9pt Arial,sans-serif;color:#666}@bottom-right{content:"Page " counter(page);font:9pt Arial,sans-serif;color:#666}}';};
-  var top=function(x){return '@top-center{content:url("'+svgUrl(x)+'");vertical-align:bottom;padding-bottom:6pt}';};
+  var stdFooter=function(name,label){return '@page '+name+'{size:letter;margin:.5in;@bottom-left{content:'+cssStr(label)+';font:9pt Arial,sans-serif;color:#666}@bottom-right{content:"Page " counter(page);font:9pt Arial,sans-serif;color:#666}}';};
+  var ex=isExamDoc(),top=function(x){return '@top-center{content:url("'+svgUrl(x)+'");text-align:'+(ex?'left':'center')+';vertical-align:bottom;padding-bottom:'+(parseFloat(topFor(x))-g.hd-x.h)+'pt}';};
   var docPage=function(name,v){
-    var pn='@bottom-right{content:counter(page);font:11pt '+font+'}',lf=dt==='lesson'?lessonFootSvg():null;
-    var first=isExamDoc()?'@bottom-left{content:'+cssStr('v. '+(v+1))+';font:8pt '+font+';color:#777}':'';
+    var pn=ex?'@bottom-right{content:counter(page);font:12pt '+font+';vertical-align:top;padding:8pt 36pt 0 0}':'@bottom-right{content:counter(page);font:11pt '+font+'}',lf=dt==='lesson'?lessonFootSvg():null;
+    var first=ex?'@bottom-left{content:'+cssStr('v. '+(v+1))+';font:10pt '+font+';color:#808080;vertical-align:top;padding:21pt 0 0 9pt}':'';
     return '@page '+name+'{size:letter;margin:'+g.m+';margin-top:'+topFor(hd.rest)+';'+top(hd.rest)+pn+(lf?'@bottom-left{content:url("'+svgUrl(lf)+'");vertical-align:middle}':'')+'}'+
       '@page '+name+':first{margin-top:'+topFor(hd.first)+';'+top(hd.first)+'@bottom-right{content:none}'+(lf?'@bottom-left{content:none}':'')+first+'}';};
   if(kind!=='keys'&&kind!=='acc')versions.forEach(function(items,v){
@@ -3163,13 +3426,13 @@ function printNow(kind){
   saveTest({printed:true});drawSaved();drawPrintBar();
   var f=outFmt(),what={docx:'Word file',tex:'LaTeX file'}[f];
   if(what){toast('Making the '+what+'…');
-    return EXP.download(f,kind).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
+    return picsReady().then(function(){return EXP.download(f,kind);}).then(function(r){toast('Downloaded “'+r.name+'” ('+Math.max(1,Math.round(r.size/1024))+' KB).');})
       .catch(function(e){console.error(e);toast('Couldn’t make the '+what+': '+(e&&e.message||e));});}
-  runJobs(printJobs(kind));
+  picsReady().then(function(){runJobs(printJobs(kind));});
 }
 window.__printJobs=printJobs;
-var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,fitHtml:fitHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -4011,13 +4274,13 @@ function _renderBuild(){
   function tf(key,label,ph,w){return '<label'+(w?' style="max-width:'+w+'"':'')+'><span class="lbl">'+label+'</span><input type="text" data-set="'+key+'" value="'+esc(s[key])+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>';}
   function ta(key,label,ph,rows,hint){return '<label><span class="lbl">'+label+(hint?' <span class="hint" style="font-weight:400">— '+hint+'</span>':'')+'</span><textarea data-set="'+key+'" rows="'+(rows||2)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'>'+esc(s[key])+'</textarea></label>';}
   var calcSel='<label><span class="lbl">Calculator</span><select data-set="calc">'+[['','(don’t show)'],['Desmos','Desmos'],['TI-84','TI-84'],['No calculator','No calculator'],['Scientific calculator','Scientific calculator'],['other','Other…']].map(function(o){return '<option value="'+esc(o[0])+'"'+(s.calc===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.calc==='other'?'<input type="text" data-set="calcOther" value="'+esc(s.calcOther)+'" placeholder="e.g. TI-30XS" style="margin-top:6px;width:100%">':'')+'</label>';
-  var timeSel='<label><span class="lbl">Time accommodation <span class="hint" style="font-weight:400">— printed on every copy</span></span><select data-set="time">'+[['','(don’t show)'],['1.5','1.5× extended time'],['2','2.0× extended time'],['min','Number of minutes…']].map(function(o){return '<option value="'+o[0]+'"'+(s.time===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.time==='min'?'<span style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="number" data-set="timeMin" min="1" max="600" value="'+esc(s.timeMin)+'" style="width:90px"> minutes</span>':'')+'</label>';
+  var timeSel='<label><span class="lbl">Time accommodation <span class="hint" style="font-weight:400">— printed on the accommodated copy</span></span><select data-set="time">'+[['','(don’t show)'],['1.5','1.5× extended time'],['2','2.0× extended time'],['min','Number of minutes…']].map(function(o){return '<option value="'+o[0]+'"'+(s.time===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.time==='min'?'<span style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="number" data-set="timeMin" min="1" max="600" value="'+esc(s.timeMin)+'" style="width:90px"> minutes</span>':'')+'</label>';
   var details='';
   if(exam)details=
     '<div class="row3">'+tf('quarter','Quarter #','1')+tf('unitNum','Unit #','3')+'</div>'+
     tf('topic','Unit title <span class="hint" style="font-weight:400">— right side, in italics</span>','e.g. Parallel & Perpendicular Lines')+
     tf('title','Title line','auto: '+autoTitle())+
-    '<div class="row">'+tf('teacher','Teacher','e.g. Ms. Candalino')+calcSel+'</div>'+
+    '<div class="row">'+tf('teacher','Teacher','e.g. Ms. Candalino')+calcSel+'</div><p class="hint">Teacher, calculator and time print on the accommodated copy only.</p>'+
     ta('instructions','Instructions','optional',2,'printed above Part I');
   else if(dt==='review')details=
     '<div class="row3">'+tf('unitNum','Unit #','3')+'</div>'+
@@ -4046,7 +4309,7 @@ function _renderBuild(){
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
     '</div>'+
     '<h3>Layout</h3><div class="checks">'+
-    (exam?cb('group','Group into parts','Part I, Part II… with directions and totals like [14].')+cb('computeBox','“Use this space for computations.” box','At the start of each multiple-choice part.')+cb('showCredits','Show credits like [2] under each open-response question')+cb('scoreBox','Score box at the end','Shows the total, like  /33. Bonus questions don’t count.'):'')+
+    (exam?cb('group','Group into parts','Part I, Part II… with directions and totals like [14].')+(s.group?cb('partPages','Start each part on a new page'):'')+cb('computeBox','“Use this space for computations.” box','On every multiple-choice page, in the right margin.')+cb('showCredits','Show credits like [2] under each open-response question')+cb('scoreBox','Score box at the bottom of the last page','Shows the total, like ___/33. Bonus questions don’t count.'):'')+
     (dt==='review'?cb('showRef','Show the reference under each question','Source and exam, like “Regents June 2024 #12”, in small gray type.'):'')+
     cb('nameLine','Name and date line')+
     (exam?cb('showPoints','Show points next to each question')+cb('blanks','Answer blank before each number','For multiple choice and true/false.'):'')+
@@ -4302,7 +4565,8 @@ function pvBlocks(root){
     var cs=getComputedStyle(c);if(cs.display==='none'||/^table-column/.test(cs.display)||cs.position==='absolute'||cs.position==='fixed')return;
     var kids=Array.prototype.some.call(c.children,function(k){var d=getComputedStyle(k).display;return d!=='inline'&&d!=='inline-block'&&d!=='none';});
     if(cs.breakInside==='avoid'||c.tagName==='TR'||!kids){var r=c.getBoundingClientRect();
-      if(r.height)out.push({top:r.top-top,bot:r.bottom-top,avoidAfter:cs.breakAfter==='avoid',avoidBefore:cs.breakBefore==='avoid',force:cs.breakAfter==='page'});}
+      if(/\bpt-space\b/.test(c.className)&&r.height>16&&cs.breakInside!=='avoid'){for(var y=r.top;y<r.bottom-0.5;y+=8)out.push({top:y-top,bot:Math.min(y+8,r.bottom)-top});return;} // blank room in a long question: printing splits it anywhere
+      if(r.height)out.push({top:r.top-top,bot:r.bottom-top,avoidAfter:cs.breakAfter==='avoid',avoidBefore:cs.breakBefore==='avoid',force:cs.breakAfter==='page',start:cs.breakBefore==='page'});}
     else walk(c);});})(root);
   return out;
 }
@@ -4310,28 +4574,66 @@ function pvBreaks(b,cap1,cap){
   var segs=[],start=0,cap0=cap1,i=0;
   var cut=function(at){segs.push([start,at]);start=at;cap0=cap;};
   for(i=0;i<b.length;i++){
-    if(i&&b[i-1].force&&b[i].top>start)cut(b[i].top);
+    if(i&&(b[i-1].force||b[i].start)&&b[i].top>start)cut(b[i].top);
     while(b[i].bot-start>cap0){
-      if(b[i].top>start+1){var j=i;while(j>0&&(b[j-1].avoidAfter||b[j].avoidBefore)&&b[j-1].top>start+1)j--;cut(b[j].top);}
+      if(b[i].top>start+1){var j=i;while(j>0&&(b[j-1].avoidAfter||b[j].avoidBefore)&&b[j-1].top>start+1)j--;
+        // a question that can't fit under its part heading at the top of a page: printing keeps them together and splits the question
+        if(j>0&&b[j-1].avoidAfter)cut(start+cap0);else cut(b[j].top);}
       else cut(start+cap0); // taller than a page: printing splits it too
     }
   }
   segs.push([start,Math.max(start,b.length?b[b.length-1].bot:0)]);
   return segs;
 }
+function measureBox(id,cls,style){var m=$('#'+id);if(!m){m=document.createElement('div');m.id=id;m.setAttribute('aria-hidden','true');document.body.appendChild(m);}
+  m.className=cls+' pt-measure';m.setAttribute('style',style+';width:'+pageGeom().w+'pt');return m;}
+function pvSegs(m){var hd=headers(),g=pageGeom();return pvBreaks(pvBlocks(m),(792-parseFloat(topFor(hd.first))-g.bot)*PT,(792-parseFloat(topFor(hd.rest))-g.bot)*PT);}
+/* A test laid out at its printed width (m): the computations box is repeated beside the first question of every multiple-choice
+   page, and the score box is pushed down to the bottom of the last page. Returns where each page starts and ends. */
+function fitExam(m){
+  var sc=$('.cl-scorewrap',m);$$('.cl-again',m).forEach(function(x){x.remove();});if(sc)sc.style.paddingTop='';
+  if(!sc&&(sc=$('.cl-score.over',m))){sc.classList.remove('over');sc.style.top='';var wrap=document.createElement('div');wrap.className='cl-scorewrap';wrap.appendChild(sc);m.appendChild(wrap);sc=wrap;} // laid out again
+  var segs=pvSegs(m);if(!isExamDoc())return segs;
+  var t0=m.getBoundingClientRect().top,qs=$$('.x-box',m).map(function(q){return {q:q,top:q.getBoundingClientRect().top-t0};});
+  segs.slice(1).forEach(function(sg){qs.forEach(function(x){if(Math.abs(x.top-sg[0])<2&&!$('.cl-comp',x.q))x.q.insertAdjacentHTML('beforeend',COMP.replace('cl-comp','cl-comp cl-again'));});});
+  if(sc){var hd=headers(),n=segs.length,room=(792-parseFloat(topFor(n>1?hd.rest:hd.first))-pageGeom().bot)*PT-(segs[n-1][1]-segs[n-1][0])-4;
+    if(room>0){sc.style.paddingTop=Math.floor(room)+'px';segs[n-1][1]+=Math.floor(room);}
+    if(n>1)scoreBeside(m,sc,segs);}
+  return segs;
+}
+// the score box alone on a new page: if the bottom right corner of the page before is free of words and pictures, it goes there
+function scoreBeside(m,sc,segs){
+  var n=segs.length,box=$('.cl-score',sc),t0=m.getBoundingClientRect().top,l0=m.getBoundingClientRect().left,qs=$$('.pt-q',m),q=qs[qs.length-1];
+  if(!q||!box||sc.getBoundingClientRect().top-t0>segs[n-1][0]+2||q.classList.contains('long'))return;
+  var hd=headers(),cap=(792-parseFloat(topFor(n>2?hd.rest:hd.first))-pageGeom().bot)*PT,H=box.offsetHeight,bot=segs[n-2][0]+cap-2,top=bot-H,left=5.69*96-8,hit=false;
+  var qr=q.getBoundingClientRect();if(qr.top-t0<segs[n-2][0]-1)return;
+  var test=function(r){if(r.width&&r.height&&r.bottom-t0>top-4&&r.top-t0<bot+2&&r.right-l0>left)hit=true;};
+  var w=document.createTreeWalker(m,NodeFilter.SHOW_TEXT),x;while((x=w.nextNode())&&!hit)if(x.nodeValue.trim()&&!sc.contains(x)){var g=document.createRange();g.selectNodeContents(x);Array.prototype.forEach.call(g.getClientRects(),test);}
+  $$('img,.pt-lines div,table',m).forEach(function(e){if(!sc.contains(e))test(e.getBoundingClientRect());});
+  if(hit)return;
+  box.classList.add('over');box.style.top=(top-(qr.top-t0))+'px';q.appendChild(box);sc.remove();segs.pop();
+}
+// the same for a download: the paper with the score box where the preview puts it
+var fitN=0;
+function fitHtml(html,acc){if(!isExamDoc())return Promise.resolve(html);
+  var m=measureBox('dlMeasure'+(fitN++),'pt pt-classic pt-'+docType()+(acc?accClass():''),acc?accStyle():ptStyle());m.innerHTML=html;
+  return waitImgs(m).then(function(){return document.fonts.ready;}).then(function(){fitExam(m);var h=m.innerHTML;m.remove();return h;});}
+function fitPrint(root){if(!isExamDoc())return Promise.resolve();
+  return Promise.all($$('section.pt-test,section.pt-quiz',root).map(function(sec,i){
+    var m=measureBox('prMeasure'+i,sec.className.replace('pt-version',''),(sec.getAttribute('style')||'').replace(/^page:[^;]*;/,''));m.innerHTML=sec.innerHTML;
+    return waitImgs(m).then(function(){return document.fonts.ready;}).then(function(){fitExam(m);sec.innerHTML=m.innerHTML;m.remove();});}));
+}
 function drawSheets(p,html,v){
-  var job=++pvJob,m=$('#pvMeasure');
-  if(!m){m=document.createElement('div');m.id='pvMeasure';m.setAttribute('aria-hidden','true');document.body.appendChild(m);}
-  m.className=p.className.replace('pv-pages','');m.setAttribute('style',p.getAttribute('style')||'');m.innerHTML=html;
+  var job=++pvJob,m=measureBox('pvMeasure',p.className.replace('pv-pages',''),p.getAttribute('style')||'');m.innerHTML=html;
   var build=function(){if(job!==pvJob)return;
-    var hd=headers(),g=pageGeom(),t1=parseFloat(topFor(hd.first)),t2=parseFloat(topFor(hd.rest)),font=svgFont(),lf=docType()==='lesson'?lessonFootSvg():null;
-    var segs=pvBreaks(pvBlocks(m),(792-t1-36)*PT,(792-t2-36)*PT),n=segs.length,wrap=p.parentNode,sc=wrap.scrollTop;
+    var hd=headers(),g=pageGeom(),ex=isExamDoc(),t1=parseFloat(topFor(hd.first)),t2=parseFloat(topFor(hd.rest)),font=svgFont(),lf=docType()==='lesson'?lessonFootSvg():null;
+    var segs=fitExam(m),n=segs.length,wrap=p.parentNode,sc=wrap.scrollTop,flow=ex?m.innerHTML:html;
     p.innerHTML=segs.map(function(sg,k){var x=k?hd.rest:hd.first,tp=k?t2:t1,
-      foot=!k?(isExamDoc()?'<span class="pv-fl" style="font:8pt '+font+';color:#777">v. '+(v+1)+'</span>':''):
-        (lf?'<img class="pv-fl" src="'+svgUrl(lf)+'" style="width:'+lf.w+'pt;height:'+lf.h+'pt" alt="">':'')+'<span class="pv-fr" style="font:11pt '+font+'">'+(k+1)+'</span>';
-      return '<div class="pv-page"><div class="pv-head" style="top:'+(tp-6-x.h)+'pt"><img src="'+svgUrl(x)+'" style="width:'+x.w+'pt;height:'+x.h+'pt" alt=""></div>'+
-        '<div class="pv-win" style="top:'+tp+'pt;height:'+(sg[1]-sg[0])+'px"><div class="pv-flow" style="margin-top:'+(-sg[0])+'px">'+html+'</div></div>'+
-        '<div class="pv-foot">'+foot+'</div></div><div class="pv-pn">Page '+(k+1)+' of '+n+'</div>';}).join('');
+      foot=!k?(ex?'<span class="pv-fl" style="font:10pt '+font+';color:#808080;padding-top:21pt">v. '+(v+1)+'</span>':''):
+        (lf?'<img class="pv-fl" src="'+svgUrl(lf)+'" style="width:'+lf.w+'pt;height:'+lf.h+'pt" alt="">':'')+'<span class="pv-fr" style="font:'+(ex?12:11)+'pt '+font+(ex?';padding-top:8pt':'')+'">'+(k+1)+'</span>';
+      return '<div class="pv-page"><div class="pv-head" style="top:'+g.hd+'pt;left:'+(g.left-g.out)+'pt"><img src="'+svgUrl(x)+'" style="width:'+x.w+'pt;height:'+x.h+'pt" alt=""></div>'+
+        '<div class="pv-win" style="left:'+g.left+'pt;width:'+(612-g.left-(ex?0:g.left))+'pt;top:'+tp+'pt;height:'+(sg[1]-sg[0])+'px"><div class="pv-flow" style="width:'+g.w+'pt;margin-top:'+(-sg[0])+'px">'+flow+'</div></div>'+
+        '<div class="pv-foot" style="left:'+g.left+'pt;right:'+g.left+'pt;height:'+g.bot+'pt'+(ex?';align-items:flex-start':'')+'">'+foot+'</div></div><div class="pv-pn">Page '+(k+1)+' of '+n+'</div>';}).join('');
     p.dataset.pages=n;pvFit(p);wrap.scrollTop=sc;};
   build();
   // pictures and fonts can still be loading: lay it out again once they're in

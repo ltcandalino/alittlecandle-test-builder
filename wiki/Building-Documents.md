@@ -1,9 +1,9 @@
 # Building Documents
 
-On **2 Set up › Document**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold on the first page.
+On **2 Set up › Document**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold (reviews and lessons: in bold on the first page only).
 
-Every document type (and its answer key) has **½-inch margins** on all four sides, when printed and in Word and LaTeX
-downloads. The header sits about ¼ inch from the top edge and the questions start just under it.
+**Tests and quizzes** have **1-inch** margins at the top and bottom and **¾-inch** margins at the sides. **Reviews, lessons and
+answer keys** have **½-inch** margins on all four sides. It's the same on paper and in Word and LaTeX downloads.
 
 The **Course name** box sets that header. Leave it empty to use the course from the top menu.
 
@@ -13,15 +13,24 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 **First page:**
 - Name / Date line
-- **Quarter 1 – Unit 3 Exam** (or **Quiz**) on the left, the *unit title* in italics on the right. Type in **Title line** to replace the automatic title.
-- *Teacher*, *calculator* and *time accommodation* in italics
+- **Quarter 1 – Unit 3 Exam** (or **Quiz**) on the left, the **unit title** on the right, both in bold. Type in **Title line** to replace the automatic title.
+- On the **accommodated copy only**: *Teacher*, *calculator* and *time accommodation* in italics under the title. Regular versions don't show them.
 
 **Parts:** with **Group into parts** on, questions are grouped into Part I, Part II… with directions and a point total like **[14]**. You can edit the directions under **Part directions**. Options:
-- "Use this space for computations." box at the start of each multiple-choice part
-- Credits like **[2]** under each open-response question
-- **Score box** at the end with the total, like **/33**
+- **Start each part on a new page** (on to begin with)
+- "Use this space for computations." box in the right margin of every multiple-choice page
+- Credits like **[2]** right under the words of each open-response question, before its picture or grid
+- **Score box** in the bottom right corner of the last page, like **___/33**
 
-**Bonus questions:** click **bonus** next to a question in the list. Bonus questions print last under **Bonus**, numbered from 1, and don't count toward the score box.
+**Bonus questions:** click **bonus** next to a question in the list. Bonus questions print last under ***Bonus***, without numbers, and don't count toward the score box.
+
+**How questions are laid out:**
+- **Multiple choice:** the number, then the question and its choices in a column that leaves the right side free for work.
+  Very short choices go four across, short ones two by two, sentences one under another. A picture that is about square and at
+  most 2½ inches wide goes beside sentence choices; other pictures are centered.
+- **Open response:** the number, then the question across the page. Lines that start with (a), (b), (c) become bold, indented parts.
+- **Short answer** (1 credit): a simple numbered list.
+- Triangles print as Δ. Points like (6, 6) stay on one line.
 
 **Footer:** "v. 1" (the version) on the first page, then page numbers.
 

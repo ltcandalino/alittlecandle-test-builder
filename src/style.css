@@ -292,21 +292,58 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 /* classic layout */
 .pt-classic .cl-row{display:flex;justify-content:space-between;align-items:flex-end;margin:0 0 2pt}
 .pt-classic .cl-name{margin:4pt 0 4pt}
+.pt-test .cl-row,.pt-quiz .cl-row,.pt-test .cl-name,.pt-quiz .cl-name{margin:0}
 .pt-classic .cl-line{display:inline-block;border-bottom:1px solid #000;height:11pt;vertical-align:baseline}
-.pt-classic .cl-title{margin-bottom:10pt}
-.pt-classic .cl-part{margin:16pt 0 8pt;break-after:avoid;break-inside:avoid}
-.pt-classic .cl-pname{text-align:center;font-weight:700}
-.pt-classic .cl-dir{font-weight:700;line-height:1.55;margin-top:2pt}
-.pt-classic .cl-tot{float:right;margin-left:12pt}
-.pt-classic .cl-dir::after{content:"";display:table;clear:both}
-.pt-classic .cl-comp{float:right;border:1px solid #000;font-style:italic;font-weight:700;font-size:8pt;width:1.3in;text-align:center;padding:2pt 4pt;margin:0 0 6pt 10pt;line-height:1.2}
-.pt-classic .cl-q{margin-top:14pt}
-.pt-classic .cl-cred{float:right;margin-left:10pt}
 .pt-classic .pt-ch li b{font-weight:700}
 .pt-classic .pt-num{min-width:22pt}
-.cl-scorewrap{display:flex;justify-content:flex-end;margin-top:18pt;break-inside:avoid}
-.cl-score{border:1.2px solid #000;width:1.9in;height:1.2in;padding:5pt 7pt;display:flex;flex-direction:column;justify-content:space-between;font-size:11pt}
-.cl-score-n{text-align:right;font-size:26pt;line-height:1}
+.pt-test .cl-title,.pt-quiz .cl-title{margin:0 0 3pt}
+/* tests and quizzes: measured from her Unit 4 exam, see EXAM-FORMAT.md */
+.pt.pt-test,.pt.pt-quiz{line-height:1.2}
+.pt-version.pt-test,.pt-version.pt-quiz{width:7in;margin-left:.125in}
+.pt-classic .cl-acc{display:grid;grid-template-columns:1fr 1fr 1fr;margin:1.2em 0 3pt}
+.pt-classic .cl-acc i:nth-child(2){text-align:center}
+.pt-classic .cl-acc i:nth-child(3){text-align:right}
+.pt-classic .cl-part{margin:1.2em 0;break-after:avoid;break-inside:avoid}
+.pt-classic .cl-part.cl-first{margin-top:0}
+.pt-classic .cl-part.cl-newpage{margin-top:0;break-before:page}
+.pt-classic .cl-pname{text-align:center;font-weight:700}
+.pt-classic .cl-dir{font-weight:700}
+.pt-classic .cl-tot{float:right;margin-left:12pt}
+.pt-classic .cl-dir::after{content:"";display:table;clear:both}
+.pt-classic .cl-q{margin:0 0 2.4em;column-gap:0;position:relative}
+.pt-classic .cl-title+.cl-q,.pt-classic .cl-acc+.cl-q,.pt-classic .pt-ins+.cl-q,.pt-classic .pt-ins+.cl-part{margin-top:1.2em}
+.pt-classic .x-mc{--nw:calc(.4in * var(--accz,1));grid-template-columns:var(--nw) calc(6.3in - var(--nw))}
+.pt-classic .x-op{--nw:calc(.51in * var(--accz,1));grid-template-columns:var(--nw) calc(7in - var(--nw));margin-bottom:1.2em}
+.pt-classic .x-sh{grid-template-columns:minmax(.25in,max-content) 1fr}
+.pt-classic .x-sh>.pt-num{padding-right:3pt}
+.pt-classic .x-bl{--nw:calc(.85in * var(--accz,1))}
+.pt-classic .x-mc>*,.pt-classic .x-op>*{padding:0 .075in}
+.pt-classic .x-mc>.pt-num,.pt-classic .x-op>.pt-num{padding-right:0}
+.pt-classic .x-bn{display:block}
+.pt-classic .x-mc .pt-ch{margin-top:1.2em}
+.pt-classic .cl-q>.pt-num{min-width:0}
+.pt-classic .cl-q .pt-ch{gap:0}
+.pt-classic .cl-q .pt-ch li{gap:0}
+.pt-classic .cl-q .pt-ch li b{min-width:.25in;padding-right:3pt;box-sizing:border-box;font-weight:700;flex:none}
+.pt-classic .cl-q .pt-ch.c1,.pt-classic .cl-q .pt-ch.c2{line-height:1.38}
+.pt-classic .cl-q .pt-ch.c2 li,.pt-classic .cl-q .pt-ch.c4 li{padding-left:.075in}
+.pt-classic .q-two{display:grid;grid-template-columns:1fr auto;column-gap:.15in;align-items:start}
+.pt-classic .q-side{padding-top:1.2em}
+.pt-classic .q-side img{margin:0}
+.pt-classic .q-mid{display:block;margin:4pt auto}
+.pt-classic .pt-more{margin-top:3pt}
+.pt-classic .q-part{display:grid;grid-template-columns:minmax(.25in,max-content) 1fr;margin-top:1.2em}
+.pt-classic .q-part:first-child{margin-top:0}
+.pt-classic .q-part>b{white-space:nowrap;padding-right:2pt}
+.pt-classic .cl-cred{text-align:right}
+.pt-classic .cl-comp{position:absolute;left:6.27in;top:0;width:1.23in;height:.4in;box-sizing:border-box;border:.75pt solid #bfbfbf;font-weight:700;font-size:8pt;text-align:center;padding:.05in 0;line-height:1.2}
+.pt-classic .cl-bonus{font-weight:700;font-style:italic;margin:1.2em 0 0;break-after:avoid}
+.pt-test:not(.acc) .m,.pt-test:not(.acc) .m-ov,.pt-test:not(.acc) .m-acc,.pt-test:not(.acc) .m-frac,.pt-quiz:not(.acc) .m,.pt-quiz:not(.acc) .m-ov,.pt-quiz:not(.acc) .m-acc,.pt-quiz:not(.acc) .m-frac{font-family:Cambria,"Cambria Math",var(--ptf,serif)}
+.pt-test .m-ov,.pt-test .m-acc,.pt-quiz .m-ov,.pt-quiz .m-acc{font-style:italic}
+.cl-scorewrap{display:flex;justify-content:flex-end;margin:6pt -.25in 0 0;break-inside:avoid}
+.cl-score.over{position:absolute;left:5.69in}
+.cl-score{border:.5pt solid #000;width:1.55in;height:1.01in;box-sizing:border-box;padding:.05in .1in;display:flex;flex-direction:column;justify-content:space-between;font-size:12pt;background:#fff}
+.cl-score-n{text-align:right;font-size:32pt;line-height:1.1;white-space:nowrap}
 .cl-runhead{text-align:center;border-bottom:1.5pt solid #000;padding-bottom:3pt;margin:-.2in 0 .2in}
 .cl-runfoot{margin-top:.3in;font-size:9pt;color:#777}
 .pt .q-tbl td{min-width:1.6in}
@@ -333,10 +370,6 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .sel .exc{display:block;width:100%;margin-top:4px;font-size:12px;padding:3px 6px}
 .pv-head{margin:-.25in 0 .18in}
 .pv-head img{display:block;max-width:100%;height:auto!important}
-.pt-classic .cl-acc{display:grid;grid-template-columns:1fr 1fr 1fr;margin:0 0 4pt}
-.pt-classic .cl-acc i:nth-child(2){text-align:left}
-.pt-classic .cl-cred{text-align:right;margin:2pt 0 0}
-.pt-classic .cl-bonus{font-weight:700;margin:18pt 0 4pt;break-after:avoid}
 /* review */
 .rv-title{text-align:center;font-family:Helvetica,Arial,sans-serif;margin:4pt 0 2pt}
 table.rv{width:100%;border-collapse:collapse;table-layout:fixed}
@@ -612,14 +645,14 @@ button[data-cdel],button[data-delbank],button[data-tbdel],button[data-fdel],.g-h
 /* the preview as letter-size pages (8.5 x 11 in, the same margins, header and footer as the printout) */
 .pv-pages{width:8.5in;margin:0 auto}
 .pv-page{position:relative;width:8.5in;height:11in;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18),0 4px 14px rgba(0,0,0,.08);overflow:hidden}
-.pv-page .pv-head{position:absolute;left:.5in;margin:0}
-.pv-win{position:absolute;left:.5in;width:7.5in;overflow:hidden}
+.pv-page .pv-head{position:absolute;margin:0}
+.pv-win{position:absolute;overflow:hidden}
 .pv-flow{display:flow-root}
-.pv-foot{position:absolute;left:.5in;right:.5in;bottom:0;height:.5in;display:flex;align-items:center;color:#000}
+.pv-foot{position:absolute;bottom:0;display:flex;align-items:center;color:#000}
 .pv-fr{margin-left:auto}
 .pv-pn{text-align:center;font:12px/1 system-ui,sans-serif;color:var(--muted);margin:8px 0 18px}
 .pv-pages>.pv-pn:last-child{margin-bottom:0}
-#pvMeasure{position:absolute;left:-10000px;top:0;width:7.5in;display:flow-root;visibility:hidden;pointer-events:none}
+.pt-measure{position:absolute;left:-10000px;top:0;display:flow-root;visibility:hidden;pointer-events:none}
 
 /* polish 2026-11-20: Set up previews, 3 Print prints; whole question cards pick on 1 Pick questions; phones */
 .pv-go{display:flex;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--line);margin-top:12px}
