@@ -108,11 +108,13 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
 | Inequality shading | 0.5 pt lines, 6.5–7.5 pt apart; two regions cross | 6.5 and 7.5 |
 | White space | 2 pt around the drawing | |
 
+- **Arrows:** each line with arrows is its own `\draw` (TikZ puts arrows only on a draw's last line); `picture-svg.sh` stops otherwise.
+- **Shared corner:** two shapes drawn separately that meet at a corner get `line join=round`, so the corner is one point (0625-22).
 - **Label distance:** a vertex letter's center is 9 pt from its point, away from the figure. A letter on a grid gets a white
   background. No label touches a line.
 - **Color:** none. Colors in the originals (BFW, calculator) become the grays above; two neighboring bars always differ in gray.
 - **Font. Decided 2026-11-25:** each user picks the label font in their own settings: **Arial**, **Century Schoolbook** or **Times**.
-  Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. Characters a font lacks
+  Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. **π is always Times (decided 2026-11-25).** Characters a font lacks
   (′ ℓ) come from Times. Arial is what shows when nothing is picked (**Draft**).
 - **One SVG holds all three fonts**, each as outlines: `picture.svg` shows Arial, `picture.svg#schoolbook` and `picture.svg#times` the
   others, at the same size. Tried in Chrome 158 with embedded pictures, server addresses and the canvas the downloads use; Firefox and
@@ -154,6 +156,8 @@ one font were moved for all.
 exam PDFs' drawing data (`tools/extract.mjs` → `gen.py` → `emit.py`), 9 by hand (`manual.py`: 0126-30 and the 8 spring samples, which have no exam PDF or cut).
 82 match 95% both ways; the other 6 differ because the old picture has part of a "2" from the question above the grid (0126-05), a lighter gray (0625-09) or ExamView's black grid (4 samples).
 Checked: every point letter, number and coordinate against the question text (`qcheck.py`); labels against figure lines in all three fonts (`collide.py`, `coll2.py`).
+Leigh's review: 0126-15 (arrows on the line through B and S), 0625-22 (one point P), π in Times; also fixed: doubled axis arrowheads (0825-17, 0825-22),
+a seam in the sector of 0825-30, the same corner in 0825-29. The match score doesn't see missing arrows (0126-15 scored 100%).
 Added to the rules: on a grid, letters with their white boxes are drawn first and the figure over them, so no box hides a line. **Draft:** the samples' grids use
 14.7 boxes, like the exam's 20 × 20 grids. Not drawn: 5 scenes or photos (0126-08, 0625-02, 0625-34, 0626-04, 0825-33) and 12 answers (decisions 4 and 5).
 

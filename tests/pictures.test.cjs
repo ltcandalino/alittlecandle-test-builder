@@ -26,4 +26,6 @@ test('LaTeX pictures compile to SVG at the right size', { skip: has('dvilualatex
   execFileSync('bash', [path.join(__dirname, '../scripts/picture-svg.sh'), dir, dir + '/svg'], { stdio: 'pipe' });
   const w = n => width(fs.readFileSync(path.join(dir, 'svg', n), 'utf8'));
   assert.ok(Math.abs(w('0126-03.svg') - 54) < 2, String(w('0126-03.svg'))); assert.ok(Math.abs(w('spr24-01.svg') - 204) < 2);
+  fs.writeFileSync(path.join(dir, 'bad.tex'), '\\begin{tikzpicture}\\draw[axis](0,0)--(50,0) (0,9)--(50,9);\\end{tikzpicture}\n');
+  assert.throws(() => execFileSync('bash', [path.join(__dirname, '../scripts/picture-svg.sh'), dir, dir + '/svg'], { stdio: 'pipe' }), 'arrows lost on the first line');
 });

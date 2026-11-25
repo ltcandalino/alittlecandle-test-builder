@@ -20,6 +20,8 @@ fi
 src="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"; out="${2:-$(dirname "$src")}"
 mkdir -p "$out"; out="$(cd "$out" && pwd)"; tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 name="$(basename "$src" .tex)"; cd "$tmp"
+# TikZ puts arrows only on the last line of a \\draw: two lines in one arrowed \\draw would lose the first one's arrows
+if grep -nE '\\draw\[[^]]*(tip|axis|both|one|ray1)[^]]*\][^;]*\) *\(' "$src"; then echo "arrows: give each line its own \\draw"; exit 1; fi
 for font in arial schoolbook times; do
   mkdir "$font"
   TEXINPUTS="$here:$(dirname "$src"):" dvilualatex -interaction=nonstopmode -halt-on-error -jobname="$name" -output-directory="$tmp/$font" \
