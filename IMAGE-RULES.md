@@ -152,7 +152,7 @@ one font were moved for all.
 
 `Picture trial/GEO2024-2026/`: 88 of 105 pictures (`tex/`, `svg/` with the pictures' own names, `GEO2024-2026 pictures.pdf`). 79 come straight from the
 exam PDFs' drawing data (`tools/extract.mjs` → `gen.py` → `emit.py`), 9 by hand (`manual.py`: 0126-30 and the 8 spring samples, which have no exam PDF or cut).
-82 match 95% both ways; the other 6 differ because the old picture has a stray mark (0126-05), a lighter gray (0625-09) or ExamView's black grid (4 samples).
+82 match 95% both ways; the other 6 differ because the old picture has part of a "2" from the question above the grid (0126-05), a lighter gray (0625-09) or ExamView's black grid (4 samples).
 Checked: every point letter, number and coordinate against the question text (`qcheck.py`); labels against figure lines in all three fonts (`collide.py`, `coll2.py`).
 Added to the rules: on a grid, letters with their white boxes are drawn first and the figure over them, so no box hides a line. **Draft:** the samples' grids use
 14.7 boxes, like the exam's 20 × 20 grids. Not drawn: 5 scenes or photos (0126-08, 0625-02, 0625-34, 0626-04, 0825-33) and 12 answers (decisions 4 and 5).
