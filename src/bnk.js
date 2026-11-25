@@ -2,6 +2,8 @@
 var BNK=(function(){
   "use strict";
   var SYM={0x40:'≅',0xd0:'∠',0xb0:'°',0x5e:'⊥',0x7e:'∼',0xb4:'×',0xb8:'÷',0xb9:'≠',0xbb:'≈',0xa3:'≤',0xb3:'≥',0xb1:'±',0x70:'π',0x71:'θ',0x44:'Δ',0x61:'α',0x62:'β',0x67:'γ',0x6c:'λ',0x6d:'μ',0x73:'σ',0x77:'ω',0x57:'Ω',0x66:'φ',0xae:'→',0xac:'←',0xab:'↔',0xd6:'√',0x2d:'−',0x2b:'+',0x3d:'=',0x7c:'|',0xbd:'|',0xa5:'∞',0x5c:'∴',0xce:'∈',0xb7:'·',0xa2:'′',0xb2:'″',0xba:'∥',0xbe:'—',0xc6:'∅',0xc7:'∩',0xc8:'∪',0xd7:'·',0xf0:'',0x28:'(',0x29:')',0x2c:',',0x2e:'.',0x3a:':',0x3c:'<',0x3e:'>'};
+  // the rest of the Greek letters (capitals that look like English ones stay as they are)
+  'c=χ h=η e=ε d=δ k=κ n=ν r=ρ t=τ u=υ x=ξ y=ψ z=ζ i=ι j=φ G=Γ Q=Θ L=Λ X=Ξ P=Π S=Σ F=Φ Y=Ψ W=Ω'.split(' ').forEach(function(x){SYM[x.charCodeAt(0)]=SYM[x.charCodeAt(0)]||x.charAt(2);});
   var CP1252={0x80:'€',0x82:'‚',0x83:'ƒ',0x84:'„',0x85:'…',0x86:'†',0x87:'‡',0x88:'ˆ',0x89:'‰',0x8a:'Š',0x8b:'‹',0x8c:'Œ',0x8e:'Ž',0x91:'‘',0x92:'’',0x93:'“',0x94:'”',0x95:'•',0x96:'–',0x97:'—',0x98:'˜',0x99:'™',0x9a:'š',0x9b:'›',0x9c:'œ',0x9e:'ž',0x9f:'Ÿ'};
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function latin(b){return CP1252[b]||String.fromCharCode(b);}
@@ -49,8 +51,10 @@ var BNK=(function(){
           var last=out[out.length-1];
           if(last&&last.t==='c'){if(u[i+1]===0x17)out[out.length-1]={t:'T',n:1,lo:5,hi:0,slots:[[last]]};else last.c+='\u0302';}
           i+=2;continue;}
+        if(t===3&&(u[i+1]===0x10||u[i+1]===0x11)){out.push({t:'c',c:u[i+1]===0x10?'′':'″'});i+=2;continue;} // prime and double prime marks (A′, A″)
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
+        if(font===-10&&SYM[t]){out.push({t:'c',c:SYM[t]});continue;} // the Greek font: p is π, q is θ, m is μ
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
         else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':t===0x9e?'∘':t===0x9c?'±':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €), 0xaa the script ℓ (not ª), 0x9e the composition ∘ (not ž), 0x9c ± (not œ: 750 ± 2(20))
       }
@@ -71,7 +75,7 @@ var BNK=(function(){
         prev=c;return;
       }
       prev='x';
-      if(x.t==='E'){h+=x.v===0?'△':'';}
+      if(x.t==='E'){h+=x.v===0?'△':x.v===1?'▱':'';}
       else{
         var s=x.slots.map(eqHtml),k=x.lo+','+x.hi;
         if(k==='5,0')h+='<span class="m-ov">'+s[0]+'</span>';
@@ -253,9 +257,9 @@ var BNK=(function(){
           var objHtml=[];
           if(cps.length){
             var pat=int3(cps[0],0,0),tp=tend,found=-1;
-            while((tp=find(d,pat,tp,S+T+8))>=0){
-              // a real table's entries point at objects inside the file (text can look like a table entry too)
-              var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<0||S+eo+8>d.length||S+eo+4+R.i32(S+eo)>d.length)ok=false;}
+            for(var strict=1;found<0&&strict>=0;strict--,tp=tend)while((tp=find(d,pat,tp,S+T+8))>=0){
+              // a real table's entries point at objects after it, inside this block (text and paragraph records can look like a table entry too)
+              var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<tp-S+72*cps.length||eo+8>T+8||S+eo+8>d.length)ok=false;else{var eL=R.i32(S+eo);if(eL<=44||eo+4+eL>T+8||(strict&&!(d[S+eo+48]===9||(R.i32(S+eo+4)===1&&R.i32(S+eo+16)===40))))ok=false;}} // an equation starts with a font run (9), a picture with a bitmap header (40)
               if(ok){found=tp;break;}tp++;
             }
             if(found<0)throw new Error('no object table');
@@ -265,6 +269,10 @@ var BNK=(function(){
               if(R.i32(ds)===1&&R.i32(ds+12)===40){
                 var png=dibToPng(d,ds+12,de);
                 objHtml.push(png?'<img class="q-img" src="'+png.dataUrl+'" style="width:'+(ow/1440).toFixed(3)+'in" alt="">':'<span class="q-missing">[picture]</span>');
+              }else if(d[ds+44]!==9){ // a web link: its address as text
+                var wl=R.u16str(ds).s;wl=wl.length*2<=L&&/^[\x20-\x7e]+$/.test(wl)?wl:'';
+                objHtml.push(esc(wl));
+                if(!wl)warnings.push((strs[0]||('#'+(k+1)))+': object');
               }else{
                 var pe=parseEq(d,ds,de);
                 if(pe.warn.length)warnings.push((strs[0]||('#'+(k+1)))+': '+pe.warn.join(','));

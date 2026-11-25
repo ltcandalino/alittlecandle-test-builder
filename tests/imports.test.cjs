@@ -113,6 +113,12 @@ describe('ExamView (.bnk)', () => {
         assert.equal(all.filter(h => /ž/.test(h)).length, 0, 'no ž left');
         if (/GE2013-2014/.test(file)) assert.match(r.questions.find(q => q.ref === '081336ge').html, /r<sub>x-axis<\/sub>∘T<sub>7,5<\/sub>/);
       });
+      test('Greek letters, prime marks and no blank equations', () => {
+        const all = r.questions.map(q => q.html + (q.choices || []).join('') + q.answer), blank = all.join('').match(/<span class="m"><\/span>/g) || [];
+        assert.ok(blank.length <= 3, blank.length + ' equations came in blank');
+        if (/GEOCCSS2014-2016/.test(file)) { assert.ok(r.questions.find(q => q.ref === '081518geo').choices.some(c => /2π/.test(c.replace(/<[^>]+>/g, ''))), '2π, not 2p'); assert.match(r.questions.find(q => q.ref === '061516geo').html, /△A′B′C′/); assert.match(r.questions.find(q => q.ref === '081509geo').html, /If <span class="m">x<sup>2<\/sup>/); }
+        if (/Ch 11 Test Bank/.test(file)) assert.ok(all.some(h => /χ<sup>2<\/sup>/.test(h)), 'chi-square');
+      });
       test('superscripts and subscripts in plain text are kept (cm³, H₀)', () => {
         if (/GEO2024-2026/.test(file)) { assert.match(r.questions.find(q => q.ref === '012614geo').html, /333 cm<sup>3<\/sup>\. {1,2}To the/); assert.match(r.questions.find(q => q.ref === '082532geo').html, /1000 cm<sup>3<\/sup>/); }
         if (/Ch 10 Test Bank/.test(file)) assert.ok(r.questions.some(q => /H<sub>0<\/sub>/.test(q.html)));
@@ -134,11 +140,11 @@ describe('ExamView (.bnk)', () => {
         // ExamView marks "next line" with code 13 (systems of equations, stacked lines)
         // A choice that is only math with two equals signs and nothing between them (no comma, semicolon
         // or space) is two equations run together; they must be on separate lines.
-        // Chains like m∠A=m∠B=m∠C (no numbers) and worked fractions (t=(0.015−0)/0.008=1.875) are fine.
+        // Chains like m∠A=m∠B=m∠C (no numbers), μ1=μ2=μ3 and worked fractions (t=(0.015−0)/0.008=1.875) are fine.
         const bad = [];
         for (const q of r.questions) for (const c of q.choices || []) {
           const t = c.replace(/<br>/g, '\n').replace(/<[^>]+>/g, '');
-          if (/^<span class="m">/.test(c) && !/m-frac/.test(c) && /\d/.test(t) && !/\b(and|or)\b|[a-z]{4,}/i.test(t) && t.split('\n').some(line => (line.match(/=/g) || []).length >= 2 && !/[,;]|\s{2,}/.test(line))) bad.push(q.ref + ': ' + t);
+          if (/^<span class="m">/.test(c) && !/m-frac|μ/.test(c) && /\d/.test(t) && !/\b(and|or)\b|[a-z]{4,}/i.test(t) && t.split('\n').some(line => (line.match(/=/g) || []).length >= 2 && !/[,;]|\s{2,}/.test(line))) bad.push(q.ref + ': ' + t);
         }
         assert.deepEqual(bad.slice(0, 5), []);
       });
@@ -161,6 +167,24 @@ test('text styles after the text: superscripts and subscripts are marked, not pu
   });
   assert.equal(out, 'is 5 cm^(3). H_(0): _(x)\x11_(y)');
 });
+describe('importing a bank again fills blank equations and Greek letters, keeps labels and edits', () => {
+  const g14 = privateFixtures('.bnk').find(f => /GEOCCSS2014-2016/.test(f));
+  test('re-import GEOCCSS2014-2016', { skip: !g14 && 'needs GEOCCSS2014-2016EXAMs.bnk in tests/fixtures/private/' }, async () => {
+    const { page: p2, errors: e2, context } = await openApp(browser);
+    const imp = async () => { await goPlace(p2, 'io', 'import'); await p2.setInputFiles('input[type=file][accept*=".bnk"]', g14);
+      await p2.waitForFunction(() => /2014-2016/.test((document.querySelector('#bnkRes') || {}).textContent || ''), null, { timeout: 60000 }); return p2.textContent('#bnkRes'); };
+    await imp();
+    await p2.evaluate(() => { const S = window.__tb.state, old = h => h.replace(/π/g, 'p').replace(/θ/g, 'q').replace(/′/g, ''), g = r => S.questions.find(q => q.ref === r); // as older versions read them
+      S.questions.forEach(q => { q.html = old(q.html); if (q.choices) q.choices = q.choices.map(old); });
+      const c = g('081509geo'); c.html = c.html.replace(/<span class="m">[\s\S]*<\/span>(?= is the equation)/, '<span class="m"></span>'); c.unit = '10';
+      g('061516geo').html += ' (my edit)'; });
+    assert.match(await imp(), /nothing was added.*math that came in wrong/);
+    const q = await p2.evaluate(() => Object.fromEntries(window.__tb.state.questions.map(q => [q.ref, { h: q.html, u: q.unit, c: (q.choices || []).join(' ').replace(/<[^>]+>/g, '') }])));
+    assert.match(q['081509geo'].h, /x<sup>2<\/sup>/); assert.equal(q['081509geo'].u, '10'); assert.match(q['081518geo'].c, /2π/);
+    assert.match(q['061516geo'].h, /\(my edit\)$/); assert.doesNotMatch(q['061516geo'].h, /′/, 'an edited question is left alone');
+    assert.deepEqual(e2, []); await context.close();
+  });
+});
 describe('importing a bank again repairs subscripts older versions ran into the text', () => {
   const ge = privateFixtures('.bnk').find(f => /GE2013-2014/.test(f));
   test('re-import GE2013-2014: unedited questions get their subscripts, edited ones are kept', { skip: !ge && 'needs GE2013-2014EXAMs.bnk in tests/fixtures/private/' }, async () => {
@@ -172,7 +196,7 @@ describe('importing a bank again repairs subscripts older versions ran into the 
       S.questions.forEach(q => { q.html = old(q.html); if (q.choices) q.choices = q.choices.map(old); }); // as older versions read them
       S.questions.find(q => q.ref === '011336ge').html += ' (my edit)'; });
     const msg = await imp();
-    assert.match(msg, /nothing was added.*subscripts/);
+    assert.match(msg, /nothing was added.*math that came in wrong/);
     const qs = await p2.evaluate(() => Object.fromEntries(window.__tb.state.questions.filter(q => /^0[18]1336ge$/.test(q.ref)).map(q => [q.ref, q.html])));
     assert.match(qs['081336ge'], /r<sub>x-axis<\/sub>∘T<sub>7, 5<\/sub>/);
     assert.match(qs['011336ge'], /\(my edit\)$/); assert.doesNotMatch(qs['011336ge'], /<sub>/, 'an edited question is left alone');

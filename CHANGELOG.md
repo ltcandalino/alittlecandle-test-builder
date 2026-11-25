@@ -7,7 +7,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Fixed
-- ExamView banks: superscripts and subscripts typed in plain text are kept (cm³, H₀, Q₁, the 16ᵗʰ term). They came in as cm3, H0, Q1, 16th before. Units like ft2 and in3 become ft², in³ even when ExamView has a plain digit. Importing the same `.bnk` again fixes questions whose words you haven't changed and keeps your pictures.
+- **ExamView banks: Greek letters are Greek.** π came in as p (2p for 2π), θ as q, μ as m, χ² as c², σ as s in almost every bank.
+- **ExamView banks: equations and pictures that came in blank are read**, in question text, answer choices and written answers (for example "If , what is the value of x?"). Prime marks in equations (A′, A″) and the parallelogram sign ▱ are kept too.
+- ExamView banks: superscripts and subscripts typed in plain text are kept (cm³, H₀, Q₁, the 16ᵗʰ term). They came in as cm3, H0, Q1, 16th before. Units like ft2 and in3 become ft², in³ even when ExamView has a plain digit. Importing the same `.bnk` again fixes all of this in questions whose words you haven't changed, and keeps your labels and pictures.
 - Word downloads: an exponent on a unit (cm³) is a plain superscript, not an equation with an empty box.
 
 ## [0.26.0] - 2026-11-24

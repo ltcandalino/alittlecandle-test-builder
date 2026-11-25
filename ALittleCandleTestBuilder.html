@@ -768,6 +768,8 @@ this.workerSrc))).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoC
 var BNK=(function(){
   "use strict";
   var SYM={0x40:'≅',0xd0:'∠',0xb0:'°',0x5e:'⊥',0x7e:'∼',0xb4:'×',0xb8:'÷',0xb9:'≠',0xbb:'≈',0xa3:'≤',0xb3:'≥',0xb1:'±',0x70:'π',0x71:'θ',0x44:'Δ',0x61:'α',0x62:'β',0x67:'γ',0x6c:'λ',0x6d:'μ',0x73:'σ',0x77:'ω',0x57:'Ω',0x66:'φ',0xae:'→',0xac:'←',0xab:'↔',0xd6:'√',0x2d:'−',0x2b:'+',0x3d:'=',0x7c:'|',0xbd:'|',0xa5:'∞',0x5c:'∴',0xce:'∈',0xb7:'·',0xa2:'′',0xb2:'″',0xba:'∥',0xbe:'—',0xc6:'∅',0xc7:'∩',0xc8:'∪',0xd7:'·',0xf0:'',0x28:'(',0x29:')',0x2c:',',0x2e:'.',0x3a:':',0x3c:'<',0x3e:'>'};
+  // the rest of the Greek letters (capitals that look like English ones stay as they are)
+  'c=χ h=η e=ε d=δ k=κ n=ν r=ρ t=τ u=υ x=ξ y=ψ z=ζ i=ι j=φ G=Γ Q=Θ L=Λ X=Ξ P=Π S=Σ F=Φ Y=Ψ W=Ω'.split(' ').forEach(function(x){SYM[x.charCodeAt(0)]=SYM[x.charCodeAt(0)]||x.charAt(2);});
   var CP1252={0x80:'€',0x82:'‚',0x83:'ƒ',0x84:'„',0x85:'…',0x86:'†',0x87:'‡',0x88:'ˆ',0x89:'‰',0x8a:'Š',0x8b:'‹',0x8c:'Œ',0x8e:'Ž',0x91:'‘',0x92:'’',0x93:'“',0x94:'”',0x95:'•',0x96:'–',0x97:'—',0x98:'˜',0x99:'™',0x9a:'š',0x9b:'›',0x9c:'œ',0x9e:'ž',0x9f:'Ÿ'};
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function latin(b){return CP1252[b]||String.fromCharCode(b);}
@@ -815,8 +817,10 @@ var BNK=(function(){
           var last=out[out.length-1];
           if(last&&last.t==='c'){if(u[i+1]===0x17)out[out.length-1]={t:'T',n:1,lo:5,hi:0,slots:[[last]]};else last.c+='\u0302';}
           i+=2;continue;}
+        if(t===3&&(u[i+1]===0x10||u[i+1]===0x11)){out.push({t:'c',c:u[i+1]===0x10?'′':'″'});i+=2;continue;} // prime and double prime marks (A′, A″)
         if(t<0x20){i++;warn.push('tag'+t);continue;}
         i++;
+        if(font===-10&&SYM[t]){out.push({t:'c',c:SYM[t]});continue;} // the Greek font: p is π, q is θ, m is μ
         if(font===-6){var c=SYM[t];if(c===undefined){c='?';warn.push('sym'+t.toString(16));}out.push({t:'c',c:c,sym:1});}
         else out.push({t:'c',c:t===0x80?'∥':t===0xaa?'ℓ':t===0x9e?'∘':t===0x9c?'±':latin(t)}); // in an equation 0x80 is ExamView's parallel sign (not €), 0xaa the script ℓ (not ª), 0x9e the composition ∘ (not ž), 0x9c ± (not œ: 750 ± 2(20))
       }
@@ -837,7 +841,7 @@ var BNK=(function(){
         prev=c;return;
       }
       prev='x';
-      if(x.t==='E'){h+=x.v===0?'△':'';}
+      if(x.t==='E'){h+=x.v===0?'△':x.v===1?'▱':'';}
       else{
         var s=x.slots.map(eqHtml),k=x.lo+','+x.hi;
         if(k==='5,0')h+='<span class="m-ov">'+s[0]+'</span>';
@@ -1019,9 +1023,9 @@ var BNK=(function(){
           var objHtml=[];
           if(cps.length){
             var pat=int3(cps[0],0,0),tp=tend,found=-1;
-            while((tp=find(d,pat,tp,S+T+8))>=0){
-              // a real table's entries point at objects inside the file (text can look like a table entry too)
-              var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<0||S+eo+8>d.length||S+eo+4+R.i32(S+eo)>d.length)ok=false;}
+            for(var strict=1;found<0&&strict>=0;strict--,tp=tend)while((tp=find(d,pat,tp,S+T+8))>=0){
+              // a real table's entries point at objects after it, inside this block (text and paragraph records can look like a table entry too)
+              var ok=tp+72*cps.length<=d.length;for(var jj=0;ok&&jj<cps.length;jj++){var eo=R.i32(tp+72*jj+68);if(R.i32(tp+72*jj)!==cps[jj]||eo<tp-S+72*cps.length||eo+8>T+8||S+eo+8>d.length)ok=false;else{var eL=R.i32(S+eo);if(eL<=44||eo+4+eL>T+8||(strict&&!(d[S+eo+48]===9||(R.i32(S+eo+4)===1&&R.i32(S+eo+16)===40))))ok=false;}} // an equation starts with a font run (9), a picture with a bitmap header (40)
               if(ok){found=tp;break;}tp++;
             }
             if(found<0)throw new Error('no object table');
@@ -1031,6 +1035,10 @@ var BNK=(function(){
               if(R.i32(ds)===1&&R.i32(ds+12)===40){
                 var png=dibToPng(d,ds+12,de);
                 objHtml.push(png?'<img class="q-img" src="'+png.dataUrl+'" style="width:'+(ow/1440).toFixed(3)+'in" alt="">':'<span class="q-missing">[picture]</span>');
+              }else if(d[ds+44]!==9){ // a web link: its address as text
+                var wl=R.u16str(ds).s;wl=wl.length*2<=L&&/^[\x20-\x7e]+$/.test(wl)?wl:'';
+                objHtml.push(esc(wl));
+                if(!wl)warnings.push((strs[0]||('#'+(k+1)))+': object');
               }else{
                 var pe=parseEq(d,ds,de);
                 if(pe.warn.length)warnings.push((strs[0]||('#'+(k+1)))+': '+pe.warn.join(','));
@@ -2603,7 +2611,7 @@ function makeExporter(A) {
   // Unicode symbols that show up in math questions → LaTeX (set up with \newunicodechar in the preamble)
   var UNI = { '∠': '\\angle', '△': '\\triangle', '≅': '\\cong', '∼': '\\sim', '⊥': '\\perp', '∥': '\\parallel', '°': '^{\\circ}', 'π': '\\pi', '√': '\\surd', '≠': '\\neq', '≤': '\\leq', '≥': '\\geq', '±': '\\pm', '×': '\\times', '÷': '\\div', 'θ': '\\theta', '′': '^{\\prime}', '″': '^{\\prime\\prime}',
     '∴': '\\therefore', '∵': '\\because', '∞': '\\infty', '≈': '\\approx', '→': '\\rightarrow', '∘': '\\circ', '↔': '\\leftrightarrow', '⇒': '\\Rightarrow', '∈': '\\in', '∪': '\\cup', '∩': '\\cap', '⊂': '\\subset', '∅': '\\emptyset', '·': '\\cdot', '−': '-', '∑': '\\sum', '∆': '\\Delta', 'ℓ': '\\ell',
-    'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\varepsilon', 'λ': '\\lambda', 'μ': '\\mu', 'σ': '\\sigma', 'φ': '\\varphi', 'ω': '\\omega', 'Δ': '\\Delta', 'Σ': '\\Sigma', 'Ω': '\\Omega' };
+    'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\varepsilon', 'λ': '\\lambda', 'μ': '\\mu', 'σ': '\\sigma', 'φ': '\\varphi', 'ω': '\\omega', '▱': '\\Box', 'χ': '\\chi', 'η': '\\eta', 'κ': '\\kappa', 'ν': '\\nu', 'ρ': '\\rho', 'τ': '\\tau', 'ψ': '\\psi', 'ξ': '\\xi', 'ζ': '\\zeta', 'ι': '\\iota', 'Γ': '\\Gamma', 'Θ': '\\Theta', 'Λ': '\\Lambda', 'Ξ': '\\Xi', 'Π': '\\Pi', 'Φ': '\\Phi', 'Ψ': '\\Psi', 'Δ': '\\Delta', 'Σ': '\\Sigma', 'Ω': '\\Omega' };
   var FONT_PKG = { 'Century Schoolbook': '\\usepackage{tgschola}', 'Times New Roman': '\\usepackage{newtxtext}', 'Book Antiqua': '\\usepackage{tgpagella}', 'Georgia': '\\usepackage{tgschola}', 'Cambria': '\\usepackage{tgschola}', 'Garamond': '\\usepackage{ebgaramond}',
     'Arial': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Calibri': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Verdana': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'Comic Sans MS': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}',
     'Atkinson Hyperlegible': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}', 'OpenDyslexic': '\\usepackage{tgheros}\\renewcommand{\\familydefault}{\\sfdefault}' };
@@ -4799,18 +4807,28 @@ function repairTables(out,name,course){
   var pairs=out.questions.map(function(n){return [n,by[tblKey(n)]];}).filter(function(p){return p[1];});
   if(pairs.length<out.questions.length*0.8)return '';
   var undo=[];
-  var subs=0,same=function(a,b){return plain(a||'').replace(/\s+/g,'')===plain(b||'').replace(/\s+/g,'');};
+  // what older versions got wrong, only where the words are unchanged (her edits stay): subscripts and superscripts run into the text
+  // (cm3), Greek letters as plain ones (2p for 2π), lost prime marks (A for A′), and equations or pictures left blank
+  var GR={'θ':'q','π':'p','μ':'m','σ':'s','χ':'c','β':'b','α':'a','φ':'f','η':'h'},EMPTY=/<span class="m"><\/span>/g;
+  var subs=0,words=function(h){return plain(h||'').replace(/\[picture\]/g,'').replace(/[\s′″]+/g,'').replace(/[θπμσχβαφη]/g,function(c){return GR[c];});};
+  var fits=function(nh,oh){nh=String(nh||'');oh=String(oh||'');var w=words(nh),seg=oh.split(EMPTY).map(words),at=0;
+    if(seg.length===1)return w===seg[0];
+    if(w.indexOf(seg[0])!==0)return false;
+    for(var k=0;k<seg.length;k++){var p=w.indexOf(seg[k],at);if(p<0)return false;at=p+seg[k].length;}
+    var tail=seg[seg.length-1];return w.slice(w.length-tail.length)===tail;};
+  var rich=function(h){h=String(h||'');return (h.match(/<su[bp]>/g)||[]).length+(h.replace(/<[^>]+>/g,'').match(/[θπμσχβαφη′″]/g)||[]).length+2*(h.match(/<img/g)||[]).length-(h.match(EMPTY)||[]).length*2;};
+  var pics=function(nh,oh){var im=String(oh||'').match(/<img[^>]*>/g)||[],k=0;return (String(nh).match(/<img/g)||[]).length===im.length?String(nh).replace(/<img[^>]*>/g,function(){return im[k++];}):nh;}; // keep the pictures she has (they may be better ones)
   pairs.forEach(function(p){var n=p[0],o=p[1];
-    // subscripts and superscripts older versions ran into the text (log2x → log₂x, cm3 → cm³): only when the words are unchanged, so her edits stay
-    var nc=n.choices||[],oc=o.choices||[];
-    var all=function(q,ch){return q.html+ch.join('')+(typeof q.answer==='string'?q.answer:'');},marks=function(h){return (h.match(/<su[bp]>/g)||[]).length;},txtAns=typeof n.answer==='string'&&typeof o.answer==='string'&&isHtmlAns(n.answer)&&same(n.answer,o.answer);
-    if((!/q-grid/.test(n.html)||/q-grid/.test(o.html))&&marks(all(n,nc))>marks(all(o,oc))&&same(n.html,o.html)&&nc.length===oc.length&&nc.every(function(c,i){return same(c,oc[i]);})){
-      var pics=function(nh,oh){var im=String(oh||'').match(/<img[^>]*>/g)||[],k=0;return nh.replace(/<img[^>]*>/g,function(x){return im[k++]||x;});}; // keep the pictures she has (they may be better ones)
-      undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);o.html=pics(n.html,o.html);if(n.choices)o.choices=n.choices.map(function(c,i){return pics(c,oc[i]);});if(txtAns)o.answer=pics(n.answer,o.answer);subs++;return;}
+    var nc=n.choices||[],oc=o.choices||[],ok=nc.length===oc.length&&fits(n.html,o.html)&&nc.every(function(c,i){return fits(c,oc[i]);});
+    var ansOk=typeof n.answer==='string'&&typeof o.answer==='string'&&isHtmlAns(n.answer)&&rich(n.answer)>rich(o.answer)&&fits(n.answer,o.answer);
+    if((!/q-grid/.test(n.html)||/q-grid/.test(o.html))&&((ok&&rich(n.html+nc.join(''))>rich(o.html+oc.join('')))||ansOk)){
+      undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
+      if(ok&&rich(n.html+nc.join(''))>rich(o.html+oc.join(''))){o.html=pics(n.html,o.html);if(n.choices)o.choices=n.choices.map(function(c,i){return pics(c,oc[i]);});}
+      if(ansOk)o.answer=pics(n.answer,o.answer);subs++;return;}
     if(!/q-grid/.test(n.html)||/q-grid/.test(o.html))return;
     undo.push([o,{html:o.html,choices:o.choices,answer:o.answer,type:o.type}]);
     o.html=n.html;o.type=n.type;o.answer=n.answer;if(n.choices)o.choices=n.choices;else delete o.choices;});
-  var tbls=undo.length-subs,what=[tbls?plural(tbls,'question')+' with a table: the table and anything after it were missing before':'',subs?plural(subs,'question')+' with superscripts or subscripts (cm³, log₂x, aₙ) that ran into the text before':''].filter(Boolean).join('; ');
+  var tbls=undo.length-subs,what=[tbls?plural(tbls,'question')+' with a table: the table and anything after it were missing before':'',subs?plural(subs,'question')+' with math that came in wrong or blank before (cm³, log₂x, 2π, A′)':''].filter(Boolean).join('; ');
   if(undo.length){changed();toast('Fixed '+plural(undo.length,'question')+' in “'+name+'”.',function(){undo.forEach(function(u){Object.assign(u[0],u[1]);if(!u[1].choices)delete u[0].choices;});changed();render();});}
   return '<b>'+esc(name)+'</b>: you already have this bank, so nothing was added. '+(undo.length?'Fixed '+what+'. Your other changes are kept.':'Its questions are all up to date.');
 }

@@ -12,7 +12,8 @@ file again. The app sees it's the same bank, repairs only the questions with a t
 sections, your fields) and doesn't make a copy.
 
 **Older imports** show some subscripts and superscripts as plain text (before version 0.24: log2x for log₂x, an for aₙ, 7C5 for
-₇C₅; before version 0.27: cm3 for cm³, H0 for H₀, Q1 for Q₁). Import the same `.bnk` file again to fix them the same way: only questions whose words you haven't
+₇C₅; before version 0.27: cm3 for cm³, H0 for H₀, 2p for 2π, q for θ,
+A for A′, and some equations or pictures left blank). Import the same `.bnk` file again to fix them the same way: only questions whose words you haven't
 changed are fixed. The composition sign ∘ (f ∘ g) used to show as ž; that is fixed by itself when you open the app.
 
 Standards like `A.REI.A.1, NY: A.N.1` are split: the Common Core code stays in **Standard**, and the old NY code goes to **Old NY standard**.
