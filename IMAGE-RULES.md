@@ -112,10 +112,11 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
 - **Shared corner:** two shapes drawn separately that meet at a corner get `line join=round`, so the corner is one point (0625-22).
 - **Label distance:** a vertex letter's center is 9 pt from its point, away from the figure. A letter on a grid gets a white
   background. No label touches a line.
-- **Color:** none. Colors in the originals (BFW, calculator) become the grays above; two neighboring bars always differ in gray.
+- **Color (decided 2026-11-25):** none, except BFW: BFW pictures keep their original colors. Other colors (calculator screens) become the grays above;
+  two neighboring bars always differ in gray. The BFW trial pictures were drawn in gray and get redrawn in color.
 - **Font. Decided 2026-11-25:** each user picks the label font in their own settings: **Arial**, **Century Schoolbook** or **Times**.
   Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. **π is always Times (decided 2026-11-25).** Characters a font lacks
-  (′ ℓ) come from Times. Arial is what shows when nothing is picked (**Draft**).
+  (′ ℓ) come from Times. Arial is what shows when nothing is picked (decided 2026-11-25).
 - **One SVG holds all three fonts**, each as outlines: `picture.svg` shows Arial, `picture.svg#schoolbook` and `picture.svg#times` the
   others, at the same size. Tried in Chrome 158 with embedded pictures, server addresses and the canvas the downloads use; Firefox and
   Safari not tried. A browser that ignores the `#` part shows Arial.
@@ -221,10 +222,10 @@ part, type the tables).
 
 - **Photos** (13; water tower, Leaning Tower, climbing wall…): stay pictures. Labels and the math on top could be drawn over them.
 - **Drawn scenes** (39; trees, people, kite, fan): the triangle and measures can be drawn; the tree or person can't be drawn by rule.
-- **Calculator screens** (22, all answers): keep, or replace by the graph they show.
-- **Typed math** (223, nearly all BFW answers) and **tables** (116): should become typed math and real tables in the question, not SVG.
+- **Typed math** (223, nearly all BFW answers) and **tables** (116): become typed math and real tables in the question, not SVG (decided 2026-11-25).
 - **Handwritten answers:** many of the 121 graph, 40 coordinate and 33 construction answers are scans with someone's handwriting. The figure
-  can be redrawn; the written work has to be retyped.
+  can be redrawn; the written work has to be retyped. Decided 2026-11-25: keep the scans for now; answers come after the question pictures.
+- **Calculator screens** (22, all answers) are redrawn as SVG (decided 2026-11-25), in the gray style, even though they are answers.
 
 ## 6. What must change in the app before SVGs replace pictures
 
@@ -248,11 +249,13 @@ come from reading the code.
 
 ## 7. Decisions for Leigh
 
-Decided 2026-11-25: the label font is each user's setting; every picture at exam size; the 88 GEO2024-2026 pictures are approved (none replaced in the bank yet).
+All decided 2026-11-25:
 
-1. **Which font to start with** before someone picks one: Arial, as drawn?
-2. **BFW color → black and gray**, as drawn in the trial?
-3. **Typed math and tables** (339): turn them into text and real tables instead of SVG?
-4. **Handwritten answers:** redraw clean, keep the scans, or leave the answers out of the first round?
-5. **Photos, scenes, calculator screens:** keep as pictures?
-6. **Older ExamView banks** (about 3,297 more pictures): part of this, or later?
+1. Label font is each user's setting (Arial, Century Schoolbook, Times); **Arial** shows until someone picks.
+2. Every picture at exam size.
+3. **BFW keeps its colors**; everything else is black and gray.
+4. **Typed math and tables** (339) become real text and tables, not SVG.
+5. **Handwritten answers:** keep the scans for now; question pictures first.
+6. **Photos and scenes** stay pictures; the **22 calculator screens** are redrawn.
+7. **Older ExamView banks** (about 3,297 pictures): later, after the current banks.
+8. GEO2024-2026: the 88 pictures are approved (none replaced in the bank yet).

@@ -306,7 +306,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 
 - [ ] PLAN.md **Plan 4** (approved 2026-11-17): stage 1 rail + sub-tabs released v0.13.0; stage 2 bank browser released v0.14.0. Plan 4 done.
 - [x] Exam layout from `EXAM-FORMAT.md` (2026-11-24), released in v0.26.0. Waiting for her look in Microsoft Word.
-- [ ] Pictures as SVG (`IMAGE-RULES.md`, draft 1 2026-11-25): label font = each user's setting (one SVG holds Arial, Century Schoolbook, Times; `#schoolbook`/`#times`), exam size everywhere; GEO2024-2026 drawn and approved (88 of 105, not in the bank yet); waiting on the 6 decisions left in section 7; then one bank at a time, then the app changes in section 6.
+- [ ] Pictures as SVG (`IMAGE-RULES.md`, draft 1 2026-11-25): label font = each user's setting (one SVG holds Arial, Century Schoolbook, Times; `#schoolbook`/`#times`), exam size everywhere; GEO2024-2026 drawn and approved (88 of 105, not in the bank yet); all section 7 decisions made 2026-11-25 (BFW keeps color, typed math/tables → text, scans kept for now, calculator screens redrawn, older banks later); then one bank at a time, then the app changes in section 6.
 - [ ] Noticed 2026-11-25: sync (`hostImages`) moves pictures in questions and choices to picture storage, but not pictures in answers; those stay inside the question.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
@@ -526,3 +526,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-25**: the user's OK: GEO2024-2026 drawn (88 of 105, 79 converted from the exam PDFs' vector data; see `IMAGE-RULES.md` section 3), waiting for review in `Picture trial/GEO2024-2026/`. `picture-svg.sh` also takes a folder of single pictures. Nothing in the bank replaced.
 - **2026-11-25**: the user's changes to GEO2024-2026: 0126-15 arrows, 0625-22 one point P, π always in Times (`pictures.sty`). `picture-svg.sh` refuses two lines in one arrowed `\draw`.
 - **2026-11-25**: the user approved the 88 GEO2024-2026 pictures. Nothing replaced in the bank or app; 6 decisions left in `IMAGE-RULES.md` section 7.
+- **2026-11-25**: the user made the 6 decisions (section 7): start font Arial, BFW keeps its colors, typed math/tables become text, handwritten answer scans kept for now, calculator screens redrawn, older ExamView banks later.
