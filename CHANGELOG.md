@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
-- Tests and quizzes: pictures right next to each other in a question print together in one centered row (four go two by two), in print, Word and LaTeX, and the page breaks count them as one row; tables in questions never break across a page.
+- Tests and quizzes: pictures right next to each other in a question print together in one centered row (four that don't fit in one row go two by two), in print, Word and LaTeX, and the page breaks count them as one row; tables in questions never break across a page.
 
 ### Added
 - `scripts/bank-folder.cjs`: a picture of four choices drawn as four (`images/<name>-1.svg` … `-4.svg`) and a table written in Markdown (`images/<name>.md`) are used in place of the old picture; `scripts/bank-file.cjs` turns such a table into a real table.

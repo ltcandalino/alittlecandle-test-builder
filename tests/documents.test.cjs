@@ -493,6 +493,14 @@ test('four pictures side by side (the choices I–IV drawn as four) print two by
   assert.deepEqual(r.kids, ['IMG', 'IMG', 'BR', 'IMG', 'IMG'], 'one centered row, broken after the second picture');
   assert.notEqual(r.after, 'BR', 'no empty lines left around the row (LaTeX stops on them)');
   assert.ok(r.inches > 3 && r.inches < 4, 'pictures two rows tall (2 in + 1 in) plus the words, not 5 in stacked: ' + r.inches);
+  // four narrow pictures (four small tables) stay in one row
+  const narrow = 'Four tables.<br><br>' + [1, 2, 3, 4].map(() => pic(72, 108)).join(' ') + '<br><br>Which is linear?';
+  const [id2] = await addQuestions(page, [{ type: 'mc', html: narrow, choices: ['f', 'g', 'h', 'j'], answer: 0 }]);
+  await select(page, [id2]);
+  const r2 = await page.evaluate((h) => { const d = document.createElement('div'); d.innerHTML = window.__tb.fn.testHtml(window.__tb.fn.buildVersion(0), 0, {});
+    return { kids: [...d.querySelector('.q-row').childNodes].map(n => n.nodeName), inches: window.__tb.fn.htmlInches(h) }; }, narrow);
+  assert.deepEqual(r2.kids, ['IMG', 'IMG', 'IMG', 'IMG'], 'one row');
+  assert.ok(r2.inches > 1.5 && r2.inches < 2.2, 'one row tall: ' + r2.inches);
 });
 
 test('no page errors (last test)', () => assert.deepEqual(errors, []));
