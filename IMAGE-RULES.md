@@ -184,6 +184,10 @@ What this bank added to the converter:
 - **Variables in typed equations** use the letter style of the rules (`\V`), so the three label fonts treat them alike.
 - **Numbers in one piece of text** ("2.1 2.2 2.3") become one label each, where the exam has them.
 - **Drawing order** stays the exam's (open dots over lines), and gray lines stay gray on small grids.
+- **Her changes (2026-11-25):** an open dot drawn as a ring (two dark disks, one center) becomes one open dot (0125-24-4); a named axis
+  (f(x), h(x), D(t)) keeps only its own name, `\planeaxes[x][]` (0825-27, 0626-26); a grid reaches as far as its gray lines do, so lines that
+  start at the axes stay attached (0626-31). **A picture that shows the choices I–IV or A–D is four pictures**, one per choice, each with its
+  label (0624-14, 0125-16, 0625-19 → `-1` … `-4`): the question then gets four pictures in place of one when the bank is replaced.
 
 ## 4. Patterns by type
 
