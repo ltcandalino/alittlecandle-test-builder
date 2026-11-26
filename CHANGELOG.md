@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-25
+
 ### Added
 - Draft rules for drawing the banks' pictures in LaTeX as SVG (`IMAGE-RULES.md`, `scripts/pictures.sty`, `scripts/picture-svg.sh`), each SVG with the labels in Arial, Century Schoolbook and Times. The app itself hasn't changed.
 - **Picture labels** on 2 Set up › Page style: the font of the letters in drawn (SVG) pictures, Arial, Century Schoolbook or Times, on screen, in print and in Word and LaTeX downloads.
