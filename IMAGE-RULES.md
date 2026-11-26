@@ -190,6 +190,19 @@ What this bank added to the converter:
   start at the axes stay attached (0626-31). **A picture that shows the choices I–IV or A–D is four pictures**, one per choice, each with its
   label (0624-14, 0125-16, 0625-19 → `-1` … `-4`): the question then gets four pictures in place of one when the bank is replaced.
 
+### Third bank: Algebra II Next Generation (AII2025-2027, drawn 2026-11-25, waiting for review)
+
+`Picture trial/Algebra II NG/`: all 13 question and choice pictures. The 11 from June 2026 were converted from the exam PDF
+(`Picture trial/tools/algebra2/`); the 2 Fall 2025 samples have no exam PDF and were drawn by hand (fall25-04 at draft size, its ExamView
+"0" is θ; fall25-10 a Regents-size grid, like the spring 2024 Geometry samples). 9 of 11 converted match 95% both ways, 0626-06-3 and
+0626-12 90–95% (small curve differences). The 4 answer pictures are kept for now. What this bank added to the converter:
+- **A question picture and picture choices together** (0626-06): the question's picture is the one above all the choice pictures.
+- **The symbol font** writes π μ σ as p m s and − + as 9 pt wide 2 and 1 inside pictures: read back as symbols (0626-14 −2π, 0626-28 μ − 3σ);
+  a symbol-font fraction in a choice or question line (5π over 6) is never picture text.
+- **Curves keep their own points**, also graphs drawn as many short straight pieces (the sine in 0626-14): pulling them onto the grid bent them.
+  The approved Algebra I curves move by less than a point with this; the ones in the banks were left as approved.
+- **A name at an axis end** must be a name (f(x)), not a number like 2π, before `\planeaxes` leaves out its x or y.
+
 ## 4. Patterns by type
 
 Inside `plane`, coordinates are graph boxes; elsewhere they are points (1 pt = 1/72 in).
