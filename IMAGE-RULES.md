@@ -190,7 +190,7 @@ What this bank added to the converter:
   start at the axes stay attached (0626-31). **A picture that shows the choices I–IV or A–D is four pictures**, one per choice, each with its
   label (0624-14, 0125-16, 0625-19 → `-1` … `-4`): the question then gets four pictures in place of one when the bank is replaced.
 
-### Third bank: Algebra II Next Generation (AII2025-2027, drawn and approved 2026-11-25)
+### Third bank: Algebra II Next Generation (AII2025-2027, drawn, approved and in the bank 2026-11-25)
 
 `Picture trial/Algebra II NG/`: all 13 question and choice pictures. The 11 from June 2026 were converted from the exam PDF
 (`Picture trial/tools/algebra2/`); the 2 Fall 2025 samples have no exam PDF and were drawn by hand (fall25-04 at draft size, its ExamView
