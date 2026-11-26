@@ -162,6 +162,11 @@ a seam in the sector of 0825-30, the same corner in 0825-29. The match score doe
 Added to the rules: on a grid, letters with their white boxes are drawn first and the figure over them, so no box hides a line. **Draft:** the samples' grids use
 14.7 boxes, like the exam's 20 × 20 grids. Not drawn: 5 scenes or photos (0126-08, 0625-02, 0625-34, 0626-04, 0825-33) and 12 answers (decisions 4 and 5).
 
+**Trial bank (2026-11-25):** `Picture trial/GEO2024-2026/GEO2024-2026 picture trial bank file.json`, made by `bank-file.cjs` from
+`trial bank folder/` (a copy of the bank folder with the 88 SVGs in `svg/` at exam size). Its own bank name, course "Picture trial",
+ids + `pt` and refs + `-trial`, so opening it never updates the real questions, in any course (checked: adds 148, changes 0).
+Printed from the app in each label font: `Trial test - labels in Arial|Century Schoolbook|Times.pdf` (10 questions).
+
 ## 4. Patterns by type
 
 Inside `plane`, coordinates are graph boxes; elsewhere they are points (1 pt = 1/72 in).
