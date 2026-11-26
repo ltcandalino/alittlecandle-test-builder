@@ -247,7 +247,7 @@ come from reading the code.
 | Label font | **done 2026-11-25:** **Picture labels** on Page style (`settings.picFont`, per course like the test font, synced). `picFont()` adds `#schoolbook`/`#times` in `testHtml`, `keyHtml` and bank cards; stored questions keep the plain address | nothing |
 | Question height | **done 2026-11-25:** `svgSize` reads the SVG's width and height (pt), so it prints at exam size | nothing |
 | `scripts/bank-file.cjs` | **done 2026-11-25:** writes `svg+xml` | nothing |
-| `scripts/bank-folder.cjs` | a re-run cuts the PNG again | keep the SVG |
+| `scripts/bank-folder.cjs` | **done 2026-11-25:** a drawn picture saved as `images/<name>.svg` in the bank folder is kept on every run, at exam size (tried on a copy of GEO2024-2026: 88 kept, nothing else changed) | to replace a bank's pictures: copy its SVGs into `images/`, re-run, rebuild the bank file |
 | Picture… button, Word import | **done 2026-11-25** for the Picture… button (keeps the SVG); Word import still flattens one (Word files hold a PNG copy anyway) | nothing for now |
 | Saved tests | hold frozen copies, with the old pictures | nothing, but the "questions changed" notice won't notice a new picture |
 | Replacing in her banks | open the new bank file: same questions updated. Re-importing the ExamView bank should keep the new pictures (read in the code, not tried) | a backup and a trial bank first |

@@ -3,7 +3,7 @@
    tables), pictures as PNG files, and review.html to check every question next to the ExamView version.
    Pictures are cut at 300 dpi from the official Regents exam PDFs when they are found (any file name: each PDF is
    recognized by its cover page); otherwise the bank's own pictures are kept. The bank's pictures always stay in
-   images/examview/.
+   images/examview/. A drawn picture saved as images/<picture name>.svg is kept instead, on every run.
 
    node scripts/bank-folder.cjs <bank.bnk> [--pdfs <folder>] [--out <folder>]
      --pdfs  where the exam PDFs are, looked for in subfolders too (default ~/Documents/TestBuilderResource/Regents exams)
@@ -243,7 +243,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
   // 5. write the folder
   fs.mkdirSync(path.join(OUT, 'questions'), { recursive: true }); fs.mkdirSync(path.join(OUT, 'images', 'examview'), { recursive: true });
   const used = {}, names = [], fields = ['type', 'points', 'answer', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines'];
-  let nNew = 0, nOld = 0;
+  let nNew = 0, nOld = 0, nSvg = 0;
   bank.qs.forEach((q, i) => {
     const m = md.out[i]; let name = nameOf(q, i); if (used[name]) { let k = 2; while (used[name + '-' + k]) k++; name += '-' + k; } used[name] = 1; names.push(name);
     const c = crops[q.id] || {}, stemImgs = (q.html.match(/<img/g) || []).length;
@@ -251,6 +251,9 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       k = +k; const p = m.pics[k], ext = (/^data:image\/(\w+)/.exec(p.src) || [, 'png'])[1].replace('jpeg', 'jpg');
       const isChoice = k >= stemImgs, ci = isChoice ? m.choices.findIndex(t => t.indexOf('@@PIC' + k + '@@') >= 0) : -1, base = name + (isChoice ? '-' + (ci + 1) : k ? '-' + (k + 1) : '');
       if (p.src.startsWith('data:')) fs.writeFileSync(path.join(OUT, 'images', 'examview', base + '.' + ext), Buffer.from(p.src.split(',')[1], 'base64'));
+      // a drawn picture (IMAGE-RULES.md) put in images/ as <name>.svg wins: kept on every run, at its own (exam) size
+      const svg = path.join(OUT, 'images', base + '.svg');
+      if (fs.existsSync(svg)) { nSvg++; const w = /width=['"]([\d.]+)pt/.exec(fs.readFileSync(svg, 'utf8').slice(0, 600)); return '![picture](../images/' + base + '.svg){width=' + (w ? (w[1] / 72).toFixed(3) : p.w || '2') + 'in}'; }
       let cut = isChoice ? c.choices && c.choices[ci] : k === 0 ? c.stem : null;
       const bankBlank = isChoice ? (c.choiceBlank || [])[ci] : c.stemBlank;
       if (cut && (cut.shape < 0.8 || cut.shape > 1.25) && !bankBlank) cut = null; // shaped differently from the bank's: keep the bank's
@@ -291,7 +294,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     return { name: names[i], old, md: fs.readFileSync(path.join(OUT, 'questions', names[i] + '.md'), 'utf8') };
   });
   fs.writeFileSync(path.join(OUT, 'review.html'), REVIEW(bank.title, css, items));
-  console.log('wrote ' + OUT + ' (' + names.length + ' questions; ' + nNew + ' pictures from the exam PDFs, ' + nOld + ' from ExamView)');
+  console.log('wrote ' + OUT + ' (' + names.length + ' questions; ' + nNew + ' pictures from the exam PDFs, ' + nOld + ' from ExamView' + (nSvg ? ', ' + nSvg + ' drawn (SVG)' : '') + ')');
 
   // 7. check the math draws
   const rv = await browser.newPage(); await rv.goto('file://' + path.join(OUT, 'review.html')); await rv.waitForFunction(() => window.__bad != null, null, { timeout: 30000 });
