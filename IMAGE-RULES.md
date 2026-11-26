@@ -167,6 +167,24 @@ Added to the rules: on a grid, letters with their white boxes are drawn first an
 ids + `pt` and refs + `-trial`, so opening it never updates the real questions, in any course (checked: adds 148, changes 0).
 Printed from the app in each label font: `Trial test - labels in Arial|Century Schoolbook|Times.pdf` (10 questions).
 
+### Second bank: Algebra I Next Generation (AI2023-2025 + AI2026-2027, drawn 2026-11-25, waiting for review)
+
+`Picture trial/Algebra I NG/`: 61 of the 68 question and choice pictures (`tex/`, `svg/`, `Algebra I NG pictures.pdf`), all converted
+from the exam PDFs' vector data (`Picture trial/tools/algebra1/`: `loc.mjs` question numbers, `ext.mjs` each question's drawing, `gen.py`
+pictures and their text, `emit.py` TikZ). 54 match 95% both ways; the other 7 differ because the old cut is wrong or partial (0624-31 also
+shows the question's equations, 0625-12 is cut off on the right, 0825-31 has a stray mark) or by small details (set notation in the label
+font, axis arrows a little longer, number-line arrowheads). Not drawn: 7 tables (become real tables) and 20 answer pictures (kept for now).
+What this bank added to the converter:
+- **Choice pictures:** the drawing in a question is split into pieces 7 pt apart; the pieces and the (1)–(4) labels each form the same rows
+  and columns, so piece and label are matched by row and column (labels beside or under the pictures both work). Small pieces (a stack of dots)
+  join the nearest picture.
+- **Text:** a label belongs to the picture it is nearest. Question and choice lines are never picture text; text in the question's serif font is
+  picture text only inside the drawing or with a Roman numeral (I, II., III …) and the equation beside it.
+- **Title font:** a word in a sans font that isn't the numbers' font is bold (titles, axis names), as on the exam.
+- **Variables in typed equations** use the letter style of the rules (`\V`), so the three label fonts treat them alike.
+- **Numbers in one piece of text** ("2.1 2.2 2.3") become one label each, where the exam has them.
+- **Drawing order** stays the exam's (open dots over lines), and gray lines stay gray on small grids.
+
 ## 4. Patterns by type
 
 Inside `plane`, coordinates are graph boxes; elsewhere they are points (1 pt = 1/72 in).
