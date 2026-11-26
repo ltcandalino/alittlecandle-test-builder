@@ -190,7 +190,7 @@ What this bank added to the converter:
   start at the axes stay attached (0626-31). **A picture that shows the choices I–IV or A–D is four pictures**, one per choice, each with its
   label (0624-14, 0125-16, 0625-19 → `-1` … `-4`): the question then gets four pictures in place of one when the bank is replaced.
 
-### Third bank: Algebra II Next Generation (AII2025-2027, drawn 2026-11-25, waiting for review)
+### Third bank: Algebra II Next Generation (AII2025-2027, drawn and approved 2026-11-25)
 
 `Picture trial/Algebra II NG/`: all 13 question and choice pictures. The 11 from June 2026 were converted from the exam PDF
 (`Picture trial/tools/algebra2/`); the 2 Fall 2025 samples have no exam PDF and were drawn by hand (fall25-04 at draft size, its ExamView
@@ -202,7 +202,7 @@ What this bank added to the converter:
 - **Curves keep their own points**, also graphs drawn as many short straight pieces (the sine in 0626-14): pulling them onto the grid bent them.
   The approved Algebra I curves move by less than a point with this; the ones in the banks were left as approved.
 - **A name at an axis end** must be a name (f(x)), not a number like 2π, before `\planeaxes` leaves out its x or y.
-- **Her changes (2026-11-25):** x and y at the axis ends are written once (0626-13); an arrowhead belongs to a line only if it sits on that line, so a tick at an axis end (3000 in 0626-36) stays a plain tick; μ and σ are always Times, like π. The same two fixes would correct 9 approved Algebra I pictures (0126-07 stray gray arrowheads, 0625-19 doubled y, 0625-13 arrowheads at 50 and 15): `Picture trial/Algebra I NG/Algebra I fixes.pdf`.
+- **Her changes (2026-11-25):** x and y at the axis ends are written once (0626-13); an arrowhead belongs to a line only if it sits on that line, so a tick at an axis end (3000 in 0626-36) stays a plain tick; μ and σ are always Times, like π. The same two fixes would correct 9 approved Algebra I pictures (0126-07 stray gray arrowheads, 0625-19 doubled y, 0625-13 arrowheads at 50 and 15): `Picture trial/Algebra I NG/Algebra I fixes.pdf`. Her OK: done in the Algebra I banks 2026-11-25 (3 questions changed; backup `Backups/2026-11-25 before Algebra I fixes/`).
 
 ## 4. Patterns by type
 
