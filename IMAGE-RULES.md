@@ -167,7 +167,7 @@ Added to the rules: on a grid, letters with their white boxes are drawn first an
 ids + `pt` and refs + `-trial`, so opening it never updates the real questions, in any course (checked: adds 148, changes 0).
 Printed from the app in each label font: `Trial test - labels in Arial|Century Schoolbook|Times.pdf` (10 questions).
 
-### Second bank: Algebra I Next Generation (AI2023-2025 + AI2026-2027, drawn 2026-11-25, waiting for review)
+### Second bank: Algebra I Next Generation (AI2023-2025 + AI2026-2027, drawn and approved 2026-11-25)
 
 `Picture trial/Algebra I NG/`: 61 of the 68 question and choice pictures (`tex/`, `svg/`, `Algebra I NG pictures.pdf`), all converted
 from the exam PDFs' vector data (`Picture trial/tools/algebra1/`: `loc.mjs` question numbers, `ext.mjs` each question's drawing, `gen.py`
