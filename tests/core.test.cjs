@@ -224,4 +224,30 @@ describe('saved settings from older versions', () => {
   });
 });
 
+// three colored squares stand in for the three label fonts, in the same layout picture-merge.py writes
+const SVG3 = "<svg xmlns='http://www.w3.org/2000/svg' width='72pt' height='36pt' viewBox='0 0 72 36'><style>.v{display:none}#arial{display:inline}#schoolbook:target,#times:target{display:inline}#schoolbook:target~#arial,#times:target~#arial{display:none}</style>" +
+  "<g class='v' id='schoolbook'><rect width='72' height='36' fill='#0f0'/></g><g class='v' id='times'><rect width='72' height='36' fill='#00f'/></g><g class='v' id='arial'><rect width='72' height='36' fill='#f00'/></g></svg>";
+describe('drawn pictures (SVG)', () => {
+  const src = 'data:image/svg+xml;base64,' + Buffer.from(SVG3).toString('base64');
+  test('size is read from the picture: 72 pt wide = 1 inch', async () => {
+    assert.deepEqual(await fn(page, 'svgSize', src), [96, 48]);
+    assert.deepEqual(await fn(page, 'svgSize', 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(SVG3)), [96, 48]);
+    assert.ok(Math.abs(await fn(page, 'htmlInches', '<img src="' + src + '">') - 0.5) < 0.01, 'height 1/2 inch at its own size');
+  });
+  test('the label font setting picks the font on paper; the stored question keeps the plain address', async () => {
+    const color = (s) => page.evaluate((s) => new Promise((res) => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); c.width = 96; c.height = 48; const x = c.getContext('2d'); x.drawImage(i, 0, 0); res([...x.getImageData(48, 24, 1, 1).data].slice(0, 3).join()); }; i.src = s; }), s);
+    const html = '<img class="q-img" src="' + src + '"> and <img src="https://x.org/a.svg"> <img src="data:image/png;base64,AAAA">';
+    const out = {};
+    for (const f of ['Arial', 'Century Schoolbook', 'Times']) {
+      await settings(page, { picFont: f });
+      const h = await fn(page, 'picFont', html);
+      out[f] = await color(/src="([^"]*)"/.exec(h)[1]);
+      if (f === 'Times') { assert.match(h, /a\.svg#times"/); assert.match(h, /base64,AAAA"/, 'other pictures unchanged'); }
+    }
+    assert.deepEqual(out, { 'Arial': '255,0,0', 'Century Schoolbook': '0,255,0', 'Times': '0,0,255' });
+    await settings(page, { picFont: '' });
+    assert.equal(await fn(page, 'picFont', html), html, 'nothing picked = Arial = plain address');
+  });
+});
+
 test('no page errors', () => assert.deepEqual(errors, []));

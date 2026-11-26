@@ -69,7 +69,7 @@ describe('website version', () => {
     const a = await signIn();
     await a.page.evaluate(png => {
       const T = window.__tb, st = T.state;
-      st.questions.push({ id: 'sync-1', course: st.course, type: 'mc', html: 'Synced question <img src="' + png + '">', choices: ['a', 'b'], answer: 1, bank: 'B', points: 2 });
+      st.questions.push({ id: 'sync-1', course: st.course, type: 'mc', html: 'Synced question <img src="' + png + '"> <img src="data:image/svg+xml;base64,' + btoa("<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'/>") + '">', choices: ['a', 'b'], answer: 1, bank: 'B', points: 2 });
       st.questions.push({ id: 'sync-2', course: st.course, type: 'es', html: 'Will be deleted', choices: [], answer: '', bank: 'B', points: 4 });
       st.settings.unitNum = '8';
       T.state = T.normalize(st);
@@ -84,6 +84,7 @@ describe('website version', () => {
     const q = await b.page.evaluate(() => window.__tb.state.questions.find(x => x.id === 'sync-1'));
     assert.match(q.html, /Synced question/);
     assert.match(q.html, new RegExp('src="' + srv.url.replace(/[.]/g, '\\.') + '/storage/v1/object/public/images/'), 'picture uploaded to the server');
+    assert.match(q.html, /\/[a-z0-9]+\.svg"/, 'drawn (SVG) picture uploaded too'); assert.doesNotMatch(q.html, /data:image/);
     await b.page.waitForFunction(() => window.__tb.state.settings.unitNum === '8', null, { timeout: 10000 });
     const shown = await b.page.evaluate(() => window.__tb.fn.sanitize(window.__tb.state.questions.find(x => x.id === 'sync-1').html));
     assert.match(shown, /<img/, 'picture survives cleaning on an http:// server');

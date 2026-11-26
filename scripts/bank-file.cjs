@@ -106,7 +106,7 @@ let pics = 0; const unknown = new Set();
 const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.endsWith('.md')).sort().map(f => {
   const { meta, body } = front(fs.readFileSync(path.join(DIR, 'questions', f), 'utf8'));
   const pic = (file, w) => { const full = path.resolve(path.join(DIR, 'questions'), file); if (!fs.existsSync(full)) return '<span class="q-missing">[picture]</span>';
-    pics++; const ext = path.extname(full).slice(1).toLowerCase().replace('jpg', 'jpeg'); return '<img class="q-img" src="data:image/' + ext + ';base64,' + fs.readFileSync(full).toString('base64') + '" style="width:' + w + 'in" alt="">'; };
+    pics++; const ext = path.extname(full).slice(1).toLowerCase().replace('jpg', 'jpeg').replace('svg', 'svg+xml'); return '<img class="q-img" src="data:image/' + ext + ';base64,' + fs.readFileSync(full).toString('base64') + '" style="width:' + w + 'in" alt="">'; };
   // "## Answer" at the end: the written answer (math, pictures, tables), like the question itself
   const parts = body.split(/\n## Answer\n/), ansMd = parts[1] ? parts[1].trim() : '';
   const lines = parts[0].trim().split('\n'), ch = []; while (lines.length && /^\d+\. /.test(lines[lines.length - 1])) ch.unshift(lines.pop().replace(/^\d+\. /, ''));

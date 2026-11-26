@@ -1853,7 +1853,7 @@ var CLOUD=(function(){
   /* ---------- change detection ---------- */
   function fnv(str){var h=0x811c9dc5;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193);}return (h>>>0).toString(36);}
   function canon(v){if(Array.isArray(v))return '['+v.map(canon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canon(v[k]);}).join(',')+'}';return JSON.stringify(v===undefined?null:v);}
-  function lite(html){return String(html||'').replace(/data:image\/[a-z]+;base64,([A-Za-z0-9+\/=]{0,60})[A-Za-z0-9+\/=]*/g,function(m,a){return 'D'+m.length+a;});}
+  function lite(html){return String(html||'').replace(/data:image\/[a-z+]+;base64,([A-Za-z0-9+\/=]{0,60})[A-Za-z0-9+\/=]*/g,function(m,a){return 'D'+m.length+a;});}
   function sigQ(q){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
@@ -1878,9 +1878,9 @@ function foreign(q){return !!(q&&q.owner);}
   }
   // moves embedded pictures into online storage and returns html that points at them
   function hostImages(html){
-    var re=/src="data:image\/(png|jpeg|jpg|gif|webp);base64,([^"]+)"/g,m,jobs=[],out=html;
+    var re=/src="data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,([^"]+)"/g,m,jobs=[],out=html;
     if(!html||html.indexOf('data:image/')<0)return Promise.resolve(html);
-    while((m=re.exec(html)))jobs.push({full:m[0],ext:m[1]==='jpeg'?'jpg':m[1],type:'image/'+(m[1]==='jpg'?'jpeg':m[1]),b64:m[2]});
+    while((m=re.exec(html)))jobs.push({full:m[0],ext:m[1]==='jpeg'?'jpg':m[1]==='svg+xml'?'svg':m[1],type:'image/'+(m[1]==='jpg'?'jpeg':m[1]),b64:m[2]});
     return jobs.reduce(function(p,j){return p.then(function(){
       return hashOf(j.b64).then(function(h){
         var path=session.user.id+'/'+h+'.'+j.ext,pub=URL_+'/storage/v1/object/public/images/'+path;
@@ -2120,7 +2120,8 @@ function makeExporter(A) {
       return p.then(function () {
         return loadImg(src).then(function (im) {
           var wIn = im.naturalWidth / 96, hIn = im.naturalHeight / 96, printW = widest[src] || wIn;
-          var scale = Math.min(1, (printW * 200) / im.naturalWidth), w = Math.max(1, Math.round(im.naturalWidth * scale)), h = Math.max(1, Math.round(im.naturalHeight * scale));
+          var svg = /^data:image\/svg/i.test(src) || /\.svg($|[?#])/i.test(src); // drawn pictures: 300 dpi at their printed size
+          var scale = svg ? (printW * 300) / im.naturalWidth : Math.min(1, (printW * 200) / im.naturalWidth), w = Math.max(1, Math.round(im.naturalWidth * scale)), h = Math.max(1, Math.round(im.naturalHeight * scale));
           var jpeg = /^data:image\/jpe?g/i.test(src) || /\.jpe?g($|\?)/i.test(src);
           var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var cx = cv.getContext('2d');
           if (jpeg) { cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); }
@@ -3244,7 +3245,13 @@ function qBody(it,A){
 }
 // a picture's size in pixels: a PNG's header says it; other pictures are loaded once, then the preview is drawn again
 var picDims={};
-function pngSize(src){var d=/^data:image\/png;base64,([A-Za-z0-9+\/]{32})/.exec(src);if(d)try{var b=atob(d[1]),n=function(i){return ((b.charCodeAt(i)<<24)>>>0)+(b.charCodeAt(i+1)<<16)+(b.charCodeAt(i+2)<<8)+b.charCodeAt(i+3);};if(n(16)&&n(20))return [n(16),n(20)];}catch(e){}return null;}
+// SVG pictures (IMAGE-RULES.md) hold three label fonts; the address picks one: Arial shows unless #schoolbook or #times is added.
+// Stored questions keep the plain address, so each teacher's own setting (settings.picFont) decides.
+var PIC_FONTS={'Arial':'','Century Schoolbook':'#schoolbook','Times':'#times'};
+function picFont(h){var f=PIC_FONTS[state.settings.picFont]||'';return f?String(h).replace(/(<img[^>]*src="(?:data:image\/svg\+xml[^"#]*|[^"#]*\.svg))"/g,'$1'+f+'"'):h;}
+function svgSize(src){var d=/^data:image\/svg\+xml(;base64)?[^,]*,(.{0,800})/.exec(src);if(!d)return null;
+  try{var t=d[1]?atob(d[2].slice(0,d[2].length&~3)):unescape(d[2]),w=/\swidth=['"]([\d.]+)(pt|px|in)?/.exec(t),h=/\sheight=['"]([\d.]+)(pt|px|in)?/.exec(t),k=function(m){return +m[1]*({pt:96/72,'in':96}[m[2]]||1);};if(w&&h)return [k(w),k(h)];}catch(e){}return null;}
+function pngSize(src){var v=svgSize(src);if(v)return v;var d=/^data:image\/png;base64,([A-Za-z0-9+\/]{32})/.exec(src);if(d)try{var b=atob(d[1]),n=function(i){return ((b.charCodeAt(i)<<24)>>>0)+(b.charCodeAt(i+1)<<16)+(b.charCodeAt(i+2)<<8)+b.charCodeAt(i+3);};if(n(16)&&n(20))return [n(16),n(20)];}catch(e){}return null;}
 function picLoad(src){if(!picDims[src])picDims[src]=new Promise(function(res){var i=new Image();i.onload=function(){picDims[src]=[i.naturalWidth,i.naturalHeight];res();};i.onerror=function(){res();};i.src=src;});return picDims[src];}
 function picPx(src){var p=pngSize(src);if(p)return p;p=picDims[src];if(Array.isArray(p))return p;if(src&&!p)picLoad(src).then(function(){if($('#paper'))drawPreviewSoon();});return null;}
 // before printing or downloading: the size of every picture on the test is known
@@ -3256,13 +3263,14 @@ function picIn(img){var px=picPx(img.getAttribute('src')||''),w=inch(img.style.w
 // rough printed height of a question's own text and pictures, in inches
 function htmlInches(h){
   var im=0;h=String(h||'');
-  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);im+=(w?+w[1]:2)*(px?px[1]/px[0]:0.75);return '';});
+  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);im+=(w?+w[1]:px?px[0]/96:2)*(px?px[1]/px[0]:0.75);return '';});
   return h.replace(/<[^>]+>/g,'').length/95*0.21+(h.match(/<br/g)||[]).length*0.1+im;
 }
 // tall questions may break across pages; otherwise one that can't fit under the first page's header leaves page 1 blank
 function isTall(q){var a=q.type==='bm'?num(q.space,2):q.type==='es'?(q.answerArea==='space'?num(q.space,3):num(q.lines,8)*0.33):1;return a>5||a+htmlInches(q.html)>7||/<table/.test(q.html);}
 function nameRow(){return '<div class="cl-row cl-name"><span>Name: <span class="cl-line" style="width:3.1in"></span></span><span>Date: <span class="cl-line" style="width:'+(isExamDoc()?1.42:1.6)+'in"></span></span></div>';}
-function testHtml(items,v,opts){
+function testHtml(items,v,opts){return picFont(testHtml0(items,v,opts));}
+function testHtml0(items,v,opts){
   labelItems(items);
   var t=docType(),h='';
   if(t==='review')h+=reviewHtml(items,v,opts);
@@ -3391,7 +3399,7 @@ function keyHtml(items,v){
     if(s.keyNotes&&q.notes)a+='<div class="pt-mynote">Note: '+textToHtml(q.notes)+'</div>';
     h+='<tr><td class="n">'+esc(it.keyLabel)+'</td><td class="l">'+esc(l)+'</td><td>'+a+'</td><td class="p">'+ptsLabel(q.points)+'</td>'+(s.keyStd?'<td class="s">'+ref+'</td>':'')+'</tr>';
   });
-  h+='</tbody></table>';return isExamDoc()?h.replace(/[△∆]/g,'Δ'):h;
+  h+='</tbody></table>';return picFont(isExamDoc()?h.replace(/[△∆]/g,'Δ'):h);
 }
 function cssStr(t){return '"'+String(t).replace(/["\\]/g,'').replace(/\n/g,' ')+'"';}
 function waitImgs(root){var imgs=$$('img',root).filter(function(i){return !i.complete;});if(!imgs.length)return Promise.resolve();return new Promise(function(res){var left=imgs.length;imgs.forEach(function(i){i.onload=i.onerror=function(){if(--left===0)res();};});setTimeout(res,3000);});}
@@ -3466,7 +3474,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,fitHtml:fitHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,picFont:picFont,svgSize:svgSize,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3650,6 +3658,7 @@ function qCard(q){
   else if(q.type==='tf')body+='<div class="keyline">Answer: <b>'+(q.answer==='T'?'True':q.answer==='F'?'False':'—')+'</b></div>';
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': '+(isHtmlAns(q.answer)?'<div class="qbody">'+ansHtml(q.answer)+'</div>':'<b>'+esc(q.answer)+'</b>')+'</div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
+  body=picFont(body);
   var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(picking()?((!q.owner||q.canEdit)?'<button class="small ghost" data-edit="'+q.id+'">Edit</button>':'')+(q.owner?'<button class="small ghost" data-dup="'+q.id+'" title="Make your own copy to change; the original stays as it was">Copy to mine</button>':''):q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
@@ -4190,6 +4199,7 @@ function insertPicture(file,el){
   var rd=new FileReader();rd.onload=function(){
     var im=new Image();im.onload=function(){
       var maxW=1400,w=im.width,h=im.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      if(file.type==='image/svg+xml'){el.focus();document.execCommand('insertHTML',false,'<img class="q-img" src="'+rd.result+'" style="width:'+Math.min(6.5,im.width/96).toFixed(2)+'in">');return;} // drawn pictures stay sharp, at their own size
       var cv=document.createElement('canvas');cv.width=w;cv.height=h;var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,w,h);cx.drawImage(im,0,0,w,h);
       var url=/png|gif/.test(file.type)?cv.toDataURL('image/png'):cv.toDataURL('image/jpeg',.88);
       var inches=Math.min(6.5,w/150);
@@ -4340,6 +4350,7 @@ function _renderBuild(){
     '<div class="card" data-show="setup:acc"><h2>Accommodations</h2>'+(exam?'<div class="fields acc-time">'+timeSel+'</div>':'')+accSection()+'</div>'+
     '<div class="card" id="pageStyle" data-show="setup:page"><h2>Page style</h2><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
+    '<div class="row"><label><span class="lbl">Picture labels <span class="hint" style="font-weight:400">— letters and numbers in drawn pictures</span></span><select data-set="picFont">'+Object.keys(PIC_FONTS).map(function(f){return '<option value="'+esc(f)+'"'+((s.picFont||'Arial')===f?' selected':'')+' style="font-family:'+esc(FONTS[f==='Times'?'Times New Roman':f])+'">'+esc(f)+'</option>';}).join('')+'</select></label></div>'+
     '<label><span class="lbl">Answer choice labels</span><select data-set="labels"><option value="lowerdot"'+(s.labels==='lowerdot'?' selected':'')+'>a.  b.  c.  d.</option><option value="upper"'+(s.labels==='upper'?' selected':'')+'>A.  B.  C.  D.</option><option value="lower"'+(s.labels==='lower'?' selected':'')+'>a)  b)  c)  d)</option><option value="num"'+(s.labels==='num'?' selected':'')+'>(1)  (2)  (3)  (4)  — Regents style</option></select></label>'+
     '</div>'+
     '<h3>Layout</h3><div class="checks">'+

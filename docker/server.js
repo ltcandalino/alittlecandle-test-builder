@@ -81,7 +81,9 @@ const INDEX = fs.readFileSync(path.join(__dirname, 'index.html'));
 const VERSION = (INDEX.toString('utf8', 0, 4000).match(/<meta name="version" content="([^"]+)"/) || [])[1] || 'unknown';
 const INDEX_ETAG = '"' + crypto.createHash('sha1').update(INDEX).digest('hex').slice(0, 16) + '"';
 const CONFIG_JS = "window.ALCTB_CONFIG={supabaseUrl:location.origin,supabaseAnonKey:'self-hosted',selfHosted:true};\n";
-const IMG_TYPES = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' };
+const IMG_TYPES = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' };
+// an SVG opened by its own address could run scripts: never let it (pictures in the app are <img>, which never run them)
+const SVG_SEC = { 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox" };
 
 /* ---------------- request handling ---------------- */
 /* ---------------- groups and team banks ----------------
@@ -215,11 +217,11 @@ async function handle(req, res) {
   // pictures (public read; names are long random codes)
   if (req.method === 'GET' && p.startsWith('/storage/v1/object/public/images/')) {
     const rel = p.slice('/storage/v1/object/public/images/'.length);
-    const m = rel.match(/^([0-9a-f-]{36})\/([a-z0-9]{8,64})\.(png|jpg|gif|webp)$/);
+    const m = rel.match(/^([0-9a-f-]{36})\/([a-z0-9]{8,64})\.(png|jpg|gif|webp|svg)$/);
     if (!m) return err(res, 404, 'Not found');
     const file = path.join(IMG_DIR, m[1], m[2] + '.' + m[3]);
     if (!fs.existsSync(file)) return err(res, 404, 'Not found');
-    res.writeHead(200, Object.assign({ 'Content-Type': IMG_TYPES[m[3]], 'Cache-Control': 'public, max-age=31536000, immutable' }, SEC));
+    res.writeHead(200, Object.assign({ 'Content-Type': IMG_TYPES[m[3]], 'Cache-Control': 'public, max-age=31536000, immutable' }, SEC, m[3] === 'svg' ? SVG_SEC : {}));
     return fs.createReadStream(file).pipe(res);
   }
 
@@ -336,7 +338,7 @@ async function handle(req, res) {
   // ---- picture upload ----
   if (req.method === 'POST' && p.startsWith('/storage/v1/object/images/')) {
     const rel = p.slice('/storage/v1/object/images/'.length);
-    const m = rel.match(/^([0-9a-f-]{36})\/([a-z0-9]{8,64})\.(png|jpg|gif|webp)$/);
+    const m = rel.match(/^([0-9a-f-]{36})\/([a-z0-9]{8,64})\.(png|jpg|gif|webp|svg)$/);
     if (!m || m[1] !== me.id) return err(res, 403, 'Not allowed');
     const dir = path.join(IMG_DIR, me.id);
     fs.mkdirSync(dir, { recursive: true });

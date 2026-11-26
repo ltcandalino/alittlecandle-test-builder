@@ -44,7 +44,7 @@ var CLOUD=(function(){
   /* ---------- change detection ---------- */
   function fnv(str){var h=0x811c9dc5;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193);}return (h>>>0).toString(36);}
   function canon(v){if(Array.isArray(v))return '['+v.map(canon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canon(v[k]);}).join(',')+'}';return JSON.stringify(v===undefined?null:v);}
-  function lite(html){return String(html||'').replace(/data:image\/[a-z]+;base64,([A-Za-z0-9+\/=]{0,60})[A-Za-z0-9+\/=]*/g,function(m,a){return 'D'+m.length+a;});}
+  function lite(html){return String(html||'').replace(/data:image\/[a-z+]+;base64,([A-Za-z0-9+\/=]{0,60})[A-Za-z0-9+\/=]*/g,function(m,a){return 'D'+m.length+a;});}
   function sigQ(q){
     var o={};Object.keys(q).sort().forEach(function(k){var v=q[k];if(k==='html'||k==='choices'||v===''||v==null||v===false)return;o[k]=v;});
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
@@ -69,9 +69,9 @@ function foreign(q){return !!(q&&q.owner);}
   }
   // moves embedded pictures into online storage and returns html that points at them
   function hostImages(html){
-    var re=/src="data:image\/(png|jpeg|jpg|gif|webp);base64,([^"]+)"/g,m,jobs=[],out=html;
+    var re=/src="data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,([^"]+)"/g,m,jobs=[],out=html;
     if(!html||html.indexOf('data:image/')<0)return Promise.resolve(html);
-    while((m=re.exec(html)))jobs.push({full:m[0],ext:m[1]==='jpeg'?'jpg':m[1],type:'image/'+(m[1]==='jpg'?'jpeg':m[1]),b64:m[2]});
+    while((m=re.exec(html)))jobs.push({full:m[0],ext:m[1]==='jpeg'?'jpg':m[1]==='svg+xml'?'svg':m[1],type:'image/'+(m[1]==='jpg'?'jpeg':m[1]),b64:m[2]});
     return jobs.reduce(function(p,j){return p.then(function(){
       return hashOf(j.b64).then(function(h){
         var path=session.user.id+'/'+h+'.'+j.ext,pub=URL_+'/storage/v1/object/public/images/'+path;

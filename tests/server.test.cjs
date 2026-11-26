@@ -165,6 +165,14 @@ describe('pictures', () => {
     assert.ok([403, 404].includes((await A.call('POST', '/storage/v1/object/images/' + u.user.id + '/../../evil.png', { token: u.access_token, body: PNG, raw: true })).status));
     assert.equal((await A.call('POST', '/storage/v1/object/images/' + u.user.id + '/abcdef0123456789.html', { token: u.access_token, body: PNG, raw: true })).status, 403);
   });
+  test('drawn pictures (SVG) are stored and can never run scripts', async () => {
+    const u = await newUser('pics3@example.com');
+    const name = u.user.id + '/abcdef0123456789.svg', svg = Buffer.from("<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'/>");
+    assert.equal((await A.call('POST', '/storage/v1/object/images/' + name, { token: u.access_token, body: svg, raw: true })).status, 200);
+    const r = await fetch(srv.url + '/storage/v1/object/public/images/' + name);
+    assert.equal(r.status, 200); assert.equal(r.headers.get('content-type'), 'image/svg+xml');
+    assert.match(r.headers.get('content-security-policy'), /default-src 'none'.*sandbox/);
+  });
   test('missing pictures are 404', async () => {
     assert.equal((await fetch(srv.url + '/storage/v1/object/public/images/' + admin.user.id + '/0000000000000000.png')).status, 404);
     assert.notEqual((await fetch(srv.url + '/storage/v1/object/public/images/../server.js')).status, 200);

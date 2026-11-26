@@ -121,6 +121,21 @@ describe('Word (.docx)', () => {
   });
 });
 
+describe('drawn pictures (SVG)', () => {
+  test('Word gets them sharp (300 dpi at their printed size) in the label font picked', async () => {
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg' width='72pt' height='36pt' viewBox='0 0 72 36'><style>.v{display:none}#arial{display:inline}#times:target{display:inline}#times:target~#arial{display:none}</style><g class='v' id='times'><rect width='72' height='36' fill='#00f'/></g><g class='v' id='arial'><rect width='72' height='36' fill='#f00'/></g></svg>";
+    const [id] = await addQuestions(page, [{ type: 'sa', html: 'Use the picture. <img class="q-img" src="data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64') + '">', answer: '1' }]);
+    await select(page, [id]);
+    await settings(page, { versions: 1, picFont: 'Times' });
+    const pngs = Object.entries(unzip(await makeDocx('tests'))).filter(([n]) => /^word\/media\/.*\.png$/.test(n)).map(([, d]) => d);
+    const pic = pngs.find(d => d.readUInt32BE(16) === 300);
+    assert.ok(pic, 'a 300 px wide picture for 1 inch; widths: ' + pngs.map(d => d.readUInt32BE(16)));
+    assert.equal(pic.readUInt32BE(20), 150);
+    const rgb = await page.evaluate((b) => new Promise((res) => { const i = new Image(); i.onload = () => { const c = document.createElement('canvas'); c.width = 300; c.height = 150; const x = c.getContext('2d'); x.drawImage(i, 0, 0); res([...x.getImageData(150, 75, 1, 1).data].slice(0, 3).join()); }; i.src = 'data:image/png;base64,' + b; }), pic.toString('base64'));
+    assert.equal(rgb, '0,0,255', 'the Times version');
+  });
+});
+
 describe('tables from ExamView', () => {
   test('Word and LaTeX keep them ruled and centered', async () => {
     const [t] = await addQuestions(page, [{ type: 'sa', html: 'The table below lists metals.<table class="q-tbl q-grid"><tr><td><b>Metal</b></td><td><b>Density</b></td></tr><tr><td>Zinc</td><td>7.14</td></tr></table>Which is it?', answer: 'Zinc' }]);

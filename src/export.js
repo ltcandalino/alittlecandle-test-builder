@@ -71,7 +71,8 @@ function makeExporter(A) {
       return p.then(function () {
         return loadImg(src).then(function (im) {
           var wIn = im.naturalWidth / 96, hIn = im.naturalHeight / 96, printW = widest[src] || wIn;
-          var scale = Math.min(1, (printW * 200) / im.naturalWidth), w = Math.max(1, Math.round(im.naturalWidth * scale)), h = Math.max(1, Math.round(im.naturalHeight * scale));
+          var svg = /^data:image\/svg/i.test(src) || /\.svg($|[?#])/i.test(src); // drawn pictures: 300 dpi at their printed size
+          var scale = svg ? (printW * 300) / im.naturalWidth : Math.min(1, (printW * 200) / im.naturalWidth), w = Math.max(1, Math.round(im.naturalWidth * scale)), h = Math.max(1, Math.round(im.naturalHeight * scale));
           var jpeg = /^data:image\/jpe?g/i.test(src) || /\.jpe?g($|\?)/i.test(src);
           var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var cx = cv.getContext('2d');
           if (jpeg) { cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); }

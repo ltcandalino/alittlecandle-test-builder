@@ -90,9 +90,13 @@ Multiple choice and True/False questions have no answer room; the space after ea
 The spacing is the same when you print and in Word and LaTeX downloads.
 
 **2 Set up** shows one panel at a time: **Questions** (the order), **Document**, **Versions** (with scrambling), **Spacing**
-(with the bimodal choice), **Accommodations** (with the time accommodation) and **Page style** (font, size, answer labels,
+(with the bimodal choice), **Accommodations** (with the time accommodation) and **Page style** (font, size, **Picture labels**, answer labels,
 layout, and **Part directions** when parts are on), with the preview beside it. **Next** at the bottom moves to the next
 panel, and from the last one to **3 Print**.
+
+**Picture labels** picks the font of the letters and numbers inside drawn pictures (Arial, Century Schoolbook or Times;
+Arial until you pick). It only changes pictures drawn for the app (SVG); scanned pictures keep the letters they have.
+Your choice is yours alone: colleagues who use the same questions see the pictures in their own choice.
 
 **Putting questions in order (2 Set up › Questions).** The list shows the questions the way they will print, with the
 numbers they will have. A Review lists **Open response** first, then **Multiple choice**; a Lesson lists **Warm Up**,

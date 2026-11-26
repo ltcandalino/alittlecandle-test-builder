@@ -236,14 +236,14 @@ come from reading the code.
 |---|---|---|
 | Question text (`sanitize`) | an SVG as an `<img>` picture **is kept**; a bare `<svg>` is dropped | nothing; keep dropping bare `<svg>` (scripts in an `<img>` never run) |
 | Bank file save and open, print, print preview | **works**, sharp | nothing |
-| Word and LaTeX downloads | picture is turned into a PNG at **96 dots per inch of its natural size** (147 × 121 px): blurry | in `prepareImages` (`src/export.js`) draw SVGs at 300 dpi; later real SVG in Word, or the TikZ code in LaTeX |
-| Server picture storage | upload of `.svg` **refused (403)** | allow `svg` in `docker/server.js` (upload, read, type). Send it with a sandbox security header: an SVG opened by its own address can run scripts |
-| Sync (`hostImages`, `src/sync.js`) | SVGs aren't moved to picture storage, so they stay inside the question; they do sync | add `svg+xml` there, and to `lite()` (change check) |
-| Label font (new) | no setting | a personal setting (Arial, Century Schoolbook, Times) saved with the account; add `#schoolbook` or `#times` to SVG picture addresses when drawing the page, printing and downloading. Stored questions keep the plain address, so colleagues see their own font |
-| Question height | `htmlInches` guesses an SVG's height as 3/4 of its width | read the SVG's width and height |
-| `scripts/bank-file.cjs` | writes `data:image/svg`, not a valid type | write `svg+xml` |
+| Word and LaTeX downloads | **done 2026-11-25:** drawn at 300 dpi at the printed size, in the label font picked | later: real SVG in Word, or the TikZ code in LaTeX |
+| Server picture storage | **done 2026-11-25:** `.svg` stored and served as `image/svg+xml` with `default-src 'none'; sandbox` | nothing |
+| Sync (`hostImages`, `src/sync.js`) | **done 2026-11-25:** SVGs move to picture storage like PNGs; `lite()` knows them | answers' pictures still stay inside the question (all picture types) |
+| Label font | **done 2026-11-25:** **Picture labels** on Page style (`settings.picFont`, per course like the test font, synced). `picFont()` adds `#schoolbook`/`#times` in `testHtml`, `keyHtml` and bank cards; stored questions keep the plain address | nothing |
+| Question height | **done 2026-11-25:** `svgSize` reads the SVG's width and height (pt), so it prints at exam size | nothing |
+| `scripts/bank-file.cjs` | **done 2026-11-25:** writes `svg+xml` | nothing |
 | `scripts/bank-folder.cjs` | a re-run cuts the PNG again | keep the SVG |
-| Picture… button, Word import | flatten an SVG to a small JPEG or PNG | keep SVG as it is |
+| Picture… button, Word import | **done 2026-11-25** for the Picture… button (keeps the SVG); Word import still flattens one (Word files hold a PNG copy anyway) | nothing for now |
 | Saved tests | hold frozen copies, with the old pictures | nothing, but the "questions changed" notice won't notice a new picture |
 | Replacing in her banks | open the new bank file: same questions updated. Re-importing the ExamView bank should keep the new pictures (read in the code, not tried) | a backup and a trial bank first |
 
