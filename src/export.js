@@ -291,6 +291,7 @@ function makeExporter(A) {
       Array.prototype.forEach.call(el.childNodes, function (c) {
         var tag = c.nodeType === 1 ? c.tagName.toLowerCase() : '', cls = c.className || '';
         if (tag === 'img' && /\bq-mid\b/.test(cls)) { flush(); put(self.pic(c.getAttribute('src'), inches(c.style.width), inches(c.style.height)), { align: 'center', ind: null }); }
+        else if (/\bq-row\b/.test(cls)) { flush(); var line = []; Array.prototype.forEach.call(c.childNodes, function (i) { if (i.nodeName === 'IMG') line.push(self.pic(i.getAttribute('src'), inches(i.style.width), inches(i.style.height))); if (i.nodeName === 'BR' || !i.nextSibling) { if (line.length) put(line.join(self.t('    ')), { align: 'center', ind: null }); line = []; } }); } // pictures side by side
         else if (/\bq-part\b/.test(cls)) {
           flush(); var d = c.querySelector(':scope > div'), keep = self.inQ || 0;
           if (h) h += self.p('');
@@ -638,7 +639,8 @@ function makeExporter(A) {
     mixed: function (el) {
       var self = this, h = '', cur = [];
       var flush = function () { if (cur.length) { h += self.para(inlines(wrapAll(cur))); cur = []; } };
-      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); }
+      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /\bq-(mid|row)\b/.test(c.className)) { flush(); h += '{\\centering ' + self.runs(inlines(wrapAll([c]))) + '\\par}\n'; }
+        else if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); }
         else if (c.nodeType === 1 && /\bq-mid\b/.test(c.className)) { flush(); h += '{\\centering ' + self.runs(inlines(wrapAll([c]))) + '\\par}\n'; } else cur.push(c); });
       flush(); return h;
     },

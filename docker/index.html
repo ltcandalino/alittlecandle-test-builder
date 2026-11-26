@@ -344,6 +344,8 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .pt-classic .q-side{padding-top:1.2em}
 .pt-classic .q-side img{margin:0}
 .pt-classic .q-mid{display:block;margin:4pt auto}
+.pt .q-row{text-align:center;margin:4pt 0;break-inside:avoid}.pt .q-row .q-img{margin:4pt 12pt;vertical-align:bottom}
+.pt .q-grid{break-inside:avoid}
 .pt-classic .pt-more{margin-top:3pt}
 .pt-classic .q-part{display:grid;grid-template-columns:minmax(.25in,max-content) 1fr;margin-top:1.2em}
 .pt-classic .q-part:first-child{margin-top:0}
@@ -2341,6 +2343,7 @@ function makeExporter(A) {
       Array.prototype.forEach.call(el.childNodes, function (c) {
         var tag = c.nodeType === 1 ? c.tagName.toLowerCase() : '', cls = c.className || '';
         if (tag === 'img' && /\bq-mid\b/.test(cls)) { flush(); put(self.pic(c.getAttribute('src'), inches(c.style.width), inches(c.style.height)), { align: 'center', ind: null }); }
+        else if (/\bq-row\b/.test(cls)) { flush(); var line = []; Array.prototype.forEach.call(c.childNodes, function (i) { if (i.nodeName === 'IMG') line.push(self.pic(i.getAttribute('src'), inches(i.style.width), inches(i.style.height))); if (i.nodeName === 'BR' || !i.nextSibling) { if (line.length) put(line.join(self.t('    ')), { align: 'center', ind: null }); line = []; } }); } // pictures side by side
         else if (/\bq-part\b/.test(cls)) {
           flush(); var d = c.querySelector(':scope > div'), keep = self.inQ || 0;
           if (h) h += self.p('');
@@ -2688,7 +2691,8 @@ function makeExporter(A) {
     mixed: function (el) {
       var self = this, h = '', cur = [];
       var flush = function () { if (cur.length) { h += self.para(inlines(wrapAll(cur))); cur = []; } };
-      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); }
+      Array.prototype.forEach.call(el.childNodes, function (c) { if (c.nodeType === 1 && /\bq-(mid|row)\b/.test(c.className)) { flush(); h += '{\\centering ' + self.runs(inlines(wrapAll([c]))) + '\\par}\n'; }
+        else if (c.nodeType === 1 && /^(div|p|table|ul|ol|hr|h1|h2|h3)$/i.test(c.tagName)) { flush(); h += self.block(c); }
         else if (c.nodeType === 1 && /\bq-mid\b/.test(c.className)) { flush(); h += '{\\centering ' + self.runs(inlines(wrapAll([c]))) + '\\par}\n'; } else cur.push(c); });
       flush(); return h;
     },
@@ -3264,7 +3268,10 @@ function picIn(img){var px=picPx(img.getAttribute('src')||''),w=inch(img.style.w
 // rough printed height of a question's own text and pictures, in inches
 function htmlInches(h){
   var im=0;h=String(h||'');
-  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);im+=(w?+w[1]:px?px[0]/96:2)*(px?px[1]/px[0]:0.75);return '';});
+  var tall=function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);return (w?+w[1]:px?px[0]/96:2)*(px?px[1]/px[0]:0.75);};
+  // pictures side by side share a row (examQt): four go two by two
+  h.replace(/(?:<img[^>]*>\s*)+/g,function(run){var hs=(run.match(/<img[^>]*>/g)||[]).map(tall),mx=function(a){return Math.max.apply(null,a);};
+    im+=hs.length===4?mx(hs.slice(0,2))+mx(hs.slice(2)):hs.length>1?mx(hs):hs[0];return '';});
   return h.replace(/<[^>]+>/g,'').length/95*0.21+(h.match(/<br/g)||[]).length*0.1+im;
 }
 // tall questions may break across pages; otherwise one that can't fit under the first page's header leaves page 1 blank
@@ -3293,6 +3300,10 @@ function examQt(html,kind,side,cred){
     // one roughly square picture, at most 2.5 in wide, goes beside sentence choices; others are centered where they are
     if(z&&z.w<=2.55&&ratio>=0.7&&ratio<=1.4){out.side=pics[0].outerHTML;var pa=pics[0].parentNode;if(pics[0].previousSibling&&pics[0].nextSibling)pics[0].replaceWith(document.createElement('br'));else pics[0].remove();if(pa!==root&&!pa.textContent.trim()&&!pa.children.length)pa.remove();}
     else pics.forEach(function(i){i.classList.add('q-mid');});
+    // pictures next to each other (the choices I–IV drawn as four) stay together in one centered row
+    pics.forEach(function(i){if(!i.parentNode||i.parentNode.classList&&i.parentNode.classList.contains('q-row'))return;var run=[i],n=i.nextSibling;
+      while(n&&(blank(n)&&n.nodeName!=='BR'||n.nodeName==='IMG')){if(n.nodeName==='IMG')run.push(n);n=n.nextSibling;}
+      if(run.length<2)return;var row=document.createElement('div');row.className='q-row';i.replaceWith(row);run.forEach(function(x,k){x.classList.remove('q-mid');if(run.length===4&&k===2)row.appendChild(document.createElement('br'));row.appendChild(x);});trim(row);});   // four: two by two, as on the exam
     while(blank(root.lastChild))root.lastChild.remove();
     host.appendChild(root);out.qt=host.innerHTML;return out;
   }

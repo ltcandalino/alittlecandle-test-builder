@@ -480,4 +480,19 @@ test('a question tall from its text and picture may break across pages (no blank
   assert.equal(r.frq, true); assert.equal(r.short, false); assert.equal(r.mc, false); assert.equal(r.bigSpace, true);
 });
 
+test('four pictures side by side (the choices I–IV drawn as four) print two by two and count two rows tall', async () => {
+  const svg = (w, h) => 'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns='http://www.w3.org/2000/svg' width='${w}pt' height='${h}pt'/>`).toString('base64');
+  const pic = (w, h) => '<img class="q-img" src="' + svg(w, h) + '" style="width:' + (w / 72).toFixed(3) + 'in">';
+  const four = 'Four graphs are shown below.<br><br>' + pic(108, 108) + ' ' + pic(108, 144) + ' ' + pic(108, 72) + ' ' + pic(72, 72) + '<br><br>Which is a function?';
+  const [id] = await addQuestions(page, [{ type: 'mc', html: four, choices: ['A only', 'B only', 'A and B', 'all four'], answer: 0 }]);
+  await select(page, [id]);
+  await settings(page, { docType: 'test', versions: 1, shuffleQ: false, shuffleC: false });
+  const r = await page.evaluate((h) => { const d = document.createElement('div'); d.innerHTML = window.__tb.fn.testHtml(window.__tb.fn.buildVersion(0), 0, {});
+    const row = d.querySelector('.q-row'); return { inches: window.__tb.fn.htmlInches(h), kids: row ? [...row.childNodes].map(n => n.nodeName) : null,
+      before: row && row.previousSibling && row.previousSibling.nodeName, after: row && row.nextSibling && row.nextSibling.nodeName }; }, four);
+  assert.deepEqual(r.kids, ['IMG', 'IMG', 'BR', 'IMG', 'IMG'], 'one centered row, broken after the second picture');
+  assert.notEqual(r.after, 'BR', 'no empty lines left around the row (LaTeX stops on them)');
+  assert.ok(r.inches > 3 && r.inches < 4, 'pictures two rows tall (2 in + 1 in) plus the words, not 5 in stacked: ' + r.inches);
+});
+
 test('no page errors (last test)', () => assert.deepEqual(errors, []));

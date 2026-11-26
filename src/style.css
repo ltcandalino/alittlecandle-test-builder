@@ -331,6 +331,8 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 .pt-classic .q-side{padding-top:1.2em}
 .pt-classic .q-side img{margin:0}
 .pt-classic .q-mid{display:block;margin:4pt auto}
+.pt .q-row{text-align:center;margin:4pt 0;break-inside:avoid}.pt .q-row .q-img{margin:4pt 12pt;vertical-align:bottom}
+.pt .q-grid{break-inside:avoid}
 .pt-classic .pt-more{margin-top:3pt}
 .pt-classic .q-part{display:grid;grid-template-columns:minmax(.25in,max-content) 1fr;margin-top:1.2em}
 .pt-classic .q-part:first-child{margin-top:0}

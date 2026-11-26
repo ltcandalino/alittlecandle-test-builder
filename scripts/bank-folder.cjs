@@ -3,7 +3,8 @@
    tables), pictures as PNG files, and review.html to check every question next to the ExamView version.
    Pictures are cut at 300 dpi from the official Regents exam PDFs when they are found (any file name: each PDF is
    recognized by its cover page); otherwise the bank's own pictures are kept. The bank's pictures always stay in
-   images/examview/. A drawn picture saved as images/<picture name>.svg is kept instead, on every run.
+   images/examview/. A drawn picture saved as images/<picture name>.svg is kept instead, on every run
+   (<name>-1.svg … -4.svg: a picture of the choices drawn as four); images/<name>.md is a table written in Markdown, used in its place.
 
    node scripts/bank-folder.cjs <bank.bnk> [--pdfs <folder>] [--out <folder>]
      --pdfs  where the exam PDFs are, looked for in subfolders too (default ~/Documents/TestBuilderResource/Regents exams)
@@ -253,7 +254,12 @@ const b64 = f => fs.readFileSync(f).toString('base64');
       if (p.src.startsWith('data:')) fs.writeFileSync(path.join(OUT, 'images', 'examview', base + '.' + ext), Buffer.from(p.src.split(',')[1], 'base64'));
       // a drawn picture (IMAGE-RULES.md) put in images/ as <name>.svg wins: kept on every run, at its own (exam) size
       const svg = path.join(OUT, 'images', base + '.svg');
-      if (fs.existsSync(svg)) { nSvg++; const w = /width=['"]([\d.]+)pt/.exec(fs.readFileSync(svg, 'utf8').slice(0, 600)); return '![picture](../images/' + base + '.svg){width=' + (w ? (w[1] / 72).toFixed(3) : p.w || '2') + 'in}'; }
+      const drawn = (b) => { const w = /width=['"]([\d.]+)pt/.exec(fs.readFileSync(path.join(OUT, 'images', b + '.svg'), 'utf8').slice(0, 600)); return '![picture](../images/' + b + '.svg){width=' + (w ? (w[1] / 72).toFixed(3) : p.w || '2') + 'in}'; };
+      if (fs.existsSync(svg)) { nSvg++; return drawn(base); }
+      // a picture of the choices I–IV or A–D drawn as four pictures, one per choice: <name>-1.svg … <name>-4.svg
+      if (!isChoice && fs.existsSync(path.join(OUT, 'images', base + '-1.svg'))) { const ps = [1, 2, 3, 4].map(j => base + '-' + j).filter(b => fs.existsSync(path.join(OUT, 'images', b + '.svg'))); nSvg += ps.length; return ps.map(drawn).join(' '); }
+      // a table (or typed math) that was a picture: images/<name>.md holds it as Markdown, used in its place
+      if (fs.existsSync(path.join(OUT, 'images', base + '.md'))) { nSvg++; return '![table](../images/' + base + '.md){width=0in}'; }
       let cut = isChoice ? c.choices && c.choices[ci] : k === 0 ? c.stem : null;
       const bankBlank = isChoice ? (c.choiceBlank || [])[ci] : c.stemBlank;
       if (cut && (cut.shape < 0.8 || cut.shape > 1.25) && !bankBlank) cut = null; // shaped differently from the bank's: keep the bank's

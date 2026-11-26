@@ -184,6 +184,7 @@ What this bank added to the converter:
 - **Variables in typed equations** use the letter style of the rules (`\V`), so the three label fonts treat them alike.
 - **Numbers in one piece of text** ("2.1 2.2 2.3") become one label each, where the exam has them.
 - **Drawing order** stays the exam's (open dots over lines), and gray lines stay gray on small grids.
+- **Choice tables** (0625-23-3, 0126-13): drawn, not made into tables: Word and LaTeX can't put a table inside a choice. Tables in the question (0825-09 as one table of eight columns, 0825-18 with its two equations) became real tables.
 - **Her changes (2026-11-25):** an open dot drawn as a ring (two dark disks, one center) becomes one open dot (0125-24-4); a named axis
   (f(x), h(x), D(t)) keeps only its own name, `\planeaxes[x][]` (0825-27, 0626-26); a grid reaches as far as its gray lines do, so lines that
   start at the axes stay attached (0626-31). **A picture that shows the choices I–IV or A–D is four pictures**, one per choice, each with its
@@ -272,7 +273,7 @@ come from reading the code.
 | `scripts/bank-folder.cjs` | **done 2026-11-25:** a drawn picture saved as `images/<name>.svg` in the bank folder is kept on every run, at exam size (tried on a copy of GEO2024-2026: 88 kept, nothing else changed) | to replace a bank's pictures: copy its SVGs into `images/`, re-run, rebuild the bank file |
 | Picture… button, Word import | **done 2026-11-25** for the Picture… button (keeps the SVG); Word import still flattens one (Word files hold a PNG copy anyway) | nothing for now |
 | Saved tests | hold frozen copies, with the old pictures | nothing, but the "questions changed" notice won't notice a new picture |
-| Replacing in her banks | open the new bank file: same questions updated. Re-importing the ExamView bank should keep the new pictures (read in the code, not tried) | a backup and a trial bank first |
+| Replacing in her banks | **tried 2026-11-25** on copies (`Picture trial/Replace/`): the drawings go in `images/`, tables as `images/<name>.md`, `bank-folder.cjs` and `bank-file.cjs` rebuild, opening the new bank file over the old updates 88 + 46 questions and adds none | a backup, then the same in her folders |
 
 ## 7. Decisions for Leigh
 

@@ -442,7 +442,10 @@ function picIn(img){var px=picPx(img.getAttribute('src')||''),w=inch(img.style.w
 // rough printed height of a question's own text and pictures, in inches
 function htmlInches(h){
   var im=0;h=String(h||'');
-  h.replace(/<img[^>]*>/g,function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);im+=(w?+w[1]:px?px[0]/96:2)*(px?px[1]/px[0]:0.75);return '';});
+  var tall=function(tag){var w=/width:\s*([\d.]+)in/.exec(tag),d=/src="([^"]*)"/.exec(tag),px=d&&pngSize(d[1]);return (w?+w[1]:px?px[0]/96:2)*(px?px[1]/px[0]:0.75);};
+  // pictures side by side share a row (examQt): four go two by two
+  h.replace(/(?:<img[^>]*>\s*)+/g,function(run){var hs=(run.match(/<img[^>]*>/g)||[]).map(tall),mx=function(a){return Math.max.apply(null,a);};
+    im+=hs.length===4?mx(hs.slice(0,2))+mx(hs.slice(2)):hs.length>1?mx(hs):hs[0];return '';});
   return h.replace(/<[^>]+>/g,'').length/95*0.21+(h.match(/<br/g)||[]).length*0.1+im;
 }
 // tall questions may break across pages; otherwise one that can't fit under the first page's header leaves page 1 blank
@@ -471,6 +474,10 @@ function examQt(html,kind,side,cred){
     // one roughly square picture, at most 2.5 in wide, goes beside sentence choices; others are centered where they are
     if(z&&z.w<=2.55&&ratio>=0.7&&ratio<=1.4){out.side=pics[0].outerHTML;var pa=pics[0].parentNode;if(pics[0].previousSibling&&pics[0].nextSibling)pics[0].replaceWith(document.createElement('br'));else pics[0].remove();if(pa!==root&&!pa.textContent.trim()&&!pa.children.length)pa.remove();}
     else pics.forEach(function(i){i.classList.add('q-mid');});
+    // pictures next to each other (the choices I–IV drawn as four) stay together in one centered row
+    pics.forEach(function(i){if(!i.parentNode||i.parentNode.classList&&i.parentNode.classList.contains('q-row'))return;var run=[i],n=i.nextSibling;
+      while(n&&(blank(n)&&n.nodeName!=='BR'||n.nodeName==='IMG')){if(n.nodeName==='IMG')run.push(n);n=n.nextSibling;}
+      if(run.length<2)return;var row=document.createElement('div');row.className='q-row';i.replaceWith(row);run.forEach(function(x,k){x.classList.remove('q-mid');if(run.length===4&&k===2)row.appendChild(document.createElement('br'));row.appendChild(x);});trim(row);});   // four: two by two, as on the exam
     while(blank(root.lastChild))root.lastChild.remove();
     host.appendChild(root);out.qt=host.innerHTML;return out;
   }
