@@ -273,7 +273,7 @@ come from reading the code.
 | `scripts/bank-folder.cjs` | **done 2026-11-25:** a drawn picture saved as `images/<name>.svg` in the bank folder is kept on every run, at exam size (tried on a copy of GEO2024-2026: 88 kept, nothing else changed) | to replace a bank's pictures: copy its SVGs into `images/`, re-run, rebuild the bank file |
 | Picture… button, Word import | **done 2026-11-25** for the Picture… button (keeps the SVG); Word import still flattens one (Word files hold a PNG copy anyway) | nothing for now |
 | Saved tests | hold frozen copies, with the old pictures | nothing, but the "questions changed" notice won't notice a new picture |
-| Replacing in her banks | **tried 2026-11-25** on copies (`Picture trial/Replace/`): the drawings go in `images/`, tables as `images/<name>.md`, `bank-folder.cjs` and `bank-file.cjs` rebuild, opening the new bank file over the old updates 88 + 46 questions and adds none | a backup, then the same in her folders |
+| Replacing in her banks | **tried 2026-11-25** on copies (`Picture trial/Replace/`): the drawings go in `images/`, tables as `images/<name>.md`, `bank-folder.cjs` and `bank-file.cjs` rebuild, opening the new bank file over the old updates 88 + 46 questions and adds none | **done 2026-11-25** for GEO2024-2026, AI2023-2025, AI2026-2027 (+ `Algebra1NG2023-2027` and their Archive files); backup in `Backups/2026-11-25 before drawn pictures/` |
 
 ## 7. Decisions for Leigh
 
