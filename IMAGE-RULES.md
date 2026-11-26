@@ -115,7 +115,7 @@ Lengths are PDF points, 72 to the inch (`bp` in LaTeX).
 - **Color (decided 2026-11-25):** none, except BFW: BFW pictures keep their original colors. Other colors (calculator screens) become the grays above;
   two neighboring bars always differ in gray. The BFW trial pictures were drawn in gray and get redrawn in color.
 - **Font. Decided 2026-11-25:** each user picks the label font in their own settings: **Arial**, **Century Schoolbook** or **Times**.
-  Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. **π is always Times (decided 2026-11-25).** Characters a font lacks
+  Arial and Century Schoolbook: upright letters, regular numbers. Times: bold italic letters, bold numbers, as in eMath. Axis units stay regular. **π, μ and σ are always Times (decided 2026-11-25).** Characters a font lacks
   (′ ℓ) come from Times. Arial is what shows when nothing is picked (decided 2026-11-25).
 - **One SVG holds all three fonts**, each as outlines: `picture.svg` shows Arial, `picture.svg#schoolbook` and `picture.svg#times` the
   others, at the same size. Tried in Chrome 158 with embedded pictures, server addresses and the canvas the downloads use; Firefox and
@@ -202,6 +202,7 @@ What this bank added to the converter:
 - **Curves keep their own points**, also graphs drawn as many short straight pieces (the sine in 0626-14): pulling them onto the grid bent them.
   The approved Algebra I curves move by less than a point with this; the ones in the banks were left as approved.
 - **A name at an axis end** must be a name (f(x)), not a number like 2π, before `\planeaxes` leaves out its x or y.
+- **Her changes (2026-11-25):** x and y at the axis ends are written once (0626-13); an arrowhead belongs to a line only if it sits on that line, so a tick at an axis end (3000 in 0626-36) stays a plain tick; μ and σ are always Times, like π. The same two fixes would correct 9 approved Algebra I pictures (0126-07 stray gray arrowheads, 0625-19 doubled y, 0625-13 arrowheads at 50 and 15): `Picture trial/Algebra I NG/Algebra I fixes.pdf`.
 
 ## 4. Patterns by type
 

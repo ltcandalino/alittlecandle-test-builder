@@ -14,11 +14,12 @@
 \else \usefont@{Arial}{TeX Gyre Heros}\fi\fi
 \ifx\picfont\pf@t \newcommand\V[1]{{\bfseries\itshape #1}}\newcommand\labelweight{\bfseries}
 \else \newcommand\V[1]{#1}\newcommand\labelweight{}\fi
-% π is always Times, whatever the label font (decided 2026-11-25)
+% π, μ and σ are always Times, whatever the label font (decided 2026-11-25)
 \RequirePackage{newunicodechar}
 \IfFontExistsTF{Times New Roman}{\newfontfamily\pi@times{Times New Roman}}{\newfontfamily\pi@times{TeX Gyre Termes}}
-\newcommand\pic@pi{\ifmmode\text{\pi@times\char"03C0}\else{\pi@times\char"03C0}\fi}
-\newunicodechar{π}{\pic@pi}
+\newcommand\pic@times[1]{\ifmmode\text{\pi@times\char"#1}\else{\pi@times\char"#1}\fi}
+\newcommand\pic@pi{\pic@times{03C0}}
+\newunicodechar{π}{\pic@pi}\newunicodechar{μ}{\pic@times{03BC}}\newunicodechar{σ}{\pic@times{03C3}}
 \AtBeginDocument{\renewcommand\pi{\pic@pi}}
 % ---- sizes and colors -------------------------------------------------------------------------------------------------
 \newcommand\fs[1]{\fontsize{#1bp}{#1bp}\selectfont\labelweight}            % \fs{11} = 11-point text
