@@ -204,6 +204,18 @@ What this bank added to the converter:
 - **A name at an axis end** must be a name (f(x)), not a number like 2π, before `\planeaxes` leaves out its x or y.
 - **Her changes (2026-11-25):** x and y at the axis ends are written once (0626-13); an arrowhead belongs to a line only if it sits on that line, so a tick at an axis end (3000 in 0626-36) stays a plain tick; μ and σ are always Times, like π. The same two fixes would correct 9 approved Algebra I pictures (0126-07 stray gray arrowheads, 0625-19 doubled y, 0625-13 arrowheads at 50 and 15): `Picture trial/Algebra I NG/Algebra I fixes.pdf`. Her OK: done in the Algebra I banks 2026-11-25 (3 questions changed; backup `Backups/2026-11-25 before Algebra I fixes/`).
 
+### Fourth: AP banks, round 1 (Calculus, Precalculus, Statistics; drawn 2026-11-25, waiting for review)
+
+`Picture trial/AP/`: 21 of the 62 pictures, converted from the AP PDFs that draw them as lines (2025-2026 exams and some CED
+samples; `Picture trial/tools/ap/`). Each picture was found on its page by comparing what the page shows with the bank picture
+(`vmatch.py`). New in these PDFs:
+- **Labels as outlines:** the 2025-2026 AP exams draw every letter and number as a filled outline, not text. They are kept as they are
+  (exact, but in the AP's Times-like lettering in every label font); a dot is a round outline 2.5 pt or more across, a period is smaller,
+  a minus sign is a thin bar.
+- **Color by how light it looks** (0.299 R + 0.587 G + 0.114 B): dark blue curves are black, light blue grid lines gray.
+- Left for round 2: 37 pictures the PDFs hold only as images (2023-2024 exams, most CED samples), to draw by hand from each question's
+  data or formula; the mosaic plot st26-5 (pattern fills); 4 photos and scenes stay.
+
 ## 4. Patterns by type
 
 Inside `plane`, coordinates are graph boxes; elsewhere they are points (1 pt = 1/72 in).
