@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-25
+
 ### Changed
 - Tests and quizzes: pictures right next to each other in a question print together in one centered row (four that don't fit in one row go two by two), in print, Word and LaTeX, and the page breaks count them as one row; tables in questions never break across a page.
 
