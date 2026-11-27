@@ -47,6 +47,7 @@ function latex(src) {
         else if (n === 'overleftrightarrow') put('<span class="m-acc m-line">' + group() + '</span>');
         else if (n === 'overrightarrow') put('<span class="m-acc m-ray">' + group() + '</span>');
         else if (n === 'overset') { group(); put('<span class="m-acc m-arc">' + group() + '</span>'); } // \overset{\frown}{AB}
+        else if (n === 'sqrt' && src[i] === '[') { const j = src.indexOf(']', i); const k = src.slice(i + 1, j); i = j + 1; put('<sup>' + esc(k) + '</sup><span class="m-sqrt"><span class="m-rad-sign">√</span><span class="m-rad">' + group() + '</span></span>'); } // \sqrt[3]{x}: the app has no root index, so a raised 3 before √
         else if (n === 'sqrt') put('<span class="m-sqrt"><span class="m-rad-sign">√</span><span class="m-rad">' + group() + '</span></span>');
         else if (n === 'frac' || n === 'dfrac' || n === 'tfrac') { const a = group(), b = group(); put('<span class="m-frac"><span class="m-num">' + a + '</span><span class="m-den">' + b + '</span></span>'); }
         else if (n === 'text' || n === 'mathrm' || n === 'textrm' || n === 'mathit') put(group());

@@ -34,9 +34,10 @@ test('bank-file.cjs: drawn pictures (SVG) and tables kept as Markdown in images/
   fs.mkdirSync(path.join(dir, 'questions')); fs.mkdirSync(path.join(dir, 'images'));
   fs.writeFileSync(path.join(dir, 'images', 'p.svg'), "<svg xmlns='http://www.w3.org/2000/svg' width='72pt' height='36pt'/>");
   fs.writeFileSync(path.join(dir, 'images', 't.md'), '| $x$ | $f(x)$ |\n|:-:|:-:|\n| −2 | 6 |\n');
-  fs.writeFileSync(path.join(dir, 'questions', 'q1.md'), '---\nid: q1\ntype: multiple choice\nanswer: 1\n---\n\nThe table below.\n\n![table](../images/t.md){width=0in}\n\n![picture](../images/p.svg){width=1.000in}\n\nWhich?\n\n1. a\n2. b\n');
+  fs.writeFileSync(path.join(dir, 'questions', 'q1.md'), '---\nid: q1\ntype: multiple choice\nanswer: 1\n---\n\nThe table below.\n\n![table](../images/t.md){width=0in}\n\n![picture](../images/p.svg){width=1.000in}\n\nWhich?\n\n1. $\\sqrt[3]{m^{5}}$\n2. b\n');
   execFileSync(process.execPath, [path.join(__dirname, '../scripts/bank-file.cjs'), dir, '--out', out, '--course', 'Algebra 1'], { stdio: 'pipe' });
   const q = JSON.parse(fs.readFileSync(out, 'utf8')).questions[0];
   assert.match(q.html, /<table class="q-tbl q-grid"><tr><td><span class="m">x<\/span><\/td>/, 'the table is a real table');
   assert.match(q.html, /src="data:image\/svg\+xml;base64,/, 'the SVG keeps its type');
+  assert.match(q.choices[0], /<sup>3<\/sup><span class="m-sqrt">/, 'a root index is a raised number before the root sign');
 });
