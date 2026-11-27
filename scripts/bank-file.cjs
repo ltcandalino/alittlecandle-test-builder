@@ -23,7 +23,7 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 
 /* ---------- LaTeX (the part bank-folder writes) → the app's math HTML ---------- */
 const SYM = { angle: '∠', cong: '≅', sim: '∼', perp: '⊥', parallel: '∥', pi: 'π', theta: 'θ', triangle: '△', Delta: 'Δ', times: '×', div: '÷', neq: '≠', ne: '≠', le: '≤', leq: '≤', ge: '≥', geq: '≥', pm: '±', approx: '≈', cdot: '·', to: '→', rightarrow: '→', leftarrow: '←', leftrightarrow: '↔', infty: '∞', ell: 'ℓ', therefore: '∴', in: '∈', varnothing: '∅', emptyset: '∅', cap: '∩', cup: '∪', alpha: 'α', beta: 'β', gamma: 'γ', lambda: 'λ', mu: 'μ', sigma: 'σ', omega: 'ω', Omega: 'Ω', phi: 'φ', chi: 'χ', eta: 'η', varepsilon: 'ε', delta: 'δ', kappa: 'κ', nu: 'ν', rho: 'ρ', tau: 'τ', upsilon: 'υ', psi: 'ψ', xi: 'ξ', zeta: 'ζ', iota: 'ι', Gamma: 'Γ', Theta: 'Θ', Lambda: 'Λ', Xi: 'Ξ', Pi: 'Π', Sigma: 'Σ', Phi: 'Φ', Psi: 'Ψ', epsilon: 'ε', surd: '√', vert: '|', circ: '∘', degree: '°', prime: '′', ldots: '…', dots: '…', cdots: '⋯', sum: '∑' };
-const FN = { sin: 1, cos: 1, tan: 1, log: 1, ln: 1 };
+const FN = { sin: 1, cos: 1, tan: 1, sec: 1, csc: 1, cot: 1, log: 1, ln: 1 };
 const REL = /^[=<>≤≥≠≈≅∼⊥∥]$/, BIN = /^[+−±×÷]$/;
 function latex(src) {
   let i = 0;
