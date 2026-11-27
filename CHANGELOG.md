@@ -7,7 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
-- `scripts/bank-file.cjs`: a root with an index (`\sqrt[3]{x}`) is written as a small raised 3 before the root sign (it was left as LaTeX text).
+- `scripts/bank-file.cjs`: a root with an index (`\sqrt[3]{x}`) is written as a small raised 3 before the root sign (it was left as LaTeX text); `\sum` and `\cdots` become ∑ (limits as small sub- and superscripts) and ⋯.
 
 ## [0.29.0] - 2026-11-25
 
