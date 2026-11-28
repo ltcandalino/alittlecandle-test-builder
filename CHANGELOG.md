@@ -21,6 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The review's **Multiple Choice Questions** row has no fill (was light purple).
 - Parts of a question written **a.**, **b.** (as in the BFW Statistics bank), **a)** or **(a)** print as bold **(a)**, **(b)** on reviews and lessons too, not only on tests and quizzes.
 - Bank tools: pictures go **after the question text** (inside a part, after that part's text; answer choices untouched). New `scripts/pics-after.cjs`, used by `bank-folder.cjs` and `bank-file.cjs`; text after the picture that says "shown above" or "the figure above" now says "below"; a picture inside a sentence, two pictures with words between them, or a picture next to a table that stays are left where they are. `bank-file.cjs` and `merge-banks.cjs` mark **JMAP topic** and **JMAP subtopic** hidden.
+- `scripts/bank-file.cjs`: a question file can list its own courses (`courses: [Algebra 2, Precalculus/AP/Honors]`), so old banks can be sorted into today's courses.
 - `scripts/bank-file.cjs`: a root with an index (`\sqrt[3]{x}`) is written as a small raised 3 before the root sign (it was left as LaTeX text); `\sec`, `\csc`, `\cot` are written as words; `\sum` and `\cdots` become ∑ (limits as small sub- and superscripts) and ⋯.
 
 ## [0.29.0] - 2026-11-25

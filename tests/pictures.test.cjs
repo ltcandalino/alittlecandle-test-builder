@@ -49,10 +49,11 @@ test('pictures go after the question text; JMAP fields are hidden in bank files 
   fs.mkdirSync(path.join(dir, 'questions')); fs.mkdirSync(path.join(dir, 'images'));
   fs.writeFileSync(path.join(dir, 'images', 'p.svg'), "<svg xmlns='http://www.w3.org/2000/svg' width='72pt' height='36pt'/>");
   fs.writeFileSync(path.join(dir, 'questions', 'q1.md'), '---\nid: q1\ntype: multiple choice\nanswer: 1\nJMAP topic: Lines\nAlso uses: Unit 1\n---\n\nLine m is shown below.\n\n![picture](../images/p.svg){width=1.000in}\n\nWhat is its slope?\n\n1. 1\n2. 2\n');
-  fs.writeFileSync(path.join(dir, 'questions', 'q2.md'), '---\nid: q2\ntype: open response\n---\n\n![picture](../images/p.svg){width=1.000in}\n\nThe graph above shows f.\n');
+  fs.writeFileSync(path.join(dir, 'questions', 'q2.md'), '---\nid: q2\ntype: open response\ncourses: [Algebra 2, Precalculus]\n---\n\n![picture](../images/p.svg){width=1.000in}\n\nThe graph above shows f.\n');
   execFileSync(process.execPath, [path.join(__dirname, '../scripts/bank-file.cjs'), dir, '--out', out, '--course', 'Geometry'], { stdio: 'pipe' });
   const b = JSON.parse(fs.readFileSync(out, 'utf8'));
   assert.match(b.questions[0].html, /^Line m is shown below\.<br><br>What is its slope\?<br><br><img /, 'the picture moved after the text');
   assert.match(b.questions[1].html, /^The graph below shows f\.<br><br><img /, '"above" becomes "below" when the picture moves down');
   assert.deepStrictEqual(b.fields.map(f => [f.label, !!f.hidden]), [['JMAP topic', true], ['Also uses', false]]);
+  assert.deepStrictEqual([b.questions[0].courses, b.questions[1].courses, b.courses], [['Geometry'], ['Algebra 2', 'Precalculus'], ['Geometry', 'Algebra 2', 'Precalculus']], 'a question can list its own courses');
 });

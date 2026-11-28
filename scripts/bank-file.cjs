@@ -5,7 +5,8 @@
 
    node scripts/bank-file.cjs "<bank folder>" [--out <file.json>] [--course "Algebra 1"]
      --out     default: "<bank>_Bank.json" in Bank files (the bank is named after the --out file) (next to Bank folders), else next to the folder
-     --course  the app course to put it in (default: from bank.md; Algebra I → Algebra 1, Algebra II → Algebra 2) */
+     --course  the app course to put it in (default: from bank.md; Algebra I → Algebra 1, Algebra II → Algebra 2);
+               a question with its own "courses: [Algebra 2, Precalculus]" keeps those (old banks sorted into modern courses) */
 const fs = require('fs'), path = require('path'), PICS = require('./pics-after.cjs');
 const args = process.argv.slice(2), opt = k => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : null; };
 const OUTF = opt('--out'), COURSE = opt('--course'), DIR = args[0];
@@ -103,7 +104,7 @@ const fileBank = (f) => path.basename(f).replace(/\.json$/i, '').replace(/[\s_-]
 const bankName = (OUTF && fileBank(OUTF)) || bankMd.name || path.basename(DIR).replace(/ bank folder$/, '');
 const COURSES = { 'Algebra I': 'Algebra 1', 'Algebra II': 'Algebra 2' };
 const courses = COURSE ? [COURSE] : (Array.isArray(bankMd.courses) ? bankMd.courses : [bankMd.courses].filter(Boolean)).map(c => COURSES[c] || (/algebra ii\b/i.test(c) ? 'Algebra 2' : /algebra i\b/i.test(c) ? 'Algebra 1' : /geometry/i.test(c) ? 'Geometry' : c));
-const BUILT_IN = new Set(['id', 'ref', 'exam', 'type', 'points', 'answer', 'answer notes', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines']), FIELDS = new Map();
+const BUILT_IN = new Set(['courses', 'id', 'ref', 'exam', 'type', 'points', 'answer', 'answer notes', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'space', 'answerArea', 'lines']), FIELDS = new Map();
 const HIDDEN = new Set(['JMAP topic', 'JMAP subtopic']); // kept in the bank file, hidden in the app (her choice 2026-11-28)
 const TYPE = { 'multiple choice': 'mc', bimodal: 'bm', 'true/false': 'tf', 'short answer': 'sa', 'open response': 'es' };
 let pics = 0; const unknown = new Set();
@@ -115,7 +116,7 @@ const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.ends
   // "## Answer" at the end: the written answer (math, pictures, tables), like the question itself
   const parts = body.split(/\n## Answer\n/), ansMd = parts[1] ? parts[1].trim() : '';
   const lines = parts[0].trim().split('\n'), ch = []; while (lines.length && /^\d+\. /.test(lines[lines.length - 1])) ch.unshift(lines.pop().replace(/^\d+\. /, ''));
-  const type = TYPE[meta.type] || meta.type || 'es', q = { id: meta.id, type, html: blocks(PICS.md(lines.join('\n')).text, pic), bank: bankName, courses: courses.slice() };
+  const type = TYPE[meta.type] || meta.type || 'es', q = { id: meta.id, type, html: blocks(PICS.md(lines.join('\n')).text, pic), bank: bankName, courses: Array.isArray(meta.courses) && meta.courses.length ? meta.courses : courses.slice() }; // a question's own courses (old banks sorted into modern courses)
   if (ch.length) q.choices = ch.map(c => inline(c, pic));
   ['ref', 'unit', 'section', 'standard', 'cluster', 'topic', 'subtopic', 'nyStd', 'source', 'notes', 'answerArea'].forEach(k => { if (meta[k] != null && meta[k] !== '') q[k] = String(meta[k]); });
   ['points', 'space', 'lines'].forEach(k => { if (meta[k] != null && meta[k] !== '' && !isNaN(+meta[k])) q[k] = +meta[k]; });
@@ -130,6 +131,6 @@ const questions = fs.readdirSync(path.join(DIR, 'questions')).filter(f => f.ends
 // next to the folder, or in "Bank files" when the folders are in "Bank folders" (Documents/TestBuilderResource)
 const near = path.basename(path.dirname(path.resolve(DIR))) === 'Bank folders' ? path.join(path.dirname(path.dirname(path.resolve(DIR))), 'Bank files') : path.dirname(path.resolve(DIR));
 const out = OUTF || path.join(near, bankName + '_Bank.json');
-fs.writeFileSync(out, JSON.stringify({ app: 'test-builder', kind: 'bank', version: 1, saved: new Date().toISOString(), bank: bankName, courses, fields: [...FIELDS].map(([id, label]) => HIDDEN.has(label) ? { id, label, hidden: true } : { id, label }), questions }));
+fs.writeFileSync(out, JSON.stringify({ app: 'test-builder', kind: 'bank', version: 1, saved: new Date().toISOString(), bank: bankName, courses: [...new Set(courses.concat(...questions.map(q => q.courses)))], fields: [...FIELDS].map(([id, label]) => HIDDEN.has(label) ? { id, label, hidden: true } : { id, label }), questions }));
 console.log('wrote ' + out + ': ' + questions.length + ' questions, ' + pics + ' pictures, course ' + courses.join(', ') + ' (' + (fs.statSync(out).size / 1e6).toFixed(1) + ' MB)');
 if (unknown.size) console.log('LaTeX the app can’t draw yet (left as written): ' + [...unknown].join(' '));
