@@ -2,14 +2,15 @@
    sentences; in the banks it goes after the text instead. In a question with parts (a), (b) (or a) / a.), a picture inside a part
    goes after that part's text, and one before (a) after the opening text. Answer choices are not touched (callers pass only the stem).
    Not guessed, left as they are and reported: a picture inside a sentence ('inline'), two pictures in one part with text between
-   them ('between': captions or labels), and text after the picture that says "above" ('above').
+   them ('between': captions or labels). Text after the picture that says "shown above" / "the figure above" becomes "below" (her choice
+   2026-11-28), unless a table stays above it ('above': left alone).
 
    const P = require('./pics-after.cjs');
    P.html(html) → {text, moved, flag}   app question HTML (bank files)
    P.md(body)   → {text, moved, flag}   Markdown question text (bank folders), choices and "## Answer" already cut off */
 
 // "above" that points at a picture ("the graph above", "shown above"), not "above the ground"
-const ABOVE = /\b(?:shown|graphed|given|pictured|displayed|drawn|plotted|illustrated|figure|diagram|graph|graphs|table|picture|chart|plot|stemplot|histogram|grid|axes|scatterplot|boxplot|map|image)\s+above\b|\babove\s+(?:figure|diagram|graph|table|picture|chart|plot)s?\b|\bthe above\b/i;
+const ABOVE = /\b(?:shown|graphed|given|pictured|displayed|drawn|plotted|illustrated|figure|diagram|graph|graphs|table|picture|chart|plot|stemplot|histogram|grid|axes|scatterplot|boxplot|map|image)\s+above\b|\babove\s+(?:figure|diagram|graph|table|picture|chart|plot)s?\b|\bthe above\b|\bas [a-z] above\b/i;
 const LAB = /^\s*(?:\(([a-h])\)|([a-h])\)|([a-h])\.(?=\s))/;
 
 // tokens: br (line break), img (a picture), tbl (a table, kept whole), txt (anything else); joining t.s gives the input back
@@ -47,7 +48,7 @@ function move(toks, md) {
     if (j >= 0 && toks[j].t !== 'br' && toks[j].t !== 'tbl') return;
     const m = LAB.exec(t.x); if (m && (m[1] || m[2] || m[3]) === 'abcdefgh'[seq]) { starts.push(i); seq++; } });
   const cuts = [0].concat(seq > 1 ? starts : [], [toks.length]);
-  let out = [], moved = 0, flag = '';
+  let out = [], moved = 0, swapped = 0, flag = '';
   for (let k = 0; k + 1 < cuts.length; k++) {
     const seg = toks.slice(cuts[k], cuts[k + 1]), groups = [];
     for (let i = 0; i < seg.length; i++) {
@@ -62,7 +63,14 @@ function move(toks, md) {
       if ((p >= 0 && seg[p].t === 'txt') || (n < seg.length && seg[n].t === 'txt')) f = f || 'inline'; });
     if (!groups.length || !content(groups[0][1] + 1, seg.length)) { out = out.concat(seg); continue; }
     if (!f && groups.length > 1) f = 'between';
-    if (!f && ABOVE.test(seg.slice(groups[0][1] + 1).map(t => t.x || '').join(' '))) f = 'above';
+    const after = () => seg.slice(groups[0][1] + 1).map(t => t.x || '').join(' ');
+    if (!f && ABOVE.test(after())) { // "shown above" → "shown below", since the picture now comes after (her choice 2026-11-28)
+      if (seg.some(t => t.t === 'tbl')) f = 'above'; // a table that stays above: "the table above" may still be right
+      else { const old = seg.slice(), G = new RegExp(ABOVE.source, 'gi');
+        for (let j = groups[0][1] + 1; j < seg.length; j++) if (seg[j].t === 'txt' && G.test(seg[j].s)) {
+          const fix = v => v.replace(G, m => m.replace(/above/i, w => w[0] === 'A' ? 'Below' : 'below'));
+          seg[j] = { t: 'txt', s: fix(seg[j].s), x: fix(seg[j].x) }; }
+        if (ABOVE.test(after())) { f = 'above'; seg.splice(0, seg.length, ...old); } else swapped++; } }
     if (f) { flag = flag || f; out = out.concat(seg); continue; }
     // take the picture out: the line breaks on its two sides become one gap (the bigger one)
     const [a, e] = groups[0]; let l = a, r = e + 1;
@@ -73,10 +81,10 @@ function move(toks, md) {
     // then put it after the last words of this part (before the line breaks that lead to the next part)
     let t = rest.length; while (t > 0 && gap(rest[t - 1])) t--;
     const tail = rest.slice(t), before = rest.slice(0, t), last = before[before.length - 1];
-    rest = before.concat(!md && last && last.t === 'tbl' ? [] : Array(sep).fill(br), pic, tail);
+    rest = before.concat(!md && last && last.t === 'tbl' ? [] : Array(sep).fill(br), pic, tail.length || k + 2 >= cuts.length ? [] : [br], tail); // never glued to the next part
     out = out.concat(rest); moved++;
   }
-  return { text: out.map(t => t.s).join(''), moved, flag };
+  return { text: out.map(t => t.s).join(''), moved, swapped, flag };
 }
 
 const html = h => { const r = move(tokHtml(h || ''), false); if (r.flag || !r.moved) r.text = h; return r; };
@@ -91,9 +99,11 @@ if (require.main === module) { // self-check: node scripts/pics-after.cjs
     'Open.<br><br>More.<br><br>' + I + '<br><br>(a) First.<br><br>then.<br><br>' + I + '<br><br>(b) Second.');
   a.strictEqual(html('Text ' + I + ' and more.').flag, 'inline');
   a.strictEqual(html(I + '<br><br>Figure A<br><br>' + I + '<br><br>Which?').flag, 'between');
-  a.strictEqual(html(I + '<br><br>In the diagram above, x?').flag, 'above');
+  a.strictEqual(html(I + '<br><br>The graph above shows f. Is f above 0?').text, 'The graph below shows f. Is f above 0?<br><br>' + I);
+  a.strictEqual(html(I + '<br><br>The table above.<table><tr><td>1</td></tr></table>').flag, 'above'); // only when no table stays
   a.strictEqual(html('One.<br><br>' + I + '<table><tr><td>1</td></tr></table>').text, 'One.<br><br><table><tr><td>1</td></tr></table>' + I);
   a.strictEqual(html('Done.<br><br>' + I).moved, 0);
+  a.strictEqual(html('Open.<br>' + I + '<table></table>a. x<br>b. y').text, 'Open.<br><table></table>' + I + '<br>a. x<br>b. y');
   const P = '![picture](../images/a.svg){width=2in}';
   a.strictEqual(md('Open.\na) x\n\n' + P + '\n$b$) y').text, 'Open.\na) x\n\n' + P + '\n$b$) y'); // $b$) is part (b)
   a.strictEqual(md('One.\n\n' + P + '\n\nTwo?').text, 'One.\n\nTwo?\n\n' + P);

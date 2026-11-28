@@ -53,6 +53,6 @@ test('pictures go after the question text; JMAP fields are hidden in bank files 
   execFileSync(process.execPath, [path.join(__dirname, '../scripts/bank-file.cjs'), dir, '--out', out, '--course', 'Geometry'], { stdio: 'pipe' });
   const b = JSON.parse(fs.readFileSync(out, 'utf8'));
   assert.match(b.questions[0].html, /^Line m is shown below\.<br><br>What is its slope\?<br><br><img /, 'the picture moved after the text');
-  assert.match(b.questions[1].html, /^<img /, '"above" in the text: left where it is');
+  assert.match(b.questions[1].html, /^The graph below shows f\.<br><br><img /, '"above" becomes "below" when the picture moves down');
   assert.deepStrictEqual(b.fields.map(f => [f.label, !!f.hidden]), [['JMAP topic', true], ['Also uses', false]]);
 });
