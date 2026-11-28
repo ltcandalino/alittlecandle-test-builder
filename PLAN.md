@@ -323,3 +323,43 @@ Her choices: put related settings together and add Next first; three steps (Pick
    Check & clean up and + New question stay in Question bank. **Done 2026-11-17.**
 4. Polish: folded rail keeps numbers and the count, a backup dot on Import & backup, and the small fixes from the review. **Done 2026-11-17.**
 
+
+# Plan 5: Create Document, course filter, layout choices (her list 2026-11-28)
+
+Her 14 changes, sorted and clarified with her on 2026-11-28. Waiting for her approval.
+
+## Release 1: quick changes
+1. Rail heading "Make a test" → **Create Document**.
+2. Document set-up: checkbox **Print teacher and calculator on every copy** (off to begin with). Time stays on the accommodated copy.
+3. The time menu goes away. The accommodated copy always prints `1.5x/2.0x/_____ mins. left` (her exact wording). Old saved settings
+   (`time`, `timeMin`) are ignored, not lost.
+4. **Needs attention** filter only on Question bank, not on 1 Pick questions.
+5. Pick filters in her order: Search, (Course, release 2), Unit, Section, Topic, Subtopic always shown; More filters: Type, Month, Year,
+   Cluster, Standard, Bank.
+6. Reviews and lessons get the test/quiz margins (1 in top/bottom, 0.75 in sides; replaces ½ in from 2026-11-15), in print, preview, Word, LaTeX.
+7. Review "Multiple Choice Questions" cell: no purple fill (transparent) in print, Word, LaTeX.
+8. Parts: `a.` `b.` (as in the BFW bank) and `a)` `(a)` are all read as parts and print as bold **(a)** on every document type.
+9. Data, outside the app: JMAP topic / JMAP subtopic removed from every bank file (backup with them kept in `Backups/`); she deletes the two
+   fields on her site.
+
+## Release 2: course filter (her choice A)
+- Old banks: each question sorted into its modern course while converting (by standard), with that course's labels; a question that fits two
+  gets both courses, labels from the one it fits best. Done in the Convert to JSON chat; no data format change.
+- 1 Pick questions: **Course** filter after Search, starting on the document's course, with "Any course". The course picker at the top stays
+  ("the class this document is for": settings, saved tests).
+- Browse banks shows every public bank ("Shared by …"), narrowed by the Course filter.
+
+## Release 3: moving parts and bimodal
+- 2 Set up › Questions: drag a whole part (tests/quizzes Part I–IV, review Open response / Multiple choice, lesson Warm Up / Examples / Practice)
+  like a question; parts renumber, question numbers follow. Order saved per document.
+- Bimodal printed without choices acts as short answer (part, spacing, SA badge); the question stays bimodal.
+
+## Release 4: picture size and two columns
+- **Picture size** on Page style for the whole document: Small 50%, Medium 75%, **Large 100% = today's size (default)**; and per picture
+  from its question's row in Set up (Default / S / M / L). Never wider than the column.
+- **Columns: 1 or 2** for reviews and lessons; pictures and tables shrink to the column, a table too wide spans both. Preview, print,
+  Word and LaTeX must break pages the same way.
+
+## Open decisions (defaults unless she says otherwise)
+- Small and Medium sizes: 50% and 75%.
+- Per-picture size is set in 2 Set up, not in the question editor (it belongs to the document, not the question).
