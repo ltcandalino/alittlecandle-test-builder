@@ -3497,7 +3497,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,fitHtml:fitHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,partsHtml:partsHtml,isTall:isTall,htmlInches:htmlInches,picFont:picFont,svgSize:svgSize,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,partsHtml:partsHtml,fileBank:fileBank,bankFileName:bankFileName,isTall:isTall,htmlInches:htmlInches,picFont:picFont,svgSize:svgSize,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -4050,7 +4050,9 @@ function wireXF(){
 
 /* ---- bank files: one bank per .json file, to keep on a NAS or share ---- */
 var BANK_KIND='bank';
-function bankFileName(name){return (String(name||'').replace(/[\\\/:*?"<>|\x00-\x1f]+/g,'-').replace(/^[\s.]+|[\s.]+$/g,'').slice(0,100)||'Bank')+'.json';}
+// bank files are named <bank>_Bank.json, and opening one names the bank after the file (her rule 2026-11-28): Algebra1_CC_2013-2024_Bank.json → Algebra1_CC_2013-2024
+function fileBank(name){return String(name||'').replace(/^.*[\\\/]/,'').replace(/\.json$/i,'').replace(/\s*\(\d+\)$/,'').replace(/[\s_-]+bank(\s+file)?$/i,'').trim();}
+function bankFileName(name){var n=(String(name||'').replace(/[\\\/:*?"<>|\x00-\x1f]+/g,'-').replace(/^[\s.]+|[\s.]+$/g,'').slice(0,100)||'My questions');return n+(/_bank$/i.test(n)?'':'_Bank')+'.json';} // fileBank gives the same name back
 function bankFileData(name){
   var qs=cq().filter(function(q){return q.bank===name;}).map(function(q){return JSON.parse(JSON.stringify(q));});
   var used={},cs={};qs.forEach(function(q){Object.keys(q.extra||{}).forEach(function(k){used[k]=1;});coursesOf(q).forEach(function(c){cs[c]=1;});});
@@ -4071,13 +4073,14 @@ function importBankData(list){
   var usedH={},crsN={},byCrs={};state.questions.forEach(function(q,i){if(!own(q))return;coursesOf(q).forEach(function(c){var k=sameKey(q,c);crsN[k]=(crsN[k]||0)+1;byCrs[k]=i;});});
   list.forEach(function(it){
     var d=it.data;if(!isBankFile(d)){bad.push(it.name);return;}
+    var fb=fileBank(it.name)||d.bank||'My questions'; // the file's name is the bank's name
     var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine){map[f.id]=mine.id;if(f.hidden)mine.hidden=true;}}});
     var qs=JSON.parse(JSON.stringify(d.questions)).filter(function(q){return q&&typeof q==='object'&&TYPES[q.type];});
     qs.forEach(function(q){
       q.html=sanitize(String(q.html||''));if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return sanitize(String(c||''));});
       var cs=coursesOf(q).filter(function(c){return state.courses.indexOf(c)>=0;});setCourses(q,cs.length?cs:[state.course]);
       if(q.extra&&typeof q.extra==='object'){var x={};Object.keys(q.extra).forEach(function(k){var id=map[k]||(fieldById(k)?k:null),v=q.extra[k];if(id&&v!=null&&String(v)!=='')x[id]=String(v);});if(Object.keys(x).length)q.extra=x;else delete q.extra;}else delete q.extra;
-      if(!q.bank)q.bank=d.bank||'My questions';
+      q.bank=fb;
     });
     qs=normalize({questions:qs,courses:state.courses.slice(),course:state.course}).questions;
     var fileN={},fileC={};qs.forEach(function(q){if(q.ref){var k=q.bank+'\u0001'+q.ref;fileN[k]=(fileN[k]||0)+1;}coursesOf(q).forEach(function(c){var kc=sameKey(q,c);fileC[kc]=(fileC[kc]||0)+1;});});
@@ -4093,7 +4096,7 @@ function importBankData(list){
       if(JSON.stringify(have)===JSON.stringify(q)){same++;return;}
       state.questions[i]=q;updated++;
     });
-    if(banks.indexOf(d.bank)<0&&d.bank)banks.push(d.bank);
+    if(banks.indexOf(fb)<0)banks.push(fb);
   });
   if(added||updated){changed();renderTabs();}
   return {added:added,updated:updated,same:same,bad:bad,banks:banks,undo:function(){state.questions=prevQ;state.fields=prevF;changed();render();}};

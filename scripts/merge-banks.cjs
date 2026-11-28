@@ -4,7 +4,7 @@
    (no copies) when they came from these bank files. Her own fields are merged by name.
 
    node scripts/merge-banks.cjs "<new bank name>" <bank file.json> <bank file.json> … [--out <file.json>]
-     --out  default: "<new bank name> bank file.json" next to the first file */
+     --out  default: "<new bank name>_Bank.json" next to the first file (the app names the bank after the file) */
 const fs = require('fs'), path = require('path');
 const args = process.argv.slice(2), opt = k => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : null; };
 const OUTF = opt('--out'), [NAME, ...FILES] = args;
@@ -27,6 +27,6 @@ for (const f of FILES) {
   }
   console.log(path.basename(f) + ': ' + d.questions.length + ' questions');
 }
-const out = OUTF || path.join(path.dirname(path.resolve(FILES[0])), NAME + ' bank file.json');
+const out = OUTF || path.join(path.dirname(path.resolve(FILES[0])), NAME + '_Bank.json');
 fs.writeFileSync(out, JSON.stringify({ app: 'test-builder', kind: 'bank', version: 1, saved: new Date().toISOString(), bank: NAME, courses, fields: [...fields].map(([id, label]) => hidden.has(id) ? { id, label, hidden: true } : { id, label }), questions }));
 console.log('wrote ' + out + ': ' + questions.length + ' questions, course ' + courses.join(', ') + ', fields ' + [...fields.values()].join(', ') + ' (' + (fs.statSync(out).size / 1e6).toFixed(1) + ' MB)');

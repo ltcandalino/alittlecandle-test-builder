@@ -60,6 +60,8 @@ Answer: True
 
 **Import & backup → Your banks** saves banks as files, one `.json` file per bank, with everything: math, pictures, answers, all the details and your own fields. Use them to keep your banks on a NAS, or to give a bank to another teacher.
 
+- Bank files are named `<bank>_Bank.json`, for example `Algebra1_CC_2013-2024_Bank.json`. Opening one names the bank after the file
+  (**Algebra1_CC_2013-2024**), so to rename a bank, rename its file before opening it.
 - **Save all as files…**: tick the banks you want (or none, for all of them; **All** ticks every one), click the button (it
   then says **Save 3 as files…**), and choose the folder (for example your NAS folder). Chrome and Edge save straight into it, replacing older copies of the same banks. Other browsers put the files in Downloads.
 - **Open bank files…**: choose one or more bank files. New questions are added; questions you already have from that file are updated to the file's version. Your own fields are matched by name, so another teacher's "DOK" goes into your "DOK".

@@ -251,15 +251,15 @@ describe('bank files', () => {
     await add([{ bank: 'Unit 3 bank', html: 'One', extra: { [fid]: '1' } }, { bank: 'Unit 3 bank', html: 'Two' }, { bank: 'Other', html: 'Three' }]);
     const data = await fn(page, 'bankFileData', 'Unit 3 bank');
     assert.equal(data.kind, 'bank'); assert.equal(data.questions.length, 2); assert.deepEqual(data.fields.map(f => f.label), ['DOK']);
-    assert.equal(await fn(page, 'bankFileName', 'Unit 3: a/b?'), 'Unit 3- a-b-.json');
+    assert.equal(await fn(page, 'bankFileName', 'Unit 3: a/b?'), 'Unit 3- a-b-_Bank.json');
     // "save" with downloads (no folder picker in the test browser)
     await gotoTab(page, 'io', 'banks');
     await page.evaluate(() => { window.showDirectoryPicker = undefined; });
     await page.$$eval('[data-bf]', els => els.forEach(e => { e.checked = e.value === 'Unit 3 bank'; }));
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#bfSave')]);
-    const file = path.join(OUT, 'bank-file.json');
+    const file = path.join(OUT, 'Unit 3 bank_Bank.json'); // the bank is named after the file
     await dl.saveAs(file);
-    assert.equal(dl.suggestedFilename(), 'Unit 3 bank.json');
+    assert.equal(dl.suggestedFilename(), 'Unit 3 bank_Bank.json');
     // a teacher with a different field id for DOK, and one of the questions edited in the file
     const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
     saved.fields = [{ id: 'other', label: 'dok' }];
@@ -299,12 +299,22 @@ describe('bank files', () => {
       const T = window.__tb, c = T.state.course, Q = (id, bank, ref, html, extra) => Object.assign({ id, type: 'mc', html, choices: ['a', 'b'], answer: 0, bank, ref, courses: [c] }, extra || {});
       T.state.questions.push(...T.normalize({ questions: [Q('a1', 'AI 2013', '061501ai', 'One', { unit: '3' }), Q('a2', 'AI 2016', '061601ai', 'Two'), Q('a3', 'AI 2013', '', 'What is x?'),
         Q('d1', 'AI 2013', '081599ai', 'Dup'), Q('d2', 'My copy', '081599ai', 'Dup')] }).questions); // the same reference twice: never guessed
-      const res = T.fn.importBankData([{ name: 'all.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'AI all', questions: [
+      const res = T.fn.importBankData([{ name: 'AI all_Bank.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'AI all', questions: [
         Q('f1', 'AI all', '061501ai', 'One', { topic: 'Lines' }), Q('f2', 'AI all', '061601ai', 'Two'), Q('f3', 'AI all', '', 'What is <i>x</i>?'), Q('f4', 'AI all', '081599ai', 'Dup')] } }]);
       const by = {}; T.state.questions.forEach(q => (by[q.bank] = by[q.bank] || []).push(q.id));
       return { added: res.added, updated: res.updated, by, a1: (({ unit, topic }) => ({ unit, topic }))(T.state.questions.find(q => q.id === 'a1')) };
     });
     assert.deepEqual(r, { added: 1, updated: 3, by: { 'AI all': ['a1', 'a2', 'a3', 'f4'], 'AI 2013': ['d1'], 'My copy': ['d2'] }, a1: { unit: '3', topic: 'Lines' } });
+  });
+  test('the bank is named after its file: Algebra1_CC_2013-2024_Bank.json is the bank Algebra1_CC_2013-2024 (2026-11-28)', async () => {
+    const r = await page.evaluate(() => { const T = window.__tb, f = T.fn;
+      const names = ['Algebra1_CC_2013-2024_Bank.json', 'GEO2024-2026EXAMs bank file.json', 'Geometry_NG_eMath_Bank (1).json', 'QuestionBank.json'].map(f.fileBank);
+      const res = f.importBankData([{ name: 'Algebra2_NG_2025-2027_Bank.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'ALGEBRA II 2025-2027 REGENTS EXAMS', courses: [T.state.course], questions: [{ id: 'fbn1', type: 'tf', html: 'Named', answer: 'T', courses: [T.state.course], bank: 'ALGEBRA II 2025-2027 REGENTS EXAMS' }] } }]);
+      return { names, banks: res.banks, bank: T.state.questions.find(q => q.id === 'fbn1').bank, save: f.bankFileName('Algebra2_NG_2025-2027') }; });
+    assert.deepEqual(r.names, ['Algebra1_CC_2013-2024', 'GEO2024-2026EXAMs', 'Geometry_NG_eMath', 'QuestionBank']);
+    assert.deepEqual(r.banks, ['Algebra2_NG_2025-2027']); assert.equal(r.bank, 'Algebra2_NG_2025-2027');
+    assert.equal(r.save, 'Algebra2_NG_2025-2027_Bank.json', 'saving makes the same file name again');
+    assert.equal(await page.evaluate(() => window.__tb.fn.fileBank(window.__tb.fn.bankFileName('Unit 3 bank'))), 'Unit 3 bank', 'a bank name ending in "bank" survives save and open');
   });
   test('a backup file is not taken as a bank file', async () => {
     await reset();
