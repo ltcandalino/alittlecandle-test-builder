@@ -800,6 +800,36 @@ describe('picking all at once and copies of banks', () => {
   });
 });
 
+describe('Course filter on 1 Pick questions (Plan 5 release 2)', () => {
+  test('starts on this course; another course or Any course can be searched and its questions picked', async () => {
+    await page.evaluate(() => { const T = window.__tb, st = T.state; st.courses = [st.course, 'Math A']; const c = st.course;
+      st.questions.push({ id: 'cf-1', courses: [c], type: 'tf', html: 'Here question', answer: 'T', bank: 'Mine' }, { id: 'cf-2', courses: ['Math A'], type: 'tf', html: 'Old Math A question', answer: 'T', bank: 'Old' });
+      T.state = T.normalize(st); });
+    await place('pick', 'search');
+    assert.ok(await page.isVisible('#fcrs'), 'Course menu after Search');
+    assert.equal(await page.$eval('#main .toolbar #fq + select', e => e.id), 'fcrs');
+    let shown = await page.$$eval('#qlist .qcard', e => e.map(x => x.textContent).join('|'));
+    assert.match(shown, /Here question/); assert.doesNotMatch(shown, /Old Math A/);
+    await page.selectOption('#fcrs', 'Math A');
+    shown = await page.$$eval('#qlist .qcard', e => e.map(x => x.textContent).join('|'));
+    assert.doesNotMatch(shown, /Here question/); assert.match(shown, /Old Math A[\s\S]*|Math A/);
+    assert.match(await page.textContent('#chips'), /Course: Math A/);
+    await page.selectOption('#fcrs', '__any');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 2);
+    await page.click('#qlist .qcard:has-text("Old Math A")');
+    assert.ok(await page.evaluate(() => window.__tb.state.selected.includes('cf-2')), 'a question from another course goes on the test');
+    // switching course and back keeps it on the test
+    await page.evaluate(() => { const T = window.__tb, c = T.state.course; T.fn.switchCourse('Math A'); T.fn.switchCourse(c); });
+    assert.ok(await page.evaluate(() => window.__tb.state.selected.includes('cf-2')));
+    // Browse banks follows the same filter
+    await page.evaluate(() => { window.__tb.ui().crs = ''; window.__tb.ui().brBank = ''; });
+    await place('pick', 'browse');
+    assert.doesNotMatch(await page.textContent('.br-cards'), /Old/);
+    await page.selectOption('#fcrs', 'Math A');
+    assert.match(await page.textContent('.br-cards'), /Old/);
+  });
+});
+
 describe('putting questions in order', () => {
   test('a Review lists open response then multiple choice with printed numbers; drag, type a number, keys, Sort', async () => {
     const ids = await addQuestions(page, [{ type: 'mc', html: 'MC one' }, { type: 'es', html: 'Open one' }, { type: 'mc', html: 'MC two' }, { type: 'es', html: 'Open two' }, { type: 'mc', html: 'MC three' }]);

@@ -8,7 +8,8 @@ its lists have the tick box and **Edit** (and **Copy to mine** on a colleague's 
 
 **Browse banks** is the last tab on **1 Pick questions** (**Search** opens first). Inside a colleague's bank or a team bank, **Copy bank to mine** makes your own copy of the whole bank.
 
-**1 Pick questions › Browse banks** opens with one card per bank (your banks, banks colleagues shared, and team banks).
+**1 Pick questions › Browse banks** opens with one card per bank (your banks, every bank a colleague made public, and team banks).
+The **Course** menu at the top chooses which course's banks show: this course to begin with, another of your courses, or **Any course**.
 
 1. Click a bank to see its **units** and **sections**, with how many questions each has and how many are already on the test.
 2. Click a unit (all of it) or a section. Its questions show with the tick box and **Edit**.
@@ -20,6 +21,10 @@ A bank without units or sections opens straight to its questions. Browsing never
 A question taught in more than one unit has its units separated by commas, like **10, 11**. It shows under each of those units when you browse or filter by unit, and its card says **Units 10, 11**.
 
 ## Finding questions
+
+On **1 Pick questions**, the **Course** menu right after Search starts on your document's course. Choose another of your courses, or
+**Any course**, to find questions from banks that fit several courses (like older Math A banks); you can put them on your document, and a
+question from another course shows that course's name on its card.
 
 Search by words, or filter by **unit**, **section**, **topic** and **subtopic**. Click **More filters** for type, month, year, cluster, standard, bank, source and your own fields; the button shows how many of those are in use. On **Question bank**, More filters also has **Needs attention** (it isn't on 1 Pick questions).
 

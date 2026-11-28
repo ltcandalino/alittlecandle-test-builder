@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Course** filter on 1 Pick questions, right after Search (and on Browse banks): it starts on the document's course; pick another of your courses or **Any course** to find questions from older banks that fit several courses, and put them on the document. A question from another course shows that course's name on its card, and stays on the test when you switch courses.
+- **Browse banks** shows every bank a colleague made public, on its own card ("Shared by …"), for the course they put it in, without ticking a course first. The Course filter narrows them too.
+
 ## [0.30.0] - 2026-11-28
 
 ### Added

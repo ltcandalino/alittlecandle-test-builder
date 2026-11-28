@@ -50,7 +50,7 @@ var CLOUD=(function(){
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
   // a colleague's question as its owner stores it: without our course choices and the owner/permission marks we add
-  var LOCAL_ONLY={owner:1,ownerName:1,canEdit:1,courses:1,course:1,visibility:1};
+  var LOCAL_ONLY={owner:1,ownerName:1,canEdit:1,courses:1,course:1,visibility:1,ownerCourses:1};
   function ownerCopy(q){var o={};Object.keys(q).forEach(function(k){if(!LOCAL_ONLY[k])o[k]=q[k];});return o;}
   function sigC(q){return sigQ(ownerCopy(q));}
   // colleagues' questions (q.owner set) aren't ours to push; the courses we put them in travel in app_state as "use"
@@ -120,7 +120,8 @@ function foreign(q){return !!(q&&q.owner);}
           var fq=r.data;if(!fq||!fq.id)return;
           seen[r.id]=1;
           if(local&&local.canEdit&&meta.fsynced[r.id]!=null&&sigC(local)!==meta.fsynced[r.id])return; // my edit to it isn't sent yet
-          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
+          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.ownerCourses=(fq.courses||[]).slice(); // the courses the colleague put it in, for the Course filter
+          fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
           if(r.can_edit)fq.canEdit=true;else delete fq.canEdit;
           meta.fsynced[r.id]=sigC(fq);
           if(local)st.questions[i]=fq;else{st.questions.push(fq);byId[fq.id]=st.questions.length-1;}

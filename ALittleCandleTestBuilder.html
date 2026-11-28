@@ -1860,7 +1860,7 @@ var CLOUD=(function(){
     return fnv(canon(o)+'|'+lite(q.html)+'|'+(q.choices||[]).map(lite).join('¦'));
   }
   // a colleague's question as its owner stores it: without our course choices and the owner/permission marks we add
-  var LOCAL_ONLY={owner:1,ownerName:1,canEdit:1,courses:1,course:1,visibility:1};
+  var LOCAL_ONLY={owner:1,ownerName:1,canEdit:1,courses:1,course:1,visibility:1,ownerCourses:1};
   function ownerCopy(q){var o={};Object.keys(q).forEach(function(k){if(!LOCAL_ONLY[k])o[k]=q[k];});return o;}
   function sigC(q){return sigQ(ownerCopy(q));}
   // colleagues' questions (q.owner set) aren't ours to push; the courses we put them in travel in app_state as "use"
@@ -1930,7 +1930,8 @@ function foreign(q){return !!(q&&q.owner);}
           var fq=r.data;if(!fq||!fq.id)return;
           seen[r.id]=1;
           if(local&&local.canEdit&&meta.fsynced[r.id]!=null&&sigC(local)!==meta.fsynced[r.id])return; // my edit to it isn't sent yet
-          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
+          fq.owner=r.owner;fq.ownerName=r.owner_email||'';fq.ownerCourses=(fq.courses||[]).slice(); // the courses the colleague put it in, for the Course filter
+          fq.courses=local?(local.courses||[]).slice():((meta.use&&meta.use[r.id])||[]).slice();fq.course=fq.courses[0]||'';delete fq.visibility;
           if(r.can_edit)fq.canEdit=true;else delete fq.canEdit;
           meta.fsynced[r.id]=sigC(fq);
           if(local)st.questions[i]=fq;else{st.questions.push(fq);byId[fq.id]=st.questions.length-1;}
@@ -2906,6 +2907,11 @@ function saveTeam(b,msg){
     return CLOUD.sync();}).then(function(){render();},function(e){toast(e.message||'Couldn’t save the team bank.');});
 }
 function cq(){return state.questions.filter(function(q){return inCourse(q,state.course);});}
+/* 1 Pick questions has a Course filter (Plan 5 release 2): ui.crs '' = the document's course, a course name, or '__any'. A colleague's
+   public question counts for a course you put it in, or one with the same name that they put it in (q.ownerCourses). */
+function crsOf(q,c){return inCourse(q,c)||!!(q.owner&&(q.ownerCourses||[]).indexOf(c)>=0);}
+function pickCrs(){var c=ui.crs||'';return c==='__any'||state.courses.indexOf(c)>=0?c:'';}
+function pickQ(){if(!picking())return cq();var c=pickCrs();if(c==='__any')return state.questions.slice();c=c||state.course;return state.questions.filter(function(q){return crsOf(q,c);});}
 function calcLabel(){var s=state.settings;return s.calc==='other'?String(s.calcOther||'').trim():s.calc;}
 var TIME_LINE='1.5x/2.0x/_____ mins. left'; // her exact wording (2026-11-28), on the accommodated copy
 function timeLabel(){return TIME_LINE;}
@@ -3071,7 +3077,7 @@ function unitsOf(q){return String(q.unit||'').split(/\s*,\s*/).filter(Boolean);}
 // Search filters narrow each other (her request 2026-11-22): while facetOn, a menu lists only values that questions matching the OTHER
 // filters have (search text aside), plus the current pick so it never vanishes. Elsewhere (editor lists, Pick at random) it lists everything.
 var facetOn=false,FKEY={standard:'std',subtopic:'sub'};
-function facetPool(key){if(!facetOn)return cq();var f=Object.assign({},ui,{q:''});if(picking())f.need='';f[key]='';return cq().filter(function(q){return matches(q,f);});}
+function facetPool(key){if(!facetOn)return cq();var f=Object.assign({},ui,{q:''});if(picking())f.need='';f[key]='';return pickQ().filter(function(q){return matches(q,f);});}
 function facetPick(t,key){var v=facetOn&&ui[key];if(v&&v!=='__none'&&String(v).indexOf('team:')<0)t[v]=1;}
 function uniq(field){var t={};facetPick(t,FKEY[field]||field);facetPool(FKEY[field]||field).forEach(function(q){var v=q[field];if(v){if(field==='standard'||field==='nyStd'||field==='unit')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
 function selectedQs(){return state.selected.map(selQ).filter(Boolean);}
@@ -3555,8 +3561,8 @@ function switchCourse(name){
   var t=state.courseTests[name];
   state.course=name;
   state.settings=migrateSettings(Object.assign({},DEFAULT_SETTINGS,{course:name,roles:{},concepts:{},bonus:{},seed:Math.floor(Math.random()*2147483647)},t?t.settings:{}),name);
-  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){var q=selQ(id);return q&&(inCourse(q,name)||!byId(id));}):[];
-  ['q','bank','topic','type','std','unit','section','source','year','month','cluster','sub','pickBank','pickTopic','pickType','pickUnit','pickSection'].forEach(function(k){ui[k]='';});
+  state.selected=t&&Array.isArray(t.selected)?t.selected.filter(function(id){return !!selQ(id);}):[]; // questions borrowed from another course stay on the test
+  ['crs','q','bank','topic','type','std','unit','section','source','year','month','cluster','sub','pickBank','pickTopic','pickType','pickUnit','pickSection'].forEach(function(k){ui[k]='';});
   ui.limit=40;saveUi();changed();render();toast('Switched to '+name+'.');
 }
 /* Plan 4: one thing at a time. The rail on the left holds the four steps of making a test, then Question bank and
@@ -3622,9 +3628,9 @@ function typeOpts(sel,allLabel){return '<option value="">'+allLabel+'</option>'+
 /* Filters in her order (2026-11-28): search, unit, section, topic, subtopic always; behind "More filters" type, month, year, cluster,
    standard, bank (then source and her own fields). Needs attention is a Question bank filter only (not while picking). */
 var MORE_F=['need','type','month','year','cluster','std','bank','source'];
-var F_LABEL={q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source',need:'Needs attention'};
-function fLabels(){var o=Object.assign({},F_LABEL);if(picking())delete o.need;shownFields().forEach(function(f){o['x:'+f.id]=f.label;});return o;}
-function fValue(k,v){if(v==='__none')return '(none)';if(k==='bank'&&String(v).indexOf('team:')===0){var tb=teamById(v.slice(5));return tb?tb.name:'Team bank';}if(k==='need')return needLabel(v);if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
+var F_LABEL={crs:'Course',q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source',need:'Needs attention'};
+function fLabels(){var o=Object.assign({},F_LABEL);if(picking())delete o.need;else delete o.crs;shownFields().forEach(function(f){o['x:'+f.id]=f.label;});return o;}
+function fValue(k,v){if(v==='__none')return '(none)';if(k==='bank'&&String(v).indexOf('team:')===0){var tb=teamById(v.slice(5));return tb?tb.name:'Team bank';}if(k==='need')return needLabel(v);if(k==='crs')return v==='__any'?'Any course':v;if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
 function activeFilters(){return Object.keys(fLabels()).filter(function(k){return ui[k]!==''&&ui[k]!=null;});}
 function moreCount(){return MORE_F.filter(function(k){return k!=='need'||!picking();}).concat(shownFields().map(function(f){return 'x:'+f.id;})).filter(function(k){return ui[k];}).length;}
 function moreFilters(){
@@ -3654,9 +3660,11 @@ function sortList(list){
   if(ui.sort==='unit')return list.slice().sort(function(a,b){return String(a.unit||'~').localeCompare(String(b.unit||'~'),undefined,{numeric:true})||String(a.section||'~').localeCompare(String(b.section||'~'),undefined,{numeric:true});});
   return list;
 }
+// 1 Pick questions: which course's questions to look through (the document's course first)
+function crsSelect(){if(!picking())return '';var c=pickCrs(),others=state.courses.filter(function(x){return x!==state.course;});if(!others.length&&!state.questions.some(function(q){return q.owner||!inCourse(q,state.course);}))return '';return '<select id="fcrs" aria-label="Course"><option value="">'+esc(state.course)+' (this course)</option>'+others.map(function(x){return '<option value="'+esc(x)+'"'+(c===x?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'<option value="__any"'+(c==='__any'?' selected':'')+'>Any course</option></select>';}
 function unitSelect(id,sel,allLabel,field){field=field||'unit';var u=uniq(field);if(!u.length)return '';return '<select id="'+id+'" aria-label="'+(field==='section'?'Section':'Unit')+'"><option value="">'+esc(allLabel)+'</option>'+u.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(/^\d/.test(x)?(field==='section'?'Section ':'Unit ')+x:x)+'</option>';}).join('')+(state.questions.some(function(q){return !q[field];})?'<option value="__none"'+(sel==='__none'?' selected':'')+'>(no '+field+')</option>':'')+'</select>';}
 function matches(q,f){
-  if(f.bank&&(f.bank.indexOf('team:')===0?!teamsOf(q).some(function(b){return 'team:'+b.id===f.bank;}):q.bank!==f.bank))return false;
+  if(f.bank&&(f.bank.indexOf('team:')===0?!teamsOf(q).some(function(b){return 'team:'+b.id===f.bank;}):f.bank.indexOf('sh:')===0?'sh:'+q.owner+'|'+q.bank!==f.bank:q.bank!==f.bank))return false;
   if(f.topic&&q.topic!==f.topic)return false;
   if(f.unit&&(f.unit==='__none'?q.unit:unitsOf(q).indexOf(f.unit)<0))return false;
   if(f.section&&(f.section==='__none'?q.section:q.section!==f.section))return false;
@@ -3674,7 +3682,7 @@ function matches(q,f){
 }
 function browsing(){return placeOf()==='pick'&&curSub('pick')==='browse'&&!!ui.brBank&&!!ui.brUnit;}
 function picking(){return placeOf()==='pick';}
-function filtered(){var f=browsing()?{bank:ui.brBank,unit:ui.brUnit,section:ui.brSec||''}:picking()?Object.assign({},ui,{need:''}):ui;return cq().filter(function(q){return matches(q,f);});}
+function filtered(){var f=browsing()?{bank:ui.brBank,unit:ui.brUnit,section:ui.brSec||''}:picking()?Object.assign({},ui,{need:''}):ui;return pickQ().filter(function(q){return matches(q,f);});}
 function qCard(q){
   var body='<div class="qbody">'+q.html+'</div>';
   if(q.inImage)body+='<div class="keyline">Choices are in the picture · Answer: <b>'+(q.answer>=0?esc(plain(q.choices[q.answer])):'not set')+'</b></div>';
@@ -3683,7 +3691,7 @@ function qCard(q){
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': '+(isHtmlAns(q.answer)?'<div class="qbody">'+ansHtml(q.answer)+'</div>':'<b>'+esc(q.answer)+'</b>')+'</div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
   body=picFont(body);
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+shownFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(picking()&&!inCourse(q,state.course)?'<span class="tag" title="From another course">'+esc(coursesOf(q)[0]||(q.ownerCourses||[])[0]||'Another course')+'</span>':'')+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+shownFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(picking()?((!q.owner||q.canEdit)?'<button class="small ghost" data-edit="'+q.id+'">Edit</button>':'')+(q.owner?'<button class="small ghost" data-dup="'+q.id+'" title="Make your own copy to change; the original stays as it was">Copy to mine</button>':''):q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
 function renderBank(){_renderBank();showPlace();}
@@ -3712,13 +3720,15 @@ function unitName(u){return u==='__none'?'No unit':/^\d/.test(u)?'Unit '+u:u;}
 function secName(x){return x==='__none'?'No section':/^\d/.test(x)?'Section '+x:x;}
 function natSort(a){return a.sort(function(x,y){return x==='__none'?1:y==='__none'?-1:String(x).localeCompare(String(y),undefined,{numeric:true});});}
 function browseBanks(){
-  var by={};cq().forEach(function(q){var b=q.bank||'My questions';(by[b]=by[b]||[]).push(q);});
-  var out=natSort(Object.keys(by)).map(function(b){return {key:b,name:b,qs:by[b],who:by[b].every(function(q){return q.owner;})?(by[b][0].ownerName||'a colleague'):''};});
-  if(sharing())teams().forEach(function(t){var qs=teamQs(t).filter(function(q){return inCourse(q,state.course);});if(qs.length)out.push({key:'team:'+t.id,name:t.name,qs:qs,team:true});});
+  // your banks by name; a colleague's public bank on its own card ('sh:<owner>|<bank>'), every one, narrowed by the Course filter
+  var by={},sh={},pool=pickQ(),inPool={};pool.forEach(function(q){inPool[q.id]=1;var b=q.bank||'My questions';if(q.owner){var k='sh:'+q.owner+'|'+b;(sh[k]=sh[k]||{name:b,who:q.ownerName||'a colleague',qs:[]}).qs.push(q);}else (by[b]=by[b]||[]).push(q);});
+  var out=natSort(Object.keys(by)).map(function(b){return {key:b,name:b,qs:by[b],who:''};});
+  natSort(Object.keys(sh)).forEach(function(k){out.push({key:k,name:sh[k].name,qs:sh[k].qs,who:sh[k].who});});
+  if(sharing())teams().forEach(function(t){var qs=teamQs(t).filter(function(q){return inPool[q.id];});if(qs.length)out.push({key:'team:'+t.id,name:t.name,qs:qs,team:true});});
   return out;
 }
 function _renderBrowse(){
-  var main=$('#main');if(!cq().length)return _renderBank();
+  var main=$('#main');if(!state.questions.length)return _renderBank();
   var all=browseBanks(),bk=all.filter(function(b){return b.key===ui.brBank;})[0];
   if(ui.brBank&&!bk){ui.brBank='';ui.brUnit='';ui.brSec='';}
   var units={};if(bk)bk.qs.forEach(function(q){var x=q.section||'__none';(unitsOf(q).length?unitsOf(q):['__none']).forEach(function(u){units[u]=units[u]||{};(units[u][x]=units[u][x]||[]).push(q);});});
@@ -3729,7 +3739,7 @@ function _renderBrowse(){
   var crumbs=function(parts){return '<nav class="crumbs" aria-label="Where you are">'+parts.map(function(x,i){return i<parts.length-1?'<button class="linkbtn" data-crumb="'+i+'">'+esc(x)+'</button><span aria-hidden="true">›</span>':'<b>'+esc(x)+'</b>';}).join('')+'</nav>';};
   var inSel=function(qs){return qs.filter(function(q){return isSel(q.id);}).length;};
   if(!bk){
-    main.innerHTML='<div class="br-top">'+crumbs(['All banks'])+'<span class="spacer"></span>'+onLine+'</div><div class="br-cards">'+all.map(function(b){var n=inSel(b.qs);
+    main.innerHTML='<div class="br-top">'+crumbs(['All banks'])+crsSelect()+'<span class="spacer"></span>'+onLine+'</div><div class="br-cards">'+all.map(function(b){var n=inSel(b.qs);
       return '<button class="br-card'+(b.team?' team':'')+'" data-brbank="'+esc(b.key)+'"><b>'+esc(b.name)+'</b><span>'+plural(b.qs.length,'question')+(n?' · <em>'+n+' on the test</em>':'')+'</span>'+(b.team?'<span class="tag team">Team bank</span>':b.who?'<span class="tag shared">Shared by '+esc(b.who)+'</span>':'')+'</button>';}).join('')+'</div>';
   }else if(!ui.brUnit&&!flat){
     main.innerHTML='<div class="br-top">'+crumbs(['All banks',bk.name])+'<span class="spacer"></span>'+onLine+'</div><div class="card br-tree">'+natSort(Object.keys(units)).map(function(u){
@@ -3752,22 +3762,24 @@ function _renderBrowse(){
   $$('[data-brunit]',main).forEach(function(b){b.onclick=function(){ui.brUnit=b.dataset.brunit;ui.brSec=b.dataset.brsec;ui.limit=40;saveUi();renderBrowse();window.scrollTo(0,0);};});
   $$('[data-crumb]',main).forEach(function(b){b.onclick=function(){var i=+b.dataset.crumb;if(i===0)ui.brBank='';ui.brUnit='';ui.brSec='';saveUi();renderBrowse();};});
   var ar=$('#brArr');if(ar)ar.onclick=function(){go('setup','questions');};
+  var fc=$('#fcrs',main);if(fc)fc.onchange=function(){ui.crs=this.value;ui.brBank='';ui.brUnit='';ui.brSec='';saveUi();renderBrowse();var b=$('#fcrs');if(b)b.focus();};
 }
 function _renderBank(){
   var main=$('#main');
-  if(!cq().length){
+  if(!(picking()?state.questions:cq()).length){
     main.innerHTML='<div class="empty"><b>No '+esc(state.course)+' questions yet</b>Bring them in from ExamView banks (.bnk), a Word test (.docx), a PDF, a spreadsheet, or by pasting text, or write them one at a time.<div class="actions" style="justify-content:center;margin-top:14px"><button class="primary" id="goImport">Import questions</button><button id="newQ">+ New question</button></div></div>';
     $('#newQ').onclick=function(){openEditor(null);};$('#goImport').onclick=function(){go('io','import');};return;
   }
   var banks=uniq('bank');
   var mc=moreCount();
-  facetOn=true;main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select>'+(uniq('subtopic').length?'<select id="fsub" aria-label="Subtopic">'+opts(uniq('subtopic'),ui.sub,'All subtopics')+'</select>':'')+'<button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  facetOn=true;main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+crsSelect()+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select>'+(uniq('subtopic').length?'<select id="fsub" aria-label="Subtopic">'+opts(uniq('subtopic'),ui.sub,'All subtopics')+'</select>':'')+'<button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
   facetOn=false;
   // a filter change redraws the menus so the others narrow; focus goes back to the menu just changed
   var refilter=function(el){var sel=el.id?'#'+el.id:'[data-xff="'+el.dataset.xff+'"]';renderBank();var b=$(sel);if(b)b.focus();};
   $('#moreF').onclick=function(){ui.moreF=!ui.moreF;saveUi();renderBank();var b=$('#moreF');if(b)b.focus();};
   $('#fq').oninput=function(){ui.q=this.value;ui.limit=40;saveUi();drawList();};
   if($('#fb'))$('#fb').onchange=function(){ui.bank=this.value;ui.limit=40;saveUi();refilter(this);};
+  if($('#fcrs'))$('#fcrs').onchange=function(){ui.crs=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#fu'))$('#fu').onchange=function(){ui.unit=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#fsec'))$('#fsec').onchange=function(){ui.section=this.value;ui.limit=40;saveUi();refilter(this);};
   $('#ft').onchange=function(){ui.topic=this.value;ui.limit=40;saveUi();refilter(this);};
@@ -3786,7 +3798,7 @@ function drawList(){
     $$('[data-unf]',ch).forEach(function(b){b.onclick=function(){ui[b.dataset.unf]='';ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};});
     if($('#clearF'))$('#clearF').onclick=function(){activeFilters().forEach(function(k){ui[k]='';});ui.limit=40;saveUi();renderBank();var f=$('#fq');if(f)f.focus();};
     var mb=$('#moreF'),mc=moreCount();if(mb)mb.innerHTML='More filters'+(mc?' <span class="count">'+mc+'</span>':'');}
-  $('#subbar').innerHTML='<span>Showing '+list.length+(browsing()?'':' of '+cq().length)+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span>'+(picking()?'<span class="hint">Click a question to add it; Shift-click to add a run of them. To delete or change many at once, use <button class="linkbtn" id="toBank">Question bank</button>.</span>':'<span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span>')+'<span class="selbtns"><button class="small" id="selAll"'+(on===list.length?' disabled':'')+' title="Put all '+list.length+' questions shown on the test">Select all</button><button class="small" id="selNone"'+(on?'':' disabled')+' title="Take the questions shown off the test">Deselect all</button></span>':'');
+  $('#subbar').innerHTML='<span>Showing '+list.length+(browsing()?'':' of '+pickQ().length)+'</span><span>·</span><span id="onCount">'+state.selected.length+' on the test</span><label class="sortby">Sort <select id="fsort"><option value="bank"'+(ui.sort==='bank'?' selected':'')+'>Bank order</option><option value="new"'+(ui.sort==='new'?' selected':'')+'>Newest added first</option><option value="examnew"'+(ui.sort==='examnew'?' selected':'')+'>Exam date, newest first</option><option value="exam"'+(ui.sort==='exam'?' selected':'')+'>Exam date, oldest first</option><option value="std"'+(ui.sort==='std'?' selected':'')+'>Standard</option><option value="unit"'+(ui.sort==='unit'?' selected':'')+'>Unit, then section</option></select></label>'+(list.length?'<span class="spacer"></span>'+(picking()?'<span class="hint">Click a question to add it; Shift-click to add a run of them. To delete or change many at once, use <button class="linkbtn" id="toBank">Question bank</button>.</span>':'<span id="unitBox"><button class="small" id="setUnit">Change these '+list.length+'…</button></span>')+'<span class="selbtns"><button class="small" id="selAll"'+(on===list.length?' disabled':'')+' title="Put all '+list.length+' questions shown on the test">Select all</button><button class="small" id="selNone"'+(on?'':' disabled')+' title="Take the questions shown off the test">Deselect all</button></span>':'');
   $('#fsort').onchange=function(){ui.sort=this.value;ui.limit=40;saveUi();drawList();};
   var su=$('#setUnit');if(su)su.onclick=function(){bulkBox(list);};
   var tb=$('#toBank');if(tb)tb.onclick=function(){go('bank','all');};

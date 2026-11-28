@@ -192,6 +192,13 @@ describe('public banks shared with colleagues (website version)', () => {
     assert.match(card, /Regents bank/); assert.match(card, /shared by regents@example.com/); assert.doesNotMatch(card, /Textbook/);
     const course = await b.page.evaluate(() => window.__tb.state.course);
     assert.equal(await b.page.evaluate(() => window.__tb.fn.cq().length), 0, 'not in any course until she picks one');
+    // Plan 5 release 2: every public bank shows in Browse banks, by the course its owner put it in
+    assert.deepEqual(await b.page.evaluate(() => window.__tb.state.questions.find(q => q.id === 'pub-1').ownerCourses), [course]);
+    await b.page.evaluate(() => { window.__tb.ui().brBank = ''; window.__tb.fn.go('pick', 'browse'); });
+    await b.page.waitForSelector('.br-card');
+    assert.match(await b.page.textContent('.br-cards'), /Regents bank[\s\S]*Shared by regents@example.com/);
+    await b.page.evaluate(() => { window.__tb.fn.go('pick', 'shared'); });
+    await b.page.waitForSelector('#sharedCard [data-shuse]');
     await b.page.check('#sharedCard [data-shuse="0"][value="' + course + '"]');
     await b.page.evaluate(() => { window.__tb.ui().tab = 'bank'; window.__tb.render(); });
     await b.page.waitForSelector('#qlist .qcard');

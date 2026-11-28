@@ -105,6 +105,11 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   for chips. Bank files: `{app,kind:'bank',version:1,bank,courses,fields,questions}`, `bankFileData`/`importBankData`
   (same id → update, fields matched by label, html sanitized), `saveBankFiles` (showDirectoryPicker, else downloads).
 - `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
+- Plan 5 release 2 (2026-11-28): `pickQ()` is the question pool on 1 Pick questions (Search, Browse banks, facets, counts): `ui.crs`
+  '' = the document's course, a course name, or '__any' (`pickCrs`, `crsSelect`, `#fcrs`); `crsOf(q,c)` = in her course or, for a colleague's
+  question, in `q.ownerCourses` (their own courses, kept by `sync.js` on pull; LOCAL_ONLY). Elsewhere `cq()` (her course) is unchanged.
+  `browseBanks` puts colleagues' public banks on their own card ('sh:<owner>|<bank>', `matches` understands it). `switchCourse` keeps
+  borrowed questions on the test.
 - Plan 5 release 1 (2026-11-28): `shownFields()` = her fields minus `hidden` ones (filters, editor, Change these…, cards, chips use it; the
   editor keeps hidden values on save; normalize and bank files keep `hidden`, `importBankData` copies a file's `hidden`). Filters: main row
   `fq fu fsec ft fsub`, More filters in her order (`MORE_F`); `need` only off `picking()` (`filtered`/`facetPool` ignore it there).
@@ -598,3 +603,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-28**: her request before the release: bank files are `<bank>_Bank.json`; opening one names the bank after the file (`fileBank` in `importBankData`, overrides the file's `bank`), `bankFileName` adds `_Bank` (a name ending in "bank" survives the round trip), `bank-file.cjs`/`merge-banks.cjs` name the bank after their output file. CONVERSION-RULES section 3 updated. 2,060 tests. Not released.
 - **2026-11-28**: released v0.30.0 (CI, Release green; her local site healthz 0.30.0). She opens the 15 `*_Bank.json` files again (not Archive). Public site (James) still v0.20.1.
 - **2026-11-28**: her OK on the old-bank subtopics (12 Algebra 2/Trig, 6 Geometry) and her rule "PreCC" in pre-Common Core bank names. `Curriculum/tools/old_apply.py` wrote labels, units and per-question courses (her Plan 5 release 2 rule; her site's course names, `Precalculus/AP/Honors`) into the 7 folders; `bank-file.cjs` reads `courses:` per question (test in pictures.test.cjs). `Bank files/Algebra2Trig_PreCC_2009-2017_Bank.json` (702: 430 Algebra 2, 150 also Precalculus, 122 Precalculus only) and `Geometry_PreCC_2008-2016_Bank.json` (836; 20 also Algebra 1). Her site read-only: Geometry updates 834, adds 2 (two June 2012 questions share ref 061211ge); Algebra 2/Trig adds 702. Backup `Backups/2026-11-28 before PreCC labels/`. Next: Integrated Algebra, Math A, Math B, Sequential.
+- **2026-11-28**: Plan 5 release 2 built: Course filter on 1 Pick questions and Browse banks (this course / another / Any course), colleagues' public banks in Browse banks by their own course. 2,061 tests. Not released.
