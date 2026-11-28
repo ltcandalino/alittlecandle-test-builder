@@ -11,7 +11,7 @@
      --out   where the bank folder goes (default ~/Documents/TestBuilderResource/Bank folders)
 
    Uses the app itself (ExamView reader, PDF reader) in a headless browser, so run `python3 build.py` first. */
-const fs = require('fs'), path = require('path'), os = require('os');
+const fs = require('fs'), path = require('path'), os = require('os'), PICS = require('./pics-after.cjs');
 const ROOT = path.join(__dirname, '..');
 const { launch, openApp } = require(path.join(ROOT, 'tests', 'helpers.cjs'));
 
@@ -278,7 +278,7 @@ const b64 = f => fs.readFileSync(f).toString('base64');
     if (q.type === 'tf') meta.answer = q.answer === 'T' ? 'true' : q.answer === 'F' ? 'false' : '';
     else if (!(q.type === 'mc' || q.type === 'bm') && q.answer && !m.rich) meta['answer notes'] = q.answer;
     const lines = Object.entries(meta).filter(([k]) => !(k in kept)).map(([k, v]) => k + ': ' + yq(v)).concat(Object.entries(kept).map(([k, v]) => k + ': ' + v));
-    let txt = '---\n' + lines.join('\n') + '\n---\n\n' + place(m.stem) + '\n';
+    let txt = '---\n' + lines.join('\n') + '\n---\n\n' + PICS.md(place(m.stem)).text + '\n';
     if (m.choices.length) txt += '\n' + m.choices.map((ch, k) => (k + 1) + '. ' + place(ch)).join('\n') + '\n';
     if (m.answer && /[A-Za-z0-9@]/.test(m.answer)) txt += '\n## Answer\n\n' + m.answer.replace(/@@APIC(\d+)@@/g, (_, k) => {
       const p = m.apics[+k], ext = (/^data:image\/(\w+)/.exec(p.src) || [, 'png'])[1].replace('jpeg', 'jpg'), file = name + '-answer' + (+k ? '-' + (+k + 1) : '') + '.' + ext;

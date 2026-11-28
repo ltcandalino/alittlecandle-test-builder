@@ -42,3 +42,17 @@ test('bank-file.cjs: drawn pictures (SVG) and tables kept as Markdown in images/
   assert.match(q.choices[0], /<sup>3<\/sup><span class="m-sqrt">/, 'a root index is a raised number before the root sign');
   assert.match(q.choices[1], /∑<sub>i<span class="m-op">=<\/span>2<\/sub><sup>6<\/sup>/, 'sigma notation: limits as sub- and superscript');
 });
+
+test('pictures go after the question text; JMAP fields are hidden in bank files (2026-11-28)', () => {
+  execFileSync(process.execPath, [path.join(__dirname, '../scripts/pics-after.cjs')], { stdio: 'pipe' }); // its own checks
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bank-')), out = path.join(dir, 'b.json');
+  fs.mkdirSync(path.join(dir, 'questions')); fs.mkdirSync(path.join(dir, 'images'));
+  fs.writeFileSync(path.join(dir, 'images', 'p.svg'), "<svg xmlns='http://www.w3.org/2000/svg' width='72pt' height='36pt'/>");
+  fs.writeFileSync(path.join(dir, 'questions', 'q1.md'), '---\nid: q1\ntype: multiple choice\nanswer: 1\nJMAP topic: Lines\nAlso uses: Unit 1\n---\n\nLine m is shown below.\n\n![picture](../images/p.svg){width=1.000in}\n\nWhat is its slope?\n\n1. 1\n2. 2\n');
+  fs.writeFileSync(path.join(dir, 'questions', 'q2.md'), '---\nid: q2\ntype: open response\n---\n\n![picture](../images/p.svg){width=1.000in}\n\nThe graph above shows f.\n');
+  execFileSync(process.execPath, [path.join(__dirname, '../scripts/bank-file.cjs'), dir, '--out', out, '--course', 'Geometry'], { stdio: 'pipe' });
+  const b = JSON.parse(fs.readFileSync(out, 'utf8'));
+  assert.match(b.questions[0].html, /^Line m is shown below\.<br><br>What is its slope\?<br><br><img /, 'the picture moved after the text');
+  assert.match(b.questions[1].html, /^<img /, '"above" in the text: left where it is');
+  assert.deepStrictEqual(b.fields.map(f => [f.label, !!f.hidden]), [['JMAP topic', true], ['Also uses', false]]);
+});
