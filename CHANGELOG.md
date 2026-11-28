@@ -6,7 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- **Print teacher and calculator on every copy** (2 Set up › Document, tests and quizzes): off to begin with, they print on the accommodated copy only.
+- Your own fields can be **hidden** (Question bank › Your fields › Hide): the values stay in questions, backups and bank files, but the field shows nowhere in the app (no filter, not in the editor, Change these… or the cards). A bank file can mark a field hidden.
+
 ### Changed
+- The rail heading says **Create Document** (was "Make a test").
+- The accommodated copy always prints the time line **1.5x/2.0x/_____ mins. left**; the Time accommodation menu is gone.
+- Search filters in a new order: Search, Unit, Section, Topic, Subtopic; under More filters Type, Month, Year, Cluster, Standard, Bank, Source and your own fields. **Needs attention** is a Question bank filter only (not on 1 Pick questions).
+- Reviews and lessons have the test margins: 1 inch at the top and bottom, ¾ inch at the sides (were ½ inch), on paper and in Word and LaTeX. Answer keys keep ½ inch.
+- The review's **Multiple Choice Questions** row has no fill (was light purple).
+- Parts of a question written **a.**, **b.** (as in the BFW Statistics bank), **a)** or **(a)** print as bold **(a)**, **(b)** on reviews and lessons too, not only on tests and quizzes.
 - `scripts/bank-file.cjs`: a root with an index (`\sqrt[3]{x}`) is written as a small raised 3 before the root sign (it was left as LaTeX text); `\sec`, `\csc`, `\cot` are written as words; `\sum` and `\cdots` become ∑ (limits as small sub- and superscripts) and ⋯.
 
 ## [0.29.0] - 2026-11-25

@@ -88,12 +88,16 @@ describe('Test and Quiz', () => {
   });
   test('first page: title and unit title; teacher, calculator and time on the accommodated copy only', async () => {
     let t = text(await html(0));
-    assert.doesNotMatch(t, /Ms\. C|Desmos|extended time/);
+    assert.doesNotMatch(t, /Ms\. C|Desmos|mins\. left/);
+    await settings(page, { infoAll: true });
+    t = text(await html(0));
+    assert.match(t, /Ms\. C/); assert.match(t, /Desmos/); assert.doesNotMatch(t, /mins\. left/, 'time stays on the accommodated copy');
+    await settings(page, { infoAll: false });
     await page.evaluate(() => { window.__tb.state.settings.accom = { on: true, version: 0 }; });
     t = text(await page.evaluate(() => window.__tb.fn.accHtml()));
     await page.evaluate(() => { delete window.__tb.state.settings.accom; });
     assert.match(t, /Name:/); assert.match(t, /Quarter 1 – Unit 3 Exam/); assert.match(t, /Lines/);
-    assert.match(t, /Ms\. C/); assert.match(t, /Desmos/); assert.match(t, /1\.5× extended time/);
+    assert.match(t, /Ms\. C/); assert.match(t, /Desmos/); assert.match(t, /1\.5x\/2\.0x\/_____ mins\. left/);
   });
   test('typed title line replaces the automatic one', async () => {
     await settings(page, { title: 'Midterm Exam' });
@@ -213,13 +217,26 @@ describe('Lesson', () => {
     assert.deepEqual(await fn(page, 'lessonTools'), ['compass', 'trace']);
     await settings(page, { toolCompass: false, toolTrace: false }); assert.equal(await count(), 0);
   });
-  test('tests and quizzes: 1 in and 0.75 in margins; other documents 0.5 in; Review tables have no borders', async () => {
+  test('parts: "a." "b." (BFW) and "(a)" print as bold (a) on reviews and lessons too', async () => {
+    for (const doc of ['review', 'lesson', 'test']) {
+      await settings(page, { docType: doc });
+      const h = await page.evaluate(() => window.__tb.fn.partsHtml('Data below.<br>a. Find the mean.<br>b. Find the median.'));
+      assert.match(h, /<div class="q-part"><b>\(a\)<\/b><div>Find the mean\.<\/div><\/div><div class="q-part"><b>\(b\)<\/b>/, doc);
+    }
+    assert.equal(await page.evaluate(() => window.__tb.fn.partsHtml('Use a. Then b.')), 'Use a. Then b.', 'no parts: unchanged');
+  });
+  test('review: no fill in the Multiple Choice Questions row', async () => {
+    await settings(page, { docType: 'review' });
+    const bg = await page.evaluate(() => { const r = document.createElement('div'); r.className = 'pt pt-classic'; r.innerHTML = '<table class="rv"><tr class="rv-h mc"><td>Multiple Choice Questions</td></tr></table>'; document.body.appendChild(r); const s = getComputedStyle(r.querySelector('td')).backgroundColor; r.remove(); return s; });
+    assert.equal(bg, 'rgba(0, 0, 0, 0)');
+  });
+  test('1 in and 0.75 in margins on every document (reviews and lessons too, 2026-11-28); keys 0.5 in; Review tables have no borders', async () => {
     for (const doc of ['test', 'quiz', 'review', 'lesson']) {
       await settings(page, { docType: doc });
       const g = await fn(page, 'pageGeom'), exam = doc === 'test' || doc === 'quiz';
-      assert.deepEqual([g.m, g.w, g.left, g.top], exam ? ['1in .25in 1in .625in', 504, 54, 72] : ['.5in', 540, 36, 36], doc);
+      assert.deepEqual([g.m, g.w, g.left, g.top], exam ? ['1in .25in 1in .625in', 504, 54, 72] : ['1in .75in', 504, 54, 72], doc);
       const jobs = await page.evaluate(() => window.__tb.printJobs('both').map(j => j.css));
-      assert.match(jobs[0], exam ? /margin:1in \.25in 1in \.625in;margin-top:72pt/ : /margin:\.5in;margin-top:\d+(\.\d+)?pt/, doc);
+      assert.match(jobs[0], exam ? /margin:1in \.25in 1in \.625in;margin-top:72pt/ : /margin:1in \.75in;margin-top:\d+(\.\d+)?pt/, doc);
       assert.match(jobs[jobs.length - 1], /margin:\.5in;@bottom-left/, doc + ': keys stay at half an inch');
     }
     await settings(page, { docType: 'review' });

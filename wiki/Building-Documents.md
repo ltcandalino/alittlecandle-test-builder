@@ -2,19 +2,22 @@
 
 On **2 Set up › Document**, pick a document type at the top: **Test**, **Quiz**, **Review** or **Lesson**. Every page has the **course name** centered with a bar under it, in bold (reviews and lessons: in bold on the first page only).
 
-**Tests and quizzes** have **1-inch** margins at the top and bottom and **¾-inch** margins at the sides. **Reviews, lessons and
-answer keys** have **½-inch** margins on all four sides. It's the same on paper and in Word and LaTeX downloads.
+**Tests, quizzes, reviews and lessons** have **1-inch** margins at the top and bottom and **¾-inch** margins at the sides.
+**Answer keys** have **½-inch** margins on all four sides. It's the same on paper and in Word and LaTeX downloads.
+
+A question with parts written **a.**, **a)** or **(a)** on their own lines prints them as bold **(a)**, **(b)**, **(c)** on every document type.
 
 The **Course name** box sets that header. Leave it empty to use the course from the top menu.
 
 ## Test and Quiz
 
-**Fill in:** Quarter #, Unit #, Unit title, Teacher, Calculator (Desmos, TI-84, No calculator, Scientific, or your own), Time accommodation (1.5×, 2.0× or a number of minutes).
+**Fill in:** Quarter #, Unit #, Unit title, Teacher, Calculator (Desmos, TI-84, No calculator, Scientific, or your own).
 
 **First page:**
 - Name / Date line
 - **Quarter 1 – Unit 3 Exam** (or **Quiz**) on the left, the **unit title** on the right, both in bold. Type in **Title line** to replace the automatic title.
-- On the **accommodated copy only**: *Teacher*, *calculator* and *time accommodation* in italics under the title. Regular versions don't show them.
+- On the **accommodated copy**: *Teacher*, *calculator* and *1.5x/2.0x/_____ mins. left* in italics under the title, for the student's time.
+- Tick **Print teacher and calculator on every copy** to put teacher and calculator on the regular versions too. The time line stays on the accommodated copy.
 
 **Parts:** with **Group into parts** on, questions are grouped into Part I, Part II… with directions and a point total like **[14]**. You can edit the directions under **Part directions**. Options:
 - **Start each part on a new page** (on to begin with)
@@ -38,7 +41,7 @@ The **Course name** box sets that header. Leave it empty to use the course from 
 
 **Fill in:** Unit #. The title is automatic (**Geometry Unit 3 Review**), or type your own.
 
-- Questions are in a table with no borders: **Short/Extended Response Questions** first, then **Multiple Choice Questions** (with a shaded purple heading row).
+- Questions are in a table with no borders: **Short/Extended Response Questions** first, then **Multiple Choice Questions** (headings in bold, no fill).
 - Each question's source and exam (like "Regents June 2024 #12") prints in small gray type. Turn this off with **Show the reference under each question**.
 - Work space under each question is set under **Spacing** (below). A new Review starts with 1½ inches for open response,
   short answer and bimodal questions.

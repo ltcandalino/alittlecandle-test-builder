@@ -390,7 +390,6 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 table.rv{width:100%;border-collapse:collapse;table-layout:fixed}
 table.rv td{border:0;padding:3pt 5pt;vertical-align:top} /* Review: no borders (her choice 2026-11-15) */
 table.rv tr.rv-h td{font-weight:700;break-after:avoid}
-table.rv tr.rv-h.mc td{background:#E5DFEC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 table.rv tr.rv-q{break-inside:avoid}
 table.rv td.rv-n{font-weight:700}
 .rv-ref{text-align:right;color:#bfbfbf;font-size:7pt;margin-top:4pt}
@@ -2498,7 +2497,7 @@ function makeExporter(A) {
         '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return isRv ? '<w:' + s + ' w:val="nil"/>' : '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
       var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + (grid ? '<w:jc w:val="center"/>' : '') + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
       Array.prototype.forEach.call(rows, function (r) {
-        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className) ? 'E5DFEC' : null, col = 0;
+        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = null, col = 0; // the review's Multiple Choice row has no fill (2026-11-28)
         h += '<w:tr>' + (head ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>');
         Array.prototype.forEach.call(r.children, function (td) {
           var span = +(td.getAttribute('colspan') || 1), w = widths.slice(col, col + span).reduce(function (a, b) { return a + b; }, 0); col += span;
@@ -2524,7 +2523,7 @@ function makeExporter(A) {
     },
     page: function () { return '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>'; },
     section: function (s, root, last) {
-      var lesson = s.doc === 'lesson', paper = this.exam && s.type !== 'key', W = (paper ? 7 : 7.5) * TW, self = this;
+      var lesson = s.doc === 'lesson', paper = this.exam && s.type !== 'key', wide = s.type !== 'key', W = (wide ? 7 : 7.5) * TW, self = this; // keys keep 0.5in margins
       this.list = null;
       this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing,
         lines: paper && !s.spacing ? 1 : 0, big: paper && (s.size || 0) > num(appState().settings.fontSize, 12) };
@@ -2568,7 +2567,7 @@ function makeExporter(A) {
         hdr.footer = this.hf('footer', this.p((foot ? this.t(foot, small) : '') + this.tab() + this.page(), { tabs: [['right', W]] }));
         hdr.firstFooter = this.hf('footer', this.p(''));
       }
-      var mar = paper ? [1, 0.75, 0.5] : [0.5, 0.5, 0.25], ref = function (k, t, id) { return id ? '<w:' + k + 'Reference w:type="' + t + '" r:id="' + id + '"/>' : ''; };
+      var mar = wide ? [1, 0.75, 0.5] : [0.5, 0.5, 0.25], ref = function (k, t, id) { return id ? '<w:' + k + 'Reference w:type="' + t + '" r:id="' + id + '"/>' : ''; };
       // the section's font and size go on every run through a paragraph-level default (rPr in pPr doesn't inherit), so use a style per section
       this.styles = (this.styles || '') + '<w:style w:type="paragraph" w:customStyle="1" w:styleId="' + sid + '"><w:name w:val="' + X(s.label || 'Test') + ' text"/><w:basedOn w:val="Normal"/><w:qFormat/><w:rPr><w:rFonts w:ascii="' + X(this.cur.font) + '" w:hAnsi="' + X(this.cur.font) + '" w:cs="' + X(this.cur.font) + '"/><w:sz w:val="' + Math.round(this.cur.size * 2) + '"/><w:szCs w:val="' + Math.round(this.cur.size * 2) + '"/></w:rPr></w:style>';
       chunks.forEach(function (c, i) {
@@ -2640,7 +2639,7 @@ function makeExporter(A) {
   function TexWriter(imgs) { this.imgs = imgs; this.files = []; this.names = {}; this.used = {}; }
   TexWriter.prototype = {
     preamble: function () {
-      var s = appState().settings, lesson = docType() === 'lesson', ex = isExamDoc(), m = ex ? 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=24pt,headsep=12pt,footskip=0.35in' : 'top=0.25in,bottom=0.5in,left=0.5in,right=0.5in,includehead,headheight=' + (lesson ? 40 : 16) + 'pt,footskip=0.25in,headsep=6pt';
+      var s = appState().settings, lesson = docType() === 'lesson', ex = isExamDoc(), m = ex ? 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=24pt,headsep=12pt,footskip=0.35in' : 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=' + (lesson ? 40 : 16) + 'pt,headsep=12pt,footskip=0.5in'; // reviews and lessons: the test margins (2026-11-28)
       var uni = Object.keys(this.used).map(function (c) { return '\\newunicodechar{' + c + '}{\\ensuremath{' + UNI[c] + '}}'; }).join('\n');
       return '% Made by ALittleCandleTestBuilder. Compile with pdfLaTeX (Overleaf\'s default).\n' +
         '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ']{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
@@ -2772,7 +2771,7 @@ function makeExporter(A) {
       var colspec = bar + widths.map(function (w) { return (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
       var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (ruled ? '\\hline\n' : '\n');
       Array.prototype.forEach.call(rows, function (r) {
-        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
+        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = false, col = 0;
         // when one cell needs a block (pictures, lists…), every cell in the row is top-aligned the same way
         var anyBlocks = Array.prototype.some.call(r.children, function (td) { return Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); }); });
         var cells = Array.prototype.map.call(r.children, function (td) {
@@ -2792,7 +2791,7 @@ function makeExporter(A) {
     },
     section: function (s, root, first) {
       var lesson = s.doc === 'lesson', self = this, course = this.uniText(headerText()), right = this.uniText(rightLabel());
-      this.width = isExamDoc() ? 7 : 7.5; this.spacing = !!s.spacing; this.boxOn = this.compNext = false; this.big = (s.size || 0) > num(appState().settings.fontSize, 12);
+      this.width = 7; this.spacing = !!s.spacing; this.boxOn = this.compNext = false; this.big = (s.size || 0) > num(appState().settings.fontSize, 12);
       var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + (isExamDoc() ? '\\global\\mcpagefalse' : '') + '\\setcounter{page}{1}\n';
       if (s.type === 'key') {
         h += '\\firstpageheader{}{}{}\\runningheader{}{}{}\\firstpageheadrule\\relax\\nofirstpageheadrule\\norunningheadrule\n' +
@@ -2840,7 +2839,7 @@ function clusterOf(std){var first=String(std||'').split(/,\s*/)[0];if(/^[A-Z]{2,
 function fillMeta(q){if(q.ref&&q.month===''&&q.year===''&&q.qnum===''&&parseRef(q.ref)){delete q.month;delete q.year;delete q.qnum;}if(q.month===undefined||q.year===undefined||q.qnum===undefined){var p=parseRef(q.ref);if(q.month===undefined)q.month=p?p.month:'';if(q.year===undefined)q.year=p?p.year:'';if(q.qnum===undefined)q.qnum=p?p.qnum:'';}if(q.cluster===undefined)q.cluster=clusterOf(q.standard);if(q.subtopic===undefined)q.subtopic='';}
 function examLabel(q){var parts=[];if(q.month||q.year)parts.push(((q.month?monthName(q.month)+' ':'')+(q.year||'')).trim());if(q.qnum)parts.push('#'+q.qnum);return parts.join(' ');}
 var LETTERS='ABCDEFGH';
-var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,spacing:{review:{sa:'1.5',es:'1.5',bm:'1.5'}},roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,partPages:true,nameLine:true,showPoints:false,blanks:false,labels:'lowerdot',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',time:'',timeMin:'',style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
+var DEFAULT_SETTINGS={docType:'test',quarter:'',unitNum:'',sectionNum:'',week:'',day:'',lessonSource:'',target:'',ecTopic:'',ecDef:'',lessonNotes:'',notesSpace:1,success:'',lessonIcons:true,toolCompass:true,toolRuler:true,toolTrace:true,showRef:true,spacing:{review:{sa:'1.5',es:'1.5',bm:'1.5'}},roles:{},concepts:{},bonus:{},title:'',course:'',teacher:'',date:'',instructions:'',versions:2,shuffleQ:true,shuffleC:true,keepA:true,group:true,partPages:true,nameLine:true,showPoints:false,blanks:false,labels:'lowerdot',keyStd:true,keyNotes:false,bmMode:'with',calc:'',calcOther:'',infoAll:false,style:'classic',headerText:'',topic:'',scoreBox:true,computeBox:true,showCredits:true,perVersion:true,partDirs:null,bmOverride:{},font:'Century Schoolbook',fontSize:12,seed:Math.floor(Math.random()*2147483647)};
 var LABELS={lowerdot:function(i){return LETTERS[i].toLowerCase()+'.';},upper:function(i){return LETTERS[i]+'.';},lower:function(i){return LETTERS[i].toLowerCase()+')';},num:function(i){return '('+(i+1)+')';}};
 var FONTS={'Century Schoolbook':'"Century Schoolbook","New Century Schoolbook","Century Schoolbook L","TeX Gyre Schola",C059,Georgia,serif','Times New Roman':'"Times New Roman",Times,"Liberation Serif",serif','Cambria':'Cambria,"Caladea",Georgia,serif','Georgia':'Georgia,serif','Book Antiqua':'"Book Antiqua",Palatino,"Palatino Linotype","TeX Gyre Pagella",serif','Garamond':'Garamond,"EB Garamond","Adobe Garamond Pro",serif','Arial':'Arial,Helvetica,"Liberation Sans",sans-serif','Calibri':'Calibri,Carlito,"Segoe UI",sans-serif','Verdana':'Verdana,"DejaVu Sans",sans-serif','Comic Sans MS':'"Comic Sans MS","Comic Neue",cursive','Atkinson Hyperlegible':'"Atkinson Hyperlegible Next","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif','OpenDyslexic':'"OpenDyslexic","Cambria Math","STIX Two Math","Segoe UI Symbol",Georgia,sans-serif'};
 /* Spacing (her design 2026-11-17): each document type remembers room to answer for open response (es), short answer (sa)
@@ -2908,7 +2907,8 @@ function saveTeam(b,msg){
 }
 function cq(){return state.questions.filter(function(q){return inCourse(q,state.course);});}
 function calcLabel(){var s=state.settings;return s.calc==='other'?String(s.calcOther||'').trim():s.calc;}
-function timeLabel(){var s=state.settings;if(s.time==='1.5')return '1.5× extended time';if(s.time==='2')return '2.0× extended time';if(s.time==='min'&&num(s.timeMin,0)>0)return num(s.timeMin,0)+' minutes';return '';}
+var TIME_LINE='1.5x/2.0x/_____ mins. left'; // her exact wording (2026-11-28), on the accommodated copy
+function timeLabel(){return TIME_LINE;}
 var PART_DIRS={
   short:'Answer all questions in this part. Each correct answer will receive {credits}. No partial credit will be allowed. Clearly indicate the necessary steps, including appropriate formula substitutions, diagrams, graphs, charts, etc.',
   choice:'Answer all questions in this part. Each correct answer will receive {credits}. No partial credit will be allowed. For each statement or question, choose the word or expression that, of those given, best completes the statement or answers the question.',
@@ -3042,7 +3042,7 @@ function normalize(s){
   var fz=s.settings.frozen&&s.savedTests.filter(function(t){return t.id===s.settings.savedId;})[0];if(fz)(fz.questions||[]).forEach(function(q){ids[q.id]=1;});
   s.selected=Array.isArray(s.selected)?s.selected.filter(function(id,i,a){return ids[id]&&a.indexOf(id)===i;}):[];
   s.banks=s.banks||{};
-  s.fields=Array.isArray(s.fields)?s.fields.filter(function(f,i,a){return f&&f.id&&f.label&&a.map(function(x){return x&&x.id;}).indexOf(f.id)===i;}).map(function(f){return {id:String(f.id),label:String(f.label)};}):[];
+  s.fields=Array.isArray(s.fields)?s.fields.filter(function(f,i,a){return f&&f.id&&f.label&&a.map(function(x){return x&&x.id;}).indexOf(f.id)===i;}).map(function(f){var o={id:String(f.id),label:String(f.label)};if(f.hidden)o.hidden=true;return o;}):[];
   return s;
 }
 var CLOUDON=!!(window.CLOUD&&CLOUD.enabled);
@@ -3071,7 +3071,7 @@ function unitsOf(q){return String(q.unit||'').split(/\s*,\s*/).filter(Boolean);}
 // Search filters narrow each other (her request 2026-11-22): while facetOn, a menu lists only values that questions matching the OTHER
 // filters have (search text aside), plus the current pick so it never vanishes. Elsewhere (editor lists, Pick at random) it lists everything.
 var facetOn=false,FKEY={standard:'std',subtopic:'sub'};
-function facetPool(key){if(!facetOn)return cq();var f=Object.assign({},ui,{q:''});f[key]='';return cq().filter(function(q){return matches(q,f);});}
+function facetPool(key){if(!facetOn)return cq();var f=Object.assign({},ui,{q:''});if(picking())f.need='';f[key]='';return cq().filter(function(q){return matches(q,f);});}
 function facetPick(t,key){var v=facetOn&&ui[key];if(v&&v!=='__none'&&String(v).indexOf('team:')<0)t[v]=1;}
 function uniq(field){var t={};facetPick(t,FKEY[field]||field);facetPool(FKEY[field]||field).forEach(function(q){var v=q[field];if(v){if(field==='standard'||field==='nyStd'||field==='unit')String(v).split(/,\s*/).forEach(function(x){if(x)t[x]=1;});else t[v]=1;}});return Object.keys(t).sort(function(a,b){return a.localeCompare(b,undefined,{numeric:true});});}
 function selectedQs(){return state.selected.map(selQ).filter(Boolean);}
@@ -3212,11 +3212,12 @@ function lessonFootSvg(){
   return {w:340,h:code&&src?28:12,svg:'<svg xmlns="http://www.w3.org/2000/svg" width="340pt" height="'+(code&&src?28:12)+'pt" viewBox="0 0 340 '+(code&&src?28:12)+'">'+b+'</svg>'};
 }
 function svgUrl(x){return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x.svg);}
-// Reviews, lessons and answer keys: 0.5in margins all round (her choice 2026-11-15), header 0.25in from the top edge.
+// Reviews and lessons: the test margins too, 1in top/bottom, 0.75in sides, header 0.5in from the top (her choice 2026-11-28;
+// was 0.5in all round from 2026-11-15). Answer keys print with 0.5in margins (stdFooter).
 // Tests and quizzes (EXAM-FORMAT.md, 2026-11-24): 1in top/bottom, 0.75in sides, header 0.5in from the top; the header line
 // starts 0.125in left of the text, and the right page margin is only 0.25in so the computations and score boxes can sit there.
 // m = @page margins; w = text width, left = where text starts, out = header line's overhang, hd = header's distance from the top (pt).
-function pageGeom(){return isExamDoc()?{m:'1in .25in 1in .625in',w:504,left:54,out:9,hd:36,top:72,bot:72}:{m:'.5in',w:540,left:36,out:0,hd:18,top:36,bot:36};}
+function pageGeom(){return isExamDoc()?{m:'1in .25in 1in .625in',w:504,left:54,out:9,hd:36,top:72,bot:72}:{m:'1in .75in',w:504,left:54,out:0,hd:36,top:72,bot:72};}
 function topFor(h){var g=pageGeom();return Math.max(g.top,g.hd+h.h+6)+'pt';}
 function headers(){var t=docType(),g=pageGeom(),w=g.w,ex=isExamDoc(),r=rightLabel();
   return {first:headerSvg({w:w,out:g.out,title:headerText(),bold:true,icons:t==='lesson'?lessonTools():null}),
@@ -3287,6 +3288,30 @@ function testHtml0(items,v,opts){
   else h+=examHtml(items,v,opts).replace(/[△∆]/g,'Δ').replace(/\([^()<>,;&\n]{1,14}, [^()<>,;&\n]{1,14}\)/g,function(m){return /[A-Za-z]{3}/.test(m)?m:m.replace(/ /g,'\u00a0');}); // points like (6, 6) stay on one line; tests and quizzes print Δ (her choice 2026-11-24); the bank keeps △
   return h;
 }
+/* (a) (b) (c) parts of a question: lines starting "(a)", "a)" or "a." (the BFW banks), in order, become bold (a) parts on every
+   document type (2026-11-28). Returns {pre: what comes before (a) (root itself when there are no parts), parts: [html]}. */
+function splitParts(root){
+  var blank=function(n){return n&&(n.nodeName==='BR'||(n.nodeType===3&&!n.nodeValue.trim()));};
+  var lines=[[]];Array.prototype.slice.call(root.childNodes).forEach(function(n){
+    if(n.nodeName==='BR')lines.push([]);else if(/^(DIV|P|TABLE|UL|OL)$/.test(n.nodeName))lines.push([n],[]);else lines[lines.length-1].push(n);});
+  var txt=function(l){return l.map(function(n){return n.textContent;}).join('');},lab=function(l){var m=/^\s*(?:\(([a-h])\)|([a-h])\)|([a-h])\.(?=\s))\s*/.exec(txt(l));if(m)m[1]=m[1]||m[2]||m[3];return m;},seq=0;
+  lines.forEach(function(l){var m=lab(l);if(m&&m[1]==='abcdefgh'[seq])seq++;});
+  var parts=[],pre=root;
+  if(seq>1){
+    var k=0,cur=null,keep=[];
+    lines.forEach(function(l){var m=lab(l);
+      if(m&&k<seq&&m[1]==='abcdefgh'[k]){
+        var cut=m[0].length;(function strip(ns){ns.forEach(function(n){if(!cut)return;if(n.nodeType===3){var c=Math.min(cut,n.nodeValue.length);n.nodeValue=n.nodeValue.slice(c);cut-=c;}else strip(Array.prototype.slice.call(n.childNodes));});})(l);
+        cur={l:m[1],lines:[l]};parts.push(cur);k++;
+      }else (cur?cur.lines:keep).push(l);});
+    var join=function(ls){var d=document.createElement('div');while(ls.length&&!ls[ls.length-1].some(function(n){return !blank(n);}))ls.pop();
+      ls.forEach(function(l,i){var blk=l.length===1&&/^(DIV|P|TABLE|UL|OL)$/.test(l[0].nodeName),pv=d.lastChild;if(i&&l.length&&!blk&&pv&&!/^(DIV|P|TABLE|UL|OL)$/.test(pv.nodeName))d.appendChild(document.createElement('br'));l.forEach(function(n){d.appendChild(n);});});return d;};
+    pre=join(keep);parts=parts.map(function(x){return '<div class="q-part"><b>('+x.l+')</b><div>'+join(x.lines).innerHTML+'</div></div>';});
+  }
+  return {pre:pre,parts:parts};
+}
+// reviews and lessons: the question's words with its parts laid out like a test's (pictures stay where they are)
+function partsHtml(html){var t=document.createElement('template');t.innerHTML=html;var sp=splitParts(t.content);if(!sp.parts.length)return html;var d=document.createElement('div');d.appendChild(sp.pre);return d.innerHTML+sp.parts.join('');}
 /* Tests and quizzes follow EXAM-FORMAT.md. One question's own text: pictures in their place, (a) (b) (c) parts, credits.
    kind: mc (multiple choice, true/false), op (open response), sh (short answer), bn (bonus). side: a picture may go beside the choices. */
 function examQt(html,kind,side,cred){
@@ -3309,23 +3334,7 @@ function examQt(html,kind,side,cred){
     while(blank(root.lastChild))root.lastChild.remove();
     host.appendChild(root);out.qt=host.innerHTML;return out;
   }
-  // lines of the question; "(a)", "(b)"… in order become parts
-  var lines=[[]];Array.prototype.slice.call(root.childNodes).forEach(function(n){
-    if(n.nodeName==='BR')lines.push([]);else if(/^(DIV|P|TABLE|UL|OL)$/.test(n.nodeName))lines.push([n],[]);else lines[lines.length-1].push(n);});
-  var txt=function(l){return l.map(function(n){return n.textContent;}).join('');},lab=function(l){return /^\s*\(?([a-h])\)\s*/.exec(txt(l));},seq=0;
-  lines.forEach(function(l){var m=lab(l);if(m&&m[1]==='abcdefgh'[seq])seq++;});
-  var parts=[],pre=root;
-  if(seq>1){
-    var k=0,cur=null,keep=[];
-    lines.forEach(function(l){var m=lab(l);
-      if(m&&k<seq&&m[1]==='abcdefgh'[k]){
-        var cut=m[0].length;(function strip(ns){ns.forEach(function(n){if(!cut)return;if(n.nodeType===3){var c=Math.min(cut,n.nodeValue.length);n.nodeValue=n.nodeValue.slice(c);cut-=c;}else strip(Array.prototype.slice.call(n.childNodes));});})(l);
-        cur={l:m[1],lines:[l]};parts.push(cur);k++;
-      }else (cur?cur.lines:keep).push(l);});
-    var join=function(ls){var d=document.createElement('div');while(ls.length&&!ls[ls.length-1].some(function(n){return !blank(n);}))ls.pop();
-      ls.forEach(function(l,i){var blk=l.length===1&&/^(DIV|P|TABLE|UL|OL)$/.test(l[0].nodeName),pv=d.lastChild;if(i&&l.length&&!blk&&pv&&!/^(DIV|P|TABLE|UL|OL)$/.test(pv.nodeName))d.appendChild(document.createElement('br'));l.forEach(function(n){d.appendChild(n);});});return d;};
-    pre=join(keep);parts=parts.map(function(x){return '<div class="q-part"><b>('+x.l+')</b><div>'+join(x.lines).innerHTML+'</div></div>';});
-  }
+  var sp=splitParts(root),pre=sp.pre,parts=sp.parts;
   // the credits go right under the words: pictures at the end of the question come after them
   var tail=[];while(pre.lastChild){var n=pre.lastChild,only=n.nodeType===1&&!n.textContent.trim()&&(n.nodeName==='IMG'?[n]:$$('img',n));
     if(blank(n)||(only&&only.length&&only.every(big))){tail.unshift(n);n.remove();}else break;}
@@ -3341,7 +3350,7 @@ function examHtml(items,v,opts){
   if(s.nameLine)h+=nameRow();
   h+='<div class="cl-row cl-title"><b>'+esc(docTitle())+'</b><b>'+esc(s.topic||'')+'</b></div>';
   var cl=calcLabel(),tl=timeLabel(),te=sv('teacher');
-  if(opts&&opts.acc&&(cl||tl||te))h+='<div class="cl-acc"><i>'+esc(te)+'</i><i>'+esc(cl)+'</i><i>'+esc(tl)+'</i></div>'; // accommodated copy only
+  var acc=opts&&opts.acc;if(acc||(s.infoAll&&(cl||te)))h+='<div class="cl-acc"><i>'+esc(te)+'</i><i>'+esc(cl)+'</i><i>'+(acc?esc(tl):'')+'</i></div>'; // time on the accommodated copy only; teacher and calculator too unless infoAll
   if(s.instructions&&s.instructions.trim())h+='<p class="pt-ins">'+textToHtml(s.instructions)+'</p>';
   var main=items.filter(function(it){return !it.bonus;}),last=null,part=0,curKind=null,bonusShown=false,comp='';
   items.forEach(function(it){
@@ -3378,13 +3387,13 @@ function reviewHtml(items,v,opts){
   items.forEach(function(it){
     if(it.pk!==last){h+='<tr class="rv-h'+(it.pk==='mc'?' mc':'')+'"><td colspan="2">'+(it.pk==='mc'?'Multiple Choice Questions':'Short/Extended Response Questions')+'</td></tr>';last=it.pk;}
     var q=it.q,ref=s.showRef?refText(q):'';
-    h+='<tr class="rv-q"><td class="rv-n">'+it.num+'</td><td><div class="pt-qt">'+q.html+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+qBody(it,A)+(ref?'<div class="rv-ref">'+esc(ref)+'</div>':'<div class="rv-pad"></div>')+'</td></tr>';
+    h+='<tr class="rv-q"><td class="rv-n">'+it.num+'</td><td><div class="pt-qt">'+(isMC(q.type)?q.html:partsHtml(q.html))+(s.showPoints?' <span class="pt-pts">('+ptsLabel(q.points)+')</span>':'')+'</div>'+qBody(it,A)+(ref?'<div class="rv-ref">'+esc(ref)+'</div>':'<div class="rv-pad"></div>')+'</td></tr>';
   });
   return h+'</table>';
 }
 function lessonHtml(items,v,opts){
   var s=state.settings,A=opts&&opts.answers,h='',by=function(k){return items.filter(function(it){return it.pk===k;});};
-  var qBlock=function(it,lbl){var q=it.q;return '<div class="pt-q ls-q'+(isTall(q)?' long':'')+(lbl?'':' nonum')+'">'+(lbl?'<div class="pt-num">'+lbl+'</div>':'')+'<div><div class="pt-qt">'+q.html+'</div>'+qBody(it,A)+'</div></div>';};
+  var qBlock=function(it,lbl){var q=it.q;return '<div class="pt-q ls-q'+(isTall(q)?' long':'')+(lbl?'':' nonum')+'">'+(lbl?'<div class="pt-num">'+lbl+'</div>':'')+'<div><div class="pt-qt">'+(isMC(q.type)?q.html:partsHtml(q.html))+'</div>'+qBody(it,A)+'</div></div>';};
   if(s.nameLine)h+=nameRow();
   var rl=rightLabel();if(rl)h+='<div class="ls-unit">'+esc(rl)+'</div>';
   h+='<div class="ls-target"><span class="ls-tl">I am learning to</span><span class="ls-tline">'+esc(sv('target'))+'</span></div>';
@@ -3488,7 +3497,7 @@ function printNow(kind){
 }
 window.__printJobs=printJobs;
 var EXP=makeExporter({state:function(){return state;},nVersions:nVersions,testHtml:testHtml,buildVersion:buildVersion,LETTERS:LETTERS,accOn:accOn,accom:accom,accVersion:accVersion,accHtml:accHtml,accSize:accSize,keyHtml:keyHtml,fitHtml:fitHtml,docType:docType,headerText:headerText,docTitle:docTitle,rightLabel:rightLabel,isExamDoc:isExamDoc,lessonTools:lessonTools,lessonCode:lessonCode,lessonSource:lessonSource,num:num,saveFile:saveFile});
-window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,isTall:isTall,htmlInches:htmlInches,picFont:picFont,svgSize:svgSize,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
+window.__tb={version:APP_VERSION,get state(){return state;},set state(v){state=v;},normalize:function(x){return normalize(x);},uid:function(){return uid();},render:function(){render();},ui:function(){return ui;},printJobs:function(k){return printJobs(k);},fn:{cq:cq,partsHtml:partsHtml,isTall:isTall,htmlInches:htmlInches,picFont:picFont,svgSize:svgSize,own:own,selGroups:selGroups,sortSel:sortSel,copyBank:copyBank,copyQ:copyQ,usersDialog:usersDialog,shareDialog:shareDialog,parseRef:parseRef,clusterOf:clusterOf,fillMeta:fillMeta,examLabel:examLabel,monthName:monthName,sanitize:sanitize,commaSpace:commaSpace,plain:plain,textToHtml:textToHtml,esc:esc,num:num,ptsLabel:ptsLabel,guessCourse:guessCourse,calcLabel:calcLabel,timeLabel:timeLabel,creditsText:creditsText,partKeyOf:partKeyOf,partKind:partKind,romanVal:romanVal,partDir:partDir,letterOf:letterOf,bmChoices:bmChoices,rng:rng,shuffle:shuffle,buildVersion:buildVersion,labelItems:labelItems,testHtml:testHtml,keyHtml:keyHtml,qBody:qBody,printJobs:printJobs,exp:function(){return EXP;},saveTest:saveTest,openSaved:openSaved,savedDiff:savedDiff,isDirty:isDirty,selQ:selQ,accom:accom,accHtml:accHtml,accStyle:accStyle,accClass:accClass,parseText:parseText,migrateSettings:migrateSettings,normalize:normalize,autoTitle:autoTitle,docTitle:docTitle,rightLabel:rightLabel,headerText:headerText,lessonCode:lessonCode,lessonSource:lessonSource,lessonTools:lessonTools,roleOf:roleOf,reviewKind:reviewKind,isBonus:isBonus,headerSvg:headerSvg,lessonFootSvg:lessonFootSvg,pageGeom:pageGeom,fitExam:fitExam,headers:headers,recapRows:recapRows,placeOf:placeOf,browseBanks:browseBanks,curSub:curSub,go:go,subsOf:subsOf,spacing:spacing,spaceOf:spaceOf,switchCourse:switchCourse,selectedQs:selectedQs,nVersions:nVersions,totalPts:totalPts,docType:docType,isExamDoc:isExamDoc,persist:persist,idbGet:idbGet,stateKey:stateKey,splitNY:splitNY,isMixed:isMixed,needs:needs,unitGuesses:unitGuesses,addField:addField,setF:setF,getF:getF,bankFileData:bankFileData,bankFileName:bankFileName,importBankData:importBankData,isBankFile:isBankFile}};
 
 /* ================= plain-text import ================= */
 function parseText(txt,bank,topic){
@@ -3573,7 +3582,7 @@ function go(place,sub){var o=OLD_PLACE[place];if(o){sub=OLD_SUB[sub]||sub||o[1];
 function renderTabs(){
   renderCourses();
   var p=placeOf(),cnt={setup:state.selected.length,bank:cq().length},bk=state.questions.length&&backupStale();
-  $('#tabs').innerHTML=(ui.railMin?'':'<div class="rail-h">Make a test</div>')+RAIL.map(function(r){if(!r)return '<hr>';
+  $('#tabs').innerHTML=(ui.railMin?'':'<div class="rail-h">Create Document</div>')+RAIL.map(function(r){if(!r)return '<hr>';
     var on=r[0]===p,c=cnt[r[0]],dot=r[0]==='io'&&bk,name=(r[1]?r[1]+' ':'')+r[2]+(c!=null?', '+plural(c,'question'):'')+(dot?', no recent backup':'');
     return '<button data-tab="'+r[0]+'" class="'+(on?'on':'')+'"'+(on?' aria-current="page"':'')+' aria-label="'+esc(name)+'" title="'+esc(name)+(r[1]?' (Alt+'+r[1]+')':'')+'">'+
       '<span class="ri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+r[3]+'"/></svg>'+(r[1]?'<span class="rn" aria-hidden="true">'+r[1]+'</span>':'')+(dot?'<span class="rdot" aria-hidden="true"></span>':'')+'</span>'+
@@ -3610,27 +3619,28 @@ document.addEventListener('keydown',function(e){if(!e.altKey||e.ctrlKey||e.metaK
 /* ================= bank tab ================= */
 function opts(list,sel,allLabel){return '<option value="">'+esc(allLabel)+'</option>'+list.map(function(x){return '<option value="'+esc(x)+'"'+(sel===x?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
 function typeOpts(sel,allLabel){return '<option value="">'+allLabel+'</option>'+TYPE_ORDER.map(function(t){return '<option value="'+t+'"'+(sel===t?' selected':'')+'>'+TYPES[t]+'</option>';}).join('');}
-/* Filters: search + unit/section/topic/standard always; the rest behind "More filters". */
-var MORE_F=['need','bank','type','year','month','cluster','sub','source'];
+/* Filters in her order (2026-11-28): search, unit, section, topic, subtopic always; behind "More filters" type, month, year, cluster,
+   standard, bank (then source and her own fields). Needs attention is a Question bank filter only (not while picking). */
+var MORE_F=['need','type','month','year','cluster','std','bank','source'];
 var F_LABEL={q:'Search',unit:'Unit',section:'Section',topic:'Topic',std:'Standard',bank:'Bank',type:'Type',year:'Year',month:'Month',cluster:'Cluster',sub:'Subtopic',source:'Source',need:'Needs attention'};
-function fLabels(){var o=Object.assign({},F_LABEL);myFields().forEach(function(f){o['x:'+f.id]=f.label;});return o;}
+function fLabels(){var o=Object.assign({},F_LABEL);if(picking())delete o.need;shownFields().forEach(function(f){o['x:'+f.id]=f.label;});return o;}
 function fValue(k,v){if(v==='__none')return '(none)';if(k==='bank'&&String(v).indexOf('team:')===0){var tb=teamById(v.slice(5));return tb?tb.name:'Team bank';}if(k==='need')return needLabel(v);if(k==='type')return TYPES[v]||v;if(k==='month')return monthName(v)||v;if(k==='q')return '“'+v+'”';return v;}
 function activeFilters(){return Object.keys(fLabels()).filter(function(k){return ui[k]!==''&&ui[k]!=null;});}
-function moreCount(){return MORE_F.concat(myFields().map(function(f){return 'x:'+f.id;})).filter(function(k){return ui[k];}).length;}
+function moreCount(){return MORE_F.filter(function(k){return k!=='need'||!picking();}).concat(shownFields().map(function(f){return 'x:'+f.id;})).filter(function(k){return ui[k];}).length;}
 function moreFilters(){
   if(!ui.moreF)return '';
-  var yrs=uniq('year'),mos=uniq('month'),cls=uniq('cluster'),subs=uniq('subtopic'),banks=uniq('bank'),srcs=uniq('source');
+  var yrs=uniq('year'),mos=uniq('month'),cls=uniq('cluster'),banks=uniq('bank'),srcs=uniq('source');
   var h='<div class="toolbar morebar" id="moreBar">',all=cq();
-  h+='<select id="fneed" aria-label="Needs attention"><option value="">Needs attention: any</option>'+NEEDS.map(function(n){var c=all.filter(function(q){return needs(q,n[0]);}).length;return '<option value="'+n[0]+'"'+(ui.need===n[0]?' selected':'')+(c||ui.need===n[0]?'':' disabled')+'>'+esc(n[1])+' ('+c+')</option>';}).join('')+'</select>';
+  if(!picking())h+='<select id="fneed" aria-label="Needs attention"><option value="">Needs attention: any</option>'+NEEDS.map(function(n){var c=all.filter(function(q){return needs(q,n[0]);}).length;return '<option value="'+n[0]+'"'+(ui.need===n[0]?' selected':'')+(c||ui.need===n[0]?'':' disabled')+'>'+esc(n[1])+' ('+c+')</option>';}).join('')+'</select>';
+  h+='<select id="fy" aria-label="Type">'+typeOpts(ui.type,'All types')+'</select>';
+  if(mos.length)h+='<select id="fmo" aria-label="Month"><option value="">All months</option>'+mos.map(function(m){return '<option value="'+esc(m)+'"'+(ui.month===m?' selected':'')+'>'+esc(monthName(m)||m)+'</option>';}).join('')+'</select>';
+  if(yrs.length)h+='<select id="fyr" aria-label="Year"><option value="">All years</option>'+yrs.map(function(y){return '<option value="'+esc(y)+'"'+(String(ui.year)===String(y)?' selected':'')+'>'+esc(y)+'</option>';}).join('')+'</select>';
+  if(cls.length)h+='<select id="fcl" aria-label="Cluster">'+opts(cls,ui.cluster,'All clusters')+'</select>';
+  h+='<select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select>';
   var tbs=teams().filter(function(b){return teamQs(b).some(function(q){return inCourse(q,state.course);});});
   if(banks.length>1||tbs.length)h+='<select id="fb" aria-label="Bank">'+opts(banks,ui.bank,'All banks')+(tbs.length?'<optgroup label="Team banks">'+tbs.map(function(b){return '<option value="team:'+esc(b.id)+'"'+(ui.bank==='team:'+b.id?' selected':'')+'>'+esc(b.name)+'</option>';}).join('')+'</optgroup>':'')+'</select>';
-  h+='<select id="fy" aria-label="Type">'+typeOpts(ui.type,'All types')+'</select>';
-  if(yrs.length)h+='<select id="fyr" aria-label="Year"><option value="">All years</option>'+yrs.map(function(y){return '<option value="'+esc(y)+'"'+(String(ui.year)===String(y)?' selected':'')+'>'+esc(y)+'</option>';}).join('')+'</select>';
-  if(mos.length)h+='<select id="fmo" aria-label="Month"><option value="">All months</option>'+mos.map(function(m){return '<option value="'+esc(m)+'"'+(ui.month===m?' selected':'')+'>'+esc(monthName(m)||m)+'</option>';}).join('')+'</select>';
-  if(cls.length)h+='<select id="fcl" aria-label="Cluster">'+opts(cls,ui.cluster,'All clusters')+'</select>';
-  if(subs.length)h+='<select id="fsub" aria-label="Subtopic">'+opts(subs,ui.sub,'All subtopics')+'</select>';
   if(srcs.length)h+='<select id="fsrc" aria-label="Source">'+opts(srcs,ui.source,'All sources')+'</select>';
-  myFields().forEach(function(f){var v=uniqX(f.id),k='x:'+f.id;if(!v.length&&!ui[k])return;h+='<select data-xff="'+esc(f.id)+'" aria-label="'+esc(f.label)+'">'+opts(v,ui[k],'All: '+f.label)+(all.some(function(q){return !xval(q,f.id);})?'<option value="__none"'+(ui[k]==='__none'?' selected':'')+'>(no '+esc(f.label)+')</option>':'')+'</select>';});
+  shownFields().forEach(function(f){var v=uniqX(f.id),k='x:'+f.id;if(!v.length&&!ui[k])return;h+='<select data-xff="'+esc(f.id)+'" aria-label="'+esc(f.label)+'">'+opts(v,ui[k],'All: '+f.label)+(all.some(function(q){return !xval(q,f.id);})?'<option value="__none"'+(ui[k]==='__none'?' selected':'')+'>(no '+esc(f.label)+')</option>':'')+'</select>';});
   return h+'</div>';
 }
 function chipsHtml(){var a=activeFilters();if(!a.length)return '';
@@ -3658,13 +3668,13 @@ function matches(q,f){
   if(f.type&&q.type!==f.type)return false;
   if(f.std&&String(q.standard).split(/,\s*/).indexOf(f.std)<0)return false;
   if(f.need&&!needs(q,f.need))return false;
-  var xf=myFields();for(var xi=0;xi<xf.length;xi++){var xv=f['x:'+xf[xi].id];if(xv&&(xv==='__none'?xval(q,xf[xi].id):xval(q,xf[xi].id)!==xv))return false;}
+  var xf=shownFields();for(var xi=0;xi<xf.length;xi++){var xv=f['x:'+xf[xi].id];if(xv&&(xv==='__none'?xval(q,xf[xi].id):xval(q,xf[xi].id)!==xv))return false;}
   if(f.q){var hay=(plainQ(q).all+' '+q.topic+' '+q.standard+' '+(q.ref||'')+' '+(q.subtopic||'')+' '+(q.unit||'')+' '+(q.section||'')+' '+(q.notes||'')+' '+(q.cluster||'')+' '+examLabel(q)+' '+(q.source||'')+' '+(q.nyStd||'')+' '+Object.keys(q.extra||{}).map(function(k){return q.extra[k];}).join(' ')+' '+(q.searchText||'')).toLowerCase();var words=f.q.toLowerCase().split(/\s+/).filter(Boolean);for(var i=0;i<words.length;i++)if(hay.indexOf(words[i])<0)return false;}
   return true;
 }
 function browsing(){return placeOf()==='pick'&&curSub('pick')==='browse'&&!!ui.brBank&&!!ui.brUnit;}
 function picking(){return placeOf()==='pick';}
-function filtered(){var f=browsing()?{bank:ui.brBank,unit:ui.brUnit,section:ui.brSec||''}:ui;return cq().filter(function(q){return matches(q,f);});}
+function filtered(){var f=browsing()?{bank:ui.brBank,unit:ui.brUnit,section:ui.brSec||''}:picking()?Object.assign({},ui,{need:''}):ui;return cq().filter(function(q){return matches(q,f);});}
 function qCard(q){
   var body='<div class="qbody">'+q.html+'</div>';
   if(q.inImage)body+='<div class="keyline">Choices are in the picture · Answer: <b>'+(q.answer>=0?esc(plain(q.choices[q.answer])):'not set')+'</b></div>';
@@ -3673,7 +3683,7 @@ function qCard(q){
   else if(q.answer)body+='<div class="keyline">'+(q.type==='es'?'Key notes':'Answer')+': '+(isHtmlAns(q.answer)?'<div class="qbody">'+ansHtml(q.answer)+'</div>':'<b>'+esc(q.answer)+'</b>')+'</div>';
   if(q.notes)body+='<div class="mynote"><b>My note:</b> '+textToHtml(q.notes)+'</div>';
   body=picFont(body);
-  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+myFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
+  var meta='<span class="badge '+q.type+'">'+TYPES[q.type]+'</span>'+(q.unit||q.section?'<span class="tag unit">'+esc([q.unit&&(/^\d/.test(q.unit)?(unitsOf(q).length>1?'Units ':'Unit ')+unitsOf(q).join(', '):q.unit),q.section&&(/^\d/.test(q.section)?'Sec '+q.section:q.section)].filter(Boolean).join(' · '))+'</span>':'')+(q.bank&&!browsing()?'<span class="tag" title="Bank">'+esc(q.bank)+'</span>':'')+teamsOf(q).map(function(b){return '<span class="tag team" title="In this team bank">'+esc(b.name)+'</span>';}).join('')+(q.owner?'<span class="tag shared" title="Shared by a colleague. Only they can change it; Copy to mine makes your own version.">Shared by '+esc(q.ownerName||'a colleague')+'</span>':q.visibility==='public'?'<span class="tag pub" title="Everyone with an account on this site can see and use it">Public</span>':'')+(coursesOf(q).length>1?'<span class="tag also" title="This question is shared: editing it changes it in every course">Also in '+esc(coursesOf(q).filter(function(c){return c!==state.course;}).join(', '))+'</span>':'')+(q.topic?'<span class="tag" title="Topic">'+esc(q.topic)+'</span>':'')+(q.source?'<span class="tag src" title="Source">'+esc(q.source)+'</span>':'')+(q.subtopic?'<span class="tag" title="Subtopic">'+esc(q.subtopic)+'</span>':'')+(q.standard?'<span title="Standard">'+esc(q.standard)+'</span>':'')+(q.cluster?'<span title="Cluster">'+esc(q.cluster)+'</span>':'')+(q.nyStd?'<span title="Old NY standard">NY '+esc(q.nyStd)+'</span>':'')+shownFields().map(function(f){var v=xval(q,f.id);return v?'<span class="tag mine" title="'+esc(f.label)+'">'+esc(f.label)+': '+esc(v)+'</span>':'';}).join('')+(examLabel(q)?'<span class="tag exam" title="Exam and question number">'+esc(examLabel(q))+'</span>':'')+(q.ref?'<span title="Reference">'+esc(q.ref)+'</span>':'')+'<span>'+ptsLabel(q.points)+'</span>';
   return '<li class="qcard'+(isSel(q.id)?' on':'')+'"><label class="pick" title="Put on test"><input type="checkbox" data-pick="'+q.id+'"'+(isSel(q.id)?' checked':'')+' aria-label="Put on test: '+esc(plainQ(q).t.slice(0,80))+'"></label><div><div class="qmeta">'+meta+'</div>'+body+'</div><div class="qactions">'+(picking()?((!q.owner||q.canEdit)?'<button class="small ghost" data-edit="'+q.id+'">Edit</button>':'')+(q.owner?'<button class="small ghost" data-dup="'+q.id+'" title="Make your own copy to change; the original stays as it was">Copy to mine</button>':''):q.owner?(q.canEdit?'<button class="small ghost" data-edit="'+q.id+'" title="You’re an editor of its team bank">Edit</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy to mine</button><button class="small ghost" data-del="'+q.id+'" title="Take it out of '+esc(state.course)+' (it stays shared)">Remove</button>':'<button class="small ghost" data-edit="'+q.id+'">Edit</button>'+(sharing()?'<button class="small ghost" data-share="'+q.id+'">Share</button>':'')+'<button class="small ghost" data-dup="'+q.id+'">Copy</button><button class="small ghost" data-del="'+q.id+'">Delete</button>')+'</div></li>';
 }
 function renderBank(){_renderBank();showPlace();}
@@ -3751,7 +3761,7 @@ function _renderBank(){
   }
   var banks=uniq('bank');
   var mc=moreCount();
-  facetOn=true;main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select><select id="fs" aria-label="Standard">'+opts(uniq('standard'),ui.std,'All standards')+'</select><button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
+  facetOn=true;main.innerHTML='<div class="toolbar"><input type="search" id="fq" placeholder="Search questions…" aria-label="Search questions" value="'+esc(ui.q)+'">'+unitSelect('fu',ui.unit,'All units')+unitSelect('fsec',ui.section,'All sections','section')+'<select id="ft" aria-label="Topic">'+opts(uniq('topic'),ui.topic,'All topics')+'</select>'+(uniq('subtopic').length?'<select id="fsub" aria-label="Subtopic">'+opts(uniq('subtopic'),ui.sub,'All subtopics')+'</select>':'')+'<button type="button" class="ghost" id="moreF" aria-expanded="'+(ui.moreF?'true':'false')+'" aria-controls="moreBar">More filters'+(mc?' <span class="count">'+mc+'</span>':'')+'</button><span class="spacer"></span>'+(picking()?'':'<button type="button" class="ghost" id="cleanBtn">Check &amp; clean up</button><button class="primary" id="newQ">+ New question</button>')+'</div>'+moreFilters()+'<div id="chips"></div><div class="subbar" id="subbar"></div><ul class="qlist" id="qlist"></ul><div class="more" id="more"></div>';
   facetOn=false;
   // a filter change redraws the menus so the others narrow; focus goes back to the menu just changed
   var refilter=function(el){var sel=el.id?'#'+el.id:'[data-xff="'+el.dataset.xff+'"]';renderBank();var b=$(sel);if(b)b.focus();};
@@ -3761,7 +3771,7 @@ function _renderBank(){
   if($('#fu'))$('#fu').onchange=function(){ui.unit=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#fsec'))$('#fsec').onchange=function(){ui.section=this.value;ui.limit=40;saveUi();refilter(this);};
   $('#ft').onchange=function(){ui.topic=this.value;ui.limit=40;saveUi();refilter(this);};
-  $('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();refilter(this);};
+  if($('#fs'))$('#fs').onchange=function(){ui.std=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#fy'))$('#fy').onchange=function(){ui.type=this.value;ui.limit=40;saveUi();refilter(this);};
   if($('#newQ'))$('#newQ').onclick=function(){openEditor(null);};
   [['fneed','need'],['fyr','year'],['fmo','month'],['fcl','cluster'],['fsub','sub'],['fsrc','source']].forEach(function(p){var el=$('#'+p[0]);if(el)el.onchange=function(){ui[p[1]]=this.value;ui.limit=40;saveUi();refilter(this);};});
@@ -3884,6 +3894,8 @@ function wireTeamCard(){
 
 /* ================= her own fields, bulk changes, clean-up, bank files ================= */
 function myFields(){return Array.isArray(state.fields)?state.fields:[];}
+// fields she hid (JMAP topic/subtopic, 2026-11-28) stay in the data, bank files and backups, but nowhere in the app's menus or cards
+function shownFields(){return myFields().filter(function(f){return !f.hidden;});}
 function fieldById(id){return myFields().filter(function(f){return f.id===id;})[0]||null;}
 function addField(label){
   label=String(label||'').trim();if(!label)return null;
@@ -3896,7 +3908,7 @@ function uniqX(id){var t={};facetPick(t,'x:'+id);facetPool('x:'+id).forEach(func
 // fields that "Change these…" can set on many questions at once; her own fields are 'x:<id>'
 var BULK_F=[['unit','Unit'],['section','Section'],['topic','Topic'],['subtopic','Subtopic'],['standard','Standard'],['nyStd','Old NY standard'],['cluster','Cluster'],['bank','Bank'],['source','Source'],['part','Part'],['points','Points'],['notes','My notes']];
 var LIST_F={standard:', ',nyStd:', ',subtopic:'; '};
-function bulkFields(){return BULK_F.concat(myFields().map(function(f){return ['x:'+f.id,f.label];}));}
+function bulkFields(){return BULK_F.concat(shownFields().map(function(f){return ['x:'+f.id,f.label];}));}
 function bulkLabel(k){var f=bulkFields().filter(function(x){return x[0]===k;})[0];return f?f[1]:k;}
 function getF(q,k){if(k.indexOf('x:')===0)return xval(q,k.slice(2));return q[k]==null?'':String(q[k]);}
 function setF(q,k,v){
@@ -4025,7 +4037,7 @@ function openCleanup(){
 /* ---- her own fields in the editor ---- */
 function xfHtml(q){
   return '<label><span class="lbl">Old NY standard</span><input type="text" id="e-ny" value="'+esc(q.nyStd||'')+'" placeholder="e.g. A.A.7"></label>'+
-    myFields().map(function(f){var l='xl-'+f.id;return '<label><span class="lbl">'+esc(f.label)+'</span><input type="text" data-xf="'+esc(f.id)+'" list="'+l+'" value="'+esc(xval(q,f.id))+'"><datalist id="'+l+'">'+uniqX(f.id).map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label>';}).join('')+
+    shownFields().map(function(f){var l='xl-'+f.id;return '<label><span class="lbl">'+esc(f.label)+'</span><input type="text" data-xf="'+esc(f.id)+'" list="'+l+'" value="'+esc(xval(q,f.id))+'"><datalist id="'+l+'">'+uniqX(f.id).map(function(t){return '<option value="'+esc(t)+'">';}).join('')+'</datalist></label>';}).join('')+
     '<div class="xf-add"><button type="button" class="small" id="e-addf">+ Add a field</button></div>';
 }
 function wireXF(){
@@ -4059,7 +4071,7 @@ function importBankData(list){
   var usedH={},crsN={},byCrs={};state.questions.forEach(function(q,i){if(!own(q))return;coursesOf(q).forEach(function(c){var k=sameKey(q,c);crsN[k]=(crsN[k]||0)+1;byCrs[k]=i;});});
   list.forEach(function(it){
     var d=it.data;if(!isBankFile(d)){bad.push(it.name);return;}
-    var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine)map[f.id]=mine.id;}});
+    var map={};(Array.isArray(d.fields)?d.fields:[]).forEach(function(f){if(f&&f.id&&f.label){var mine=addField(f.label);if(mine){map[f.id]=mine.id;if(f.hidden)mine.hidden=true;}}});
     var qs=JSON.parse(JSON.stringify(d.questions)).filter(function(q){return q&&typeof q==='object'&&TYPES[q.type];});
     qs.forEach(function(q){
       q.html=sanitize(String(q.html||''));if(Array.isArray(q.choices))q.choices=q.choices.map(function(c){return sanitize(String(c||''));});
@@ -4144,8 +4156,8 @@ function wireBanksCard(){
 }
 function fieldsCard(){
   var fs=myFields();
-  return '<div class="card" id="fieldsCard"><h2>Your own fields</h2><p class="note" style="margin-top:0">Add details the banks don’t have, like DOK or difficulty. They show up when you edit a question (under <b>More details</b>), in <b>More filters</b>, in <b>Change these…</b>, and in backups and bank files.</p>'+
-    (fs.length?'<ul class="banks">'+fs.map(function(f){var n=state.questions.filter(function(q){return xval(q,f.id);}).length;return '<li><span>'+esc(f.label)+' <small>· filled in on '+plural(n,'question')+'</small></span><button class="small ghost" data-frename="'+esc(f.id)+'">Rename</button><button class="small ghost" data-fdel="'+esc(f.id)+'">Delete</button></li>';}).join('')+'</ul>':'')+
+  return '<div class="card" id="fieldsCard"><h2>Your own fields</h2><p class="note" style="margin-top:0">Add details the banks don’t have, like DOK or difficulty. They show up when you edit a question (under <b>More details</b>), in <b>More filters</b>, in <b>Change these…</b>, and in backups and bank files. <b>Hide</b> keeps a field’s values but shows it nowhere in the app.</p>'+
+    (fs.length?'<ul class="banks">'+fs.map(function(f){var n=state.questions.filter(function(q){return xval(q,f.id);}).length;return '<li><span>'+esc(f.label)+' <small>· filled in on '+plural(n,'question')+(f.hidden?' · <b>hidden</b>':'')+'</small></span><button class="small ghost" data-fhide="'+esc(f.id)+'" title="'+(f.hidden?'Show it again in the editor, filters and cards':'Keep its values, but show it nowhere in the app')+'">'+(f.hidden?'Show':'Hide')+'</button><button class="small ghost" data-frename="'+esc(f.id)+'">Rename</button><button class="small ghost" data-fdel="'+esc(f.id)+'">Delete</button></li>';}).join('')+'</ul>':'')+
     '<div class="pickrow"><input type="text" id="newField" placeholder="New field, e.g. DOK" style="flex:1" aria-label="New field name"><button class="small" id="addField">Add field</button></div></div>';
 }
 function wireToolCards(){
@@ -4160,6 +4172,7 @@ function wireToolCards(){
   var af=$('#addField'),nf=$('#newField');
   if(af){af.onclick=function(){var v=nf.value.trim();if(!v){nf.focus();return;}var had=myFields().length,f=addField(v);if(myFields().length===had){toast('You already have a field called “'+f.label+'”.');return;}changed();renderIO();toast('Added the field “'+f.label+'”.');var n=$('#newField');if(n)n.focus();};
     nf.onkeydown=function(e){if(e.key==='Enter')af.click();};}
+  $$('[data-fhide]').forEach(function(b){b.onclick=function(){var f=fieldById(b.dataset.fhide);if(!f)return;f.hidden=!f.hidden;if(!f.hidden)f.hidden=undefined;else{ui['x:'+f.id]='';saveUi();}changed();renderIO();toast((f.hidden?'Hid':'Showing')+' the field “'+f.label+'”.');};});
   $$('[data-frename]').forEach(function(b){b.onclick=function(){
     var f=fieldById(b.dataset.frename),li=b.closest('li');if(!f)return;li.innerHTML='<input type="text" value="'+esc(f.label)+'" style="flex:1" aria-label="Field name"><button class="small primary">Save</button><button class="small ghost">Cancel</button>';
     var inp=$('input',li);inp.focus();inp.select();var bs=$$('button',li);
@@ -4264,7 +4277,7 @@ function hideDiscard(){var c=$('#e-confirm');c.hidden=true;c.innerHTML='';$('#e-
 function collect(){
   if(!ed)return;
   ed.html=$('#e-text').innerHTML;ed.bank=$('#e-bank').value;ed.topic=$('#e-topic').value;ed.points=num($('#e-pts').value,1);ed.part=$('#e-part').value;ed.standard=$('#e-std').value;setCourses(ed,$$('#e-courses input:checked').map(function(x){return x.value;}));ed.unit=$('#e-unit').value;ed.section=$('#e-sec').value;ed.subtopic=$('#e-sub').value;ed.cluster=$('#e-cl').value;ed.month=$('#e-mo').value;ed.source=$('#e-src').value;ed.year=$('#e-yr').value;ed.qnum=$('#e-qn').value;ed.notes=$('#e-notes').value;ed.ref=$('#e-ref').value;
-  var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var vs=$('#e-vis');if(vs){if(vs.value==='public')ed.visibility='public';else delete ed.visibility;}var x={};Object.keys(ed.extra||{}).forEach(function(k){if(!fieldById(k))x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
+  var ny=$('#e-ny');if(ny)ed.nyStd=ny.value;var vs=$('#e-vis');if(vs){if(vs.value==='public')ed.visibility='public';else delete ed.visibility;}var x={};Object.keys(ed.extra||{}).forEach(function(k){var fk=fieldById(k);if(!fk||fk.hidden)x[k]=ed.extra[k];});$$('[data-xf]').forEach(function(el){if(el.value.trim())x[el.dataset.xf]=el.value.trim();});ed.extra=x;
   if(isMC(ed.type))$$('[data-ct]').forEach(function(el){ed.choices[+el.dataset.ct]=el.innerHTML;});
   var a=$('#e-ans');if(a)ed.answer=a.isContentEditable?sanitize(a.innerHTML):a.value;
   var l=$('#e-lines');if(l){var lv=parseInt(l.value,10);ed.lines=Math.max(0,Math.min(40,isNaN(lv)?1:lv));}
@@ -4332,13 +4345,12 @@ function _renderBuild(){
   function tf(key,label,ph,w){return '<label'+(w?' style="max-width:'+w+'"':'')+'><span class="lbl">'+label+'</span><input type="text" data-set="'+key+'" value="'+esc(s[key])+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'></label>';}
   function ta(key,label,ph,rows,hint){return '<label><span class="lbl">'+label+(hint?' <span class="hint" style="font-weight:400">— '+hint+'</span>':'')+'</span><textarea data-set="'+key+'" rows="'+(rows||2)+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'>'+esc(s[key])+'</textarea></label>';}
   var calcSel='<label><span class="lbl">Calculator</span><select data-set="calc">'+[['','(don’t show)'],['Desmos','Desmos'],['TI-84','TI-84'],['No calculator','No calculator'],['Scientific calculator','Scientific calculator'],['other','Other…']].map(function(o){return '<option value="'+esc(o[0])+'"'+(s.calc===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.calc==='other'?'<input type="text" data-set="calcOther" value="'+esc(s.calcOther)+'" placeholder="e.g. TI-30XS" style="margin-top:6px;width:100%">':'')+'</label>';
-  var timeSel='<label><span class="lbl">Time accommodation <span class="hint" style="font-weight:400">— printed on the accommodated copy</span></span><select data-set="time">'+[['','(don’t show)'],['1.5','1.5× extended time'],['2','2.0× extended time'],['min','Number of minutes…']].map(function(o){return '<option value="'+o[0]+'"'+(s.time===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select>'+(s.time==='min'?'<span style="display:flex;gap:6px;align-items:center;margin-top:6px"><input type="number" data-set="timeMin" min="1" max="600" value="'+esc(s.timeMin)+'" style="width:90px"> minutes</span>':'')+'</label>';
   var details='';
   if(exam)details=
     '<div class="row3">'+tf('quarter','Quarter #','1')+tf('unitNum','Unit #','3')+'</div>'+
     tf('topic','Unit title <span class="hint" style="font-weight:400">— right side, in italics</span>','e.g. Parallel & Perpendicular Lines')+
     tf('title','Title line','auto: '+autoTitle())+
-    '<div class="row">'+tf('teacher','Teacher','e.g. Ms. Candalino')+calcSel+'</div><p class="hint">Teacher, calculator and time print on the accommodated copy only.</p>'+
+    '<div class="row">'+tf('teacher','Teacher','e.g. Ms. Candalino')+calcSel+'</div><div class="checks"><label><input type="checkbox" data-set="infoAll"'+(s.infoAll?' checked':'')+'><span>Print teacher and calculator on every copy<small>Off: they print on the accommodated copy only, with the time line.</small></span></label></div>'+
     ta('instructions','Instructions','optional',2,'printed above Part I');
   else if(dt==='review')details=
     '<div class="row3">'+tf('unitNum','Unit #','3')+'</div>'+
@@ -4361,7 +4373,7 @@ function _renderBuild(){
     details+
     '</div></div>'+
     '<div class="card" data-show="setup:spacing"><h2>Spacing</h2>'+spacingSection()+'<div class="fields sp-bm">'+'<label><span class="lbl">Bimodal questions</span><select data-set="bmMode"><option value="with"'+(s.bmMode!=='without'?' selected':'')+'>Print with the answer choices</option><option value="without"'+(s.bmMode==='without'?' selected':'')+'>Print without choices (open-ended)</option></select><span class="hint">Switch single questions under Set up › Questions.</span></label>'+'</div></div>'+
-    '<div class="card" data-show="setup:acc"><h2>Accommodations</h2>'+(exam?'<div class="fields acc-time">'+timeSel+'</div>':'')+accSection()+'</div>'+
+    '<div class="card" data-show="setup:acc"><h2>Accommodations</h2>'+(exam?'<p class="hint acc-time">The accommodated copy prints <i>'+esc(TIME_LINE)+'</i> under the title for the student’s time.</p>':'')+accSection()+'</div>'+
     '<div class="card" id="pageStyle" data-show="setup:page"><h2>Page style</h2><div class="fields">'+
     '<div class="row"><label><span class="lbl">Font</span><select data-set="font">'+Object.keys(FONTS).map(function(f){return '<option value="'+esc(f)+'"'+(s.font===f?' selected':'')+' style="font-family:'+esc(FONTS[f])+'">'+esc(f)+'</option>';}).join('')+'</select></label><label><span class="lbl">Size</span><select data-set="fontSize">'+[10,10.5,11,11.5,12,13,14].map(function(z){return '<option value="'+z+'"'+(num(s.fontSize,12)==z?' selected':'')+'>'+z+' pt</option>';}).join('')+'</select></label></div>'+
     '<div class="row"><label><span class="lbl">Picture labels <span class="hint" style="font-weight:400">— letters and numbers in drawn pictures</span></span><select data-set="picFont">'+Object.keys(PIC_FONTS).map(function(f){return '<option value="'+esc(f)+'"'+((s.picFont||'Arial')===f?' selected':'')+' style="font-family:'+esc(FONTS[f==='Times'?'Times New Roman':f])+'">'+esc(f)+'</option>';}).join('')+'</select></label></div>'+

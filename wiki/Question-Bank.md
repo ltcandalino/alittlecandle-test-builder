@@ -21,7 +21,7 @@ A question taught in more than one unit has its units separated by commas, like 
 
 ## Finding questions
 
-Search by words, or filter by **unit**, **section**, **topic** and **standard**. Click **More filters** for needs attention, bank, type, year, month, cluster, subtopic, source and your own fields; the button shows how many of those are in use.
+Search by words, or filter by **unit**, **section**, **topic** and **subtopic**. Click **More filters** for type, month, year, cluster, standard, bank, source and your own fields; the button shows how many of those are in use. On **Question bank**, More filters also has **Needs attention** (it isn't on 1 Pick questions).
 
 The filters narrow each other: after you pick **Unit 4**, the other menus only list sections, topics and standards that Unit 4's questions have. What you already picked always stays in its menu.
 
@@ -87,6 +87,9 @@ Add details the banks don't have, like DOK or difficulty, under **Question bank 
 - they're in backups and bank files
 
 Rename or delete a field on **Question bank → Your fields**. Deleting removes it from every question (with Undo).
+
+**Hide** keeps a field's values in your questions, backups and bank files but shows it nowhere in the app: no filter, not in the editor,
+not on the cards. **Show** brings it back. The JMAP topic and JMAP subtopic fields in the Regents bank files come hidden.
 
 ## Question types
 

@@ -138,16 +138,13 @@ describe('labels and credits', () => {
     assert.deepEqual(await lab('lower'), ['a)', 'b)', 'c)', 'd)']);
   });
   test('calculator and time accommodation', async () => {
-    await settings(page, { calc: 'Desmos', time: '1.5' });
+    await settings(page, { calc: 'Desmos' });
     assert.equal(await fn(page, 'calcLabel'), 'Desmos');
-    assert.equal(await fn(page, 'timeLabel'), '1.5× extended time');
-    await settings(page, { calc: 'other', calcOther: 'TI-30XS', time: '2' });
+    assert.equal(await fn(page, 'timeLabel'), '1.5x/2.0x/_____ mins. left', 'one fixed time line (2026-11-28)');
+    await settings(page, { calc: 'other', calcOther: 'TI-30XS' });
     assert.equal(await fn(page, 'calcLabel'), 'TI-30XS');
-    assert.equal(await fn(page, 'timeLabel'), '2.0× extended time');
-    await settings(page, { time: 'min', timeMin: '45' });
-    assert.match(await fn(page, 'timeLabel'), /^45 /);
-    await settings(page, { calc: '', time: '' });
-    assert.equal(await fn(page, 'calcLabel'), ''); assert.equal(await fn(page, 'timeLabel'), '');
+    await settings(page, { calc: '' });
+    assert.equal(await fn(page, 'calcLabel'), '');
   });
 });
 

@@ -61,6 +61,28 @@ describe('needs attention', () => {
     assert.equal(shown.length, 1); assert.match(shown[0], /Missing answer/);
     assert.match(await page.textContent('#chips'), /Needs attention: No correct answer/);
   });
+  test('only on Question bank: 1 Pick questions has no Needs attention filter and ignores it', async () => {
+    await gotoTab(page, 'pick');
+    await page.evaluate(() => { window.__tb.ui().moreF = true; window.__tb.render(); });
+    assert.equal(await page.$$eval('#fneed', e => e.length), 0);
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 2, 'the need filter set on Question bank is ignored here');
+    assert.doesNotMatch(await page.textContent('#chips'), /Needs attention/);
+    await gotoTab(page, 'bank');
+    await page.evaluate(() => { window.__tb.ui().need = ''; window.__tb.render(); });
+  });
+  test('filters in her order: search, unit, section, topic, subtopic; more: type, month, year, cluster, standard, bank', async () => {
+    await reset();
+    await add([{ html: 'A', unit: '1', section: '2', topic: 'T', subtopic: 'S', standard: 'A.1', cluster: 'A', year: '2024', month: '06', bank: 'X' }, { html: 'B', unit: '2', section: '1', topic: 'U', subtopic: 'R', standard: 'A.2', cluster: 'B', year: '2025', month: '01', bank: 'Y' }]);
+    await gotoTab(page, 'pick');
+    await page.evaluate(() => { window.__tb.ui().moreF = true; window.__tb.render(); });
+    const ids = sel => page.$$eval(sel + ' > select, ' + sel + ' > input', e => e.map(x => x.id));
+    assert.deepEqual(await ids('#main .toolbar:not(.morebar)'), ['fq', 'fu', 'fsec', 'ft', 'fsub']);
+    assert.deepEqual((await ids('#moreBar')).filter(Boolean), ['fy', 'fmo', 'fyr', 'fcl', 'fs', 'fb', 'fsrc'], 'Source last');
+    await page.selectOption('#fs', 'A.2');
+    assert.equal(await page.$$eval('#qlist .qcard', e => e.length), 1);
+    await page.click('#clearF');
+    await gotoTab(page, 'bank');
+  });
 });
 
 describe('Change these…', () => {
@@ -178,6 +200,30 @@ describe('her own fields', () => {
     await page.click('#toast button');
     assert.equal((await page.evaluate(() => window.__tb.state.fields)).length, 1);
     assert.deepEqual((await qs()).map(q => q.extra[f[0].id]), ['3', '3']);
+  });
+  test('a hidden field keeps its values but shows nowhere; a bank file can hide it', async () => {
+    await reset();
+    await add([{ html: 'One' }]);
+    await page.evaluate(() => { const T = window.__tb; T.state.fields = [{ id: 'fj', label: 'JMAP topic' }]; T.state.questions[0].extra = { fj: 'Similarity' }; T.render(); });
+    await gotoTab(page, 'bank', 'fields');
+    await page.click('[data-fhide]');
+    assert.equal((await page.evaluate(() => window.__tb.state.fields))[0].hidden, true);
+    assert.match(await page.textContent('#fieldsCard'), /hidden/);
+    await gotoTab(page, 'bank');
+    await page.evaluate(() => { window.__tb.ui().moreF = true; window.__tb.render(); });
+    assert.equal(await page.$$eval('[data-xff]', e => e.length), 0, 'no filter');
+    assert.doesNotMatch(await page.textContent('#qlist'), /JMAP|Similarity/, 'not on the card');
+    await page.click('[data-edit]');
+    assert.equal(await page.$$eval('[data-xf]', e => e.length), 0, 'not in the editor');
+    await page.fill('#e-ny', 'A.A.7'); await page.click('#e-save');
+    assert.deepEqual((await qs())[0].extra, { fj: 'Similarity' }, 'saving keeps its value');
+    const s = await page.evaluate(() => window.__tb.normalize(JSON.parse(JSON.stringify(window.__tb.state))));
+    assert.equal(s.fields[0].hidden, true, 'kept by normalize (sync, backups)');
+    // a bank file that marks the field hidden hides the one she already has
+    await page.evaluate(() => { const T = window.__tb; T.state.fields[0].hidden = undefined; });
+    const r = await page.evaluate(() => window.__tb.fn.importBankData([{ name: 'b.json', data: { app: 'test-builder', kind: 'bank', version: 1, bank: 'B', courses: ['Algebra 1'], fields: [{ id: 'x1', label: 'JMAP topic', hidden: true }], questions: [{ id: 'nb1', type: 'tf', html: 'New', answer: 'T', courses: ['Algebra 1'], bank: 'B', extra: { x1: 'Lines' } }] } }]));
+    assert.equal(r.added, 1);
+    assert.equal((await page.evaluate(() => window.__tb.state.fields))[0].hidden, true);
   });
   test('a field can be added from the editor', async () => {
     await reset();

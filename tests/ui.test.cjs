@@ -612,9 +612,9 @@ describe('simpler screens', () => {
     const ids = await addQuestions(page, [{ html: 'One' }, { html: 'Two', type: 'es' }]);
     await select(page, ids); await settings(page, { docType: 'test', group: true });
     await place('setup', 'acc');
-    assert.ok(await page.isVisible('[data-set="time"]'), 'Time accommodation is under Accommodations');
+    assert.match(await page.textContent('.acc-time'), /1\.5x\/2\.0x\/_____ mins\. left/, 'the time line is explained under Accommodations');
     await place('setup', 'doc');
-    assert.ok(!(await page.isVisible('[data-set="time"]')), 'and no longer under Document');
+    assert.ok(await page.isVisible('[data-set="infoAll"]'), 'teacher and calculator on every copy: under Document');
     await place('setup', 'spacing');
     assert.ok(await page.isVisible('[data-set="bmMode"]'), 'both bimodal settings are under Spacing');
     await place('setup', 'page');

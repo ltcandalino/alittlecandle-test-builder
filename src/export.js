@@ -447,7 +447,7 @@ function makeExporter(A) {
         '<w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(function (s) { return isRv ? '<w:' + s + ' w:val="nil"/>' : '<w:' + s + ' w:val="single" w:sz="6" w:color="000000"/>'; }).join('') + '</w:tblBorders>';
       var h = '<w:tbl><w:tblPr><w:tblW w:w="' + Math.round(W) + '" w:type="dxa"/>' + (indent ? '<w:tblInd w:w="' + Math.round(indent) + '" w:type="dxa"/>' : '') + borders + (grid ? '<w:jc w:val="center"/>' : '') + '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>' + grid;
       Array.prototype.forEach.call(rows, function (r) {
-        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className) ? 'E5DFEC' : null, col = 0;
+        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = null, col = 0; // the review's Multiple Choice row has no fill (2026-11-28)
         h += '<w:tr>' + (head ? '<w:trPr><w:tblHeader/><w:cantSplit/></w:trPr>' : '<w:trPr><w:cantSplit/></w:trPr>');
         Array.prototype.forEach.call(r.children, function (td) {
           var span = +(td.getAttribute('colspan') || 1), w = widths.slice(col, col + span).reduce(function (a, b) { return a + b; }, 0); col += span;
@@ -473,7 +473,7 @@ function makeExporter(A) {
     },
     page: function () { return '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>'; },
     section: function (s, root, last) {
-      var lesson = s.doc === 'lesson', paper = this.exam && s.type !== 'key', W = (paper ? 7 : 7.5) * TW, self = this;
+      var lesson = s.doc === 'lesson', paper = this.exam && s.type !== 'key', wide = s.type !== 'key', W = (wide ? 7 : 7.5) * TW, self = this; // keys keep 0.5in margins
       this.list = null;
       this.cur = { width: W, font: s.font ? ({ 'Atkinson Hyperlegible': 'Atkinson Hyperlegible Next', 'OpenDyslexic': 'OpenDyslexic' })[s.font] || s.font : (appState().settings.font || 'Century Schoolbook'), size: s.size || num(appState().settings.fontSize, 12), spacing: s.spacing,
         lines: paper && !s.spacing ? 1 : 0, big: paper && (s.size || 0) > num(appState().settings.fontSize, 12) };
@@ -517,7 +517,7 @@ function makeExporter(A) {
         hdr.footer = this.hf('footer', this.p((foot ? this.t(foot, small) : '') + this.tab() + this.page(), { tabs: [['right', W]] }));
         hdr.firstFooter = this.hf('footer', this.p(''));
       }
-      var mar = paper ? [1, 0.75, 0.5] : [0.5, 0.5, 0.25], ref = function (k, t, id) { return id ? '<w:' + k + 'Reference w:type="' + t + '" r:id="' + id + '"/>' : ''; };
+      var mar = wide ? [1, 0.75, 0.5] : [0.5, 0.5, 0.25], ref = function (k, t, id) { return id ? '<w:' + k + 'Reference w:type="' + t + '" r:id="' + id + '"/>' : ''; };
       // the section's font and size go on every run through a paragraph-level default (rPr in pPr doesn't inherit), so use a style per section
       this.styles = (this.styles || '') + '<w:style w:type="paragraph" w:customStyle="1" w:styleId="' + sid + '"><w:name w:val="' + X(s.label || 'Test') + ' text"/><w:basedOn w:val="Normal"/><w:qFormat/><w:rPr><w:rFonts w:ascii="' + X(this.cur.font) + '" w:hAnsi="' + X(this.cur.font) + '" w:cs="' + X(this.cur.font) + '"/><w:sz w:val="' + Math.round(this.cur.size * 2) + '"/><w:szCs w:val="' + Math.round(this.cur.size * 2) + '"/></w:rPr></w:style>';
       chunks.forEach(function (c, i) {
@@ -589,7 +589,7 @@ function makeExporter(A) {
   function TexWriter(imgs) { this.imgs = imgs; this.files = []; this.names = {}; this.used = {}; }
   TexWriter.prototype = {
     preamble: function () {
-      var s = appState().settings, lesson = docType() === 'lesson', ex = isExamDoc(), m = ex ? 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=24pt,headsep=12pt,footskip=0.35in' : 'top=0.25in,bottom=0.5in,left=0.5in,right=0.5in,includehead,headheight=' + (lesson ? 40 : 16) + 'pt,footskip=0.25in,headsep=6pt';
+      var s = appState().settings, lesson = docType() === 'lesson', ex = isExamDoc(), m = ex ? 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=24pt,headsep=12pt,footskip=0.35in' : 'top=1in,bottom=1in,left=0.75in,right=0.75in,headheight=' + (lesson ? 40 : 16) + 'pt,headsep=12pt,footskip=0.5in'; // reviews and lessons: the test margins (2026-11-28)
       var uni = Object.keys(this.used).map(function (c) { return '\\newunicodechar{' + c + '}{\\ensuremath{' + UNI[c] + '}}'; }).join('\n');
       return '% Made by ALittleCandleTestBuilder. Compile with pdfLaTeX (Overleaf\'s default).\n' +
         '\\documentclass[12pt]{exam}\n\\usepackage[letterpaper,' + m + ']{geometry}\n\\usepackage[T1]{fontenc}\n\\usepackage[utf8]{inputenc}\n' +
@@ -721,7 +721,7 @@ function makeExporter(A) {
       var colspec = bar + widths.map(function (w) { return (grid ? '>{\\centering\\arraybackslash}' : '') + 'p{\\dimexpr' + (Math.round(w * 100) / 100) + 'in-2\\tabcolsep}'; }).join(bar) + bar;
       var h = (isRv || isKey ? '\\begin{longtable}{' + colspec + '}' : '\\begin{tabular}{' + colspec + '}') + (ruled ? '\\hline\n' : '\n');
       Array.prototype.forEach.call(rows, function (r) {
-        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = /\brv-h\b/.test(r.className) && /\bmc\b/.test(r.className), col = 0;
+        var head = r.parentNode.tagName.toLowerCase() === 'thead' || /\brv-h\b/.test(r.className), shade = false, col = 0;
         // when one cell needs a block (pictures, lists…), every cell in the row is top-aligned the same way
         var anyBlocks = Array.prototype.some.call(r.children, function (td) { return Array.prototype.some.call(td.children, function (c) { return /^(div|p|table|ul|ol)$/i.test(c.tagName); }); });
         var cells = Array.prototype.map.call(r.children, function (td) {
@@ -741,7 +741,7 @@ function makeExporter(A) {
     },
     section: function (s, root, first) {
       var lesson = s.doc === 'lesson', self = this, course = this.uniText(headerText()), right = this.uniText(rightLabel());
-      this.width = isExamDoc() ? 7 : 7.5; this.spacing = !!s.spacing; this.boxOn = this.compNext = false; this.big = (s.size || 0) > num(appState().settings.fontSize, 12);
+      this.width = 7; this.spacing = !!s.spacing; this.boxOn = this.compNext = false; this.big = (s.size || 0) > num(appState().settings.fontSize, 12);
       var body = this.blocks(root), h = (first ? '' : '\\newpage\n') + (isExamDoc() ? '\\global\\mcpagefalse' : '') + '\\setcounter{page}{1}\n';
       if (s.type === 'key') {
         h += '\\firstpageheader{}{}{}\\runningheader{}{}{}\\firstpageheadrule\\relax\\nofirstpageheadrule\\norunningheadrule\n' +

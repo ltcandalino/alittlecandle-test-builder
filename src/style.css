@@ -377,7 +377,6 @@ kbd{font-family:inherit;font-size:11px;border:1px solid var(--line2);border-bott
 table.rv{width:100%;border-collapse:collapse;table-layout:fixed}
 table.rv td{border:0;padding:3pt 5pt;vertical-align:top} /* Review: no borders (her choice 2026-11-15) */
 table.rv tr.rv-h td{font-weight:700;break-after:avoid}
-table.rv tr.rv-h.mc td{background:#E5DFEC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 table.rv tr.rv-q{break-inside:avoid}
 table.rv td.rv-n{font-weight:700}
 .rv-ref{text-align:right;color:#bfbfbf;font-size:7pt;margin-top:4pt}

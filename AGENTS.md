@@ -105,6 +105,12 @@ technical detail out of her way. Prints paper tests. Previously used ExamView/Ex
   for chips. Bank files: `{app,kind:'bank',version:1,bank,courses,fields,questions}`, `bankFileData`/`importBankData`
   (same id → update, fields matched by label, html sanitized), `saveBankFiles` (showDirectoryPicker, else downloads).
 - `window.__tb` exposes state/normalize/render/printJobs and `fn` (most internal functions) for tests.
+- Plan 5 release 1 (2026-11-28): `shownFields()` = her fields minus `hidden` ones (filters, editor, Change these…, cards, chips use it; the
+  editor keeps hidden values on save; normalize and bank files keep `hidden`, `importBankData` copies a file's `hidden`). Filters: main row
+  `fq fu fsec ft fsub`, More filters in her order (`MORE_F`); `need` only off `picking()` (`filtered`/`facetPool` ignore it there).
+  `TIME_LINE` (timeLabel) on the accommodated copy; `settings.infoAll` puts teacher + calculator on every copy. Reviews/lessons use
+  `pageGeom` `1in .75in` (w 504), Word `wide` sections, LaTeX geometry; keys keep 0.5in. `splitParts`/`partsHtml`: `(a)` `a)` `a.` parts
+  on every document type (review/lesson non-MC via `partsHtml`).
 - Drawn pictures (SVG, `IMAGE-RULES.md`): one file holds three label fonts; `picFont()` adds `#schoolbook`/`#times` from `settings.picFont` (Page style **Picture labels**) in `testHtml`, `keyHtml`, `qCard`; stored html keeps the plain address. `svgSize` (inside `pngSize`) reads width/height in pt. Server serves `.svg` with a sandbox CSP; Word/LaTeX draw them at 300 dpi.
 - `sanitize` parses into an inert `<template>` (so `onerror` never runs), drops script/style/svg/etc.,
   and allows images that are `data:`, `https:`, or this server's own picture URLs on `http:`.
@@ -311,6 +317,7 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - [ ] Her request 2026-11-26: the app should draw piecewise functions with the big curly brace (LaTeX `\begin{cases}` → app math, print,
       Word, LaTeX). Until then the eMath scripts write pieces inline (`ema1_lib.write`); re-run them once the app can draw it.
 - [ ] Noticed 2026-11-25: sync (`hostImages`) moves pictures in questions and choices to picture storage, but not pictures in answers; those stay inside the question.
+- [ ] PLAN.md **Plan 5** (approved 2026-11-28): release 1 built (not released); data step (pictures after the text, JMAP fields hidden in bank files) next; then releases 2–4.
 - [ ] PLAN.md **Plan 3** (approved 2026-11-14): shared question database: owner + Public/Private per
       question, banks as lists, admin-made groups, editors per bank, Share one question, one copy per Regents question,
       personal copies that notice updates, history, comments, review status (another editor marks Ready), offline cache.
@@ -586,3 +593,4 @@ npm run test:db        # server + sync tests on Postgres 18, MariaDB LTS, MySQL 
 - **2026-11-27**: Passwater "Multiple Choice AP Style Problems" Units 1–3 converted (484 questions, 258 pictures) into a second Private bank file, `PreCalculus_AP_Passwater_MCQReview bank file.json` (71 MB, folder `Passwater AP Precalculus MCQ review bank folder`, same bank name); the main Passwater file stays 578 questions, 46.7 MB. Tools `pw_mcq.py`, `pw_mcq1–3.py` (+ answers, boxes). Review PDFs per unit in the review folder. Left: FRQ Task Models, Daily 3-Peat quizzes. Kept outside the repo.
 - **2026-11-27**: Passwater FRQ Task Models converted (FRQ 1 A–M, FRQ 2 A–L, FRQ 3 A–P, FRQ 4 A–H: 49 six-point questions, 38 pictures) into the main Passwater bank file, now 627 questions, 281 pictures, 55.4 MB; review PDFs per FRQ type in the bank folder. Tool `pw_frqtm.py` (+ boxes). Left in Passwater: Daily 3-Peat quizzes, FRQ targeted practice, review notes. Kept outside the repo.
 - **2026-11-27**: Passwater Daily 3-Peat Review Quizzes A–T converted (60 MC, 3 per quiz, difficulty in notes) into the MCQ review bank file, now 544 questions, 290 pictures, 74.1 MB. Tool `pw_3peat.py` (+ key, boxes). B and F read from their Word files (B's PDF is damaged, F has none). Left in Passwater: FRQ targeted practice, review notes. Kept outside the repo.
+- **2026-11-28**: Plan 5 written with her (14 changes sorted into 4 releases; course: option A, sort old questions into courses + Course filter). Release 1 built: Create Document, teacher/calculator on every copy, one time line, filter order, Needs attention on Question bank only, review/lesson test margins, no MC row fill, (a)(b)(c) parts from `a.` on every document, hidden fields. 2,058 tests. Not released.
