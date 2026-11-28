@@ -339,8 +339,13 @@ Her 14 changes, sorted and clarified with her on 2026-11-28. Waiting for her app
 6. Reviews and lessons get the test/quiz margins (1 in top/bottom, 0.75 in sides; replaces ½ in from 2026-11-15), in print, preview, Word, LaTeX.
 7. Review "Multiple Choice Questions" cell: no purple fill (transparent) in print, Word, LaTeX.
 8. Parts: `a.` `b.` (as in the BFW bank) and `a)` `(a)` are all read as parts and print as bold **(a)** on every document type.
-9. Data, outside the app: JMAP topic / JMAP subtopic removed from every bank file (backup with them kept in `Backups/`); she deletes the two
-   fields on her site.
+9. JMAP topic / JMAP subtopic **stay** in the bank files (her change 2026-11-28) but are hidden everywhere: each of her own fields gets a
+   **Hidden** setting under Your fields (not a filter, not in the editor, Change these…, chips or cards; kept in data, bank files, backups,
+   sync). Bank files can mark a field hidden; she can show it again.
+10. Data, outside the app (her choice 2026-11-28): in all bank files, pictures move **after the question text** (1,740 of 2,553 questions
+   with pictures have text after one). A picture inside a part (a), (b) goes after that part's text; one before (a) after the opening text.
+   Backup first; questions where the text says "above" or pictures have captions between them are listed for her. Opening the new bank
+   files updates her questions on her site (same ids). Rule added to `CONVERSION-RULES.md` for every new bank.
 
 ## Release 2: course filter (her choice A)
 - Old banks: each question sorted into its modern course while converting (by standard), with that course's labels; a question that fits two
