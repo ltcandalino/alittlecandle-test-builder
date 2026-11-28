@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-11-28
+
 ### Added
 - **Print teacher and calculator on every copy** (2 Set up › Document, tests and quizzes): off to begin with, they print on the accommodated copy only.
 - Opening a bank file names the bank after the file: `Algebra1_CC_2013-2024_Bank.json` becomes the bank **Algebra1_CC_2013-2024** (questions you have from it move into that bank, as with a combined bank file). **Save all as files…** names each file `<bank>_Bank.json`, so saving and opening again keeps the name. `scripts/bank-file.cjs` and `scripts/merge-banks.cjs` write `<bank>_Bank.json` too.
